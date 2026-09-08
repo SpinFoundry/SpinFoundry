@@ -16,7 +16,7 @@ SpinFoundry is hosted on **Cloudflare Pages** (`spinfoundry.pages.dev`) via GitH
 * **Precompiled Styling (Tailwind CLI):** Tailwind CSS is precompiled into a single purged, minified static stylesheet at `/assets/styles.css`. The Tailwind Play CDN (`<script src="https://cdn.tailwindcss.com">`) is **strictly prohibited in production** to protect Core Web Vitals and First Contentful Paint (FCP).
 * **Cloudflare Pages Native Routing:** Every tool lives in its own isolated subfolder containing a standalone `index.html` (e.g. `/dough-hydration-calculator/index.html`), accessible at `/dough-hydration-calculator/`.
 * **Deterministic Core Logic:** All calculations, conversions, and algorithms execute natively in client-side JavaScript. No approximation, no statistical estimates, and **no AI/LLM in the calculation path**.
-* **Bespoke Aesthetic Freedom:** Every tool is an isolated product. While adhering to dark mode defaults (`bg-slate-950 text-slate-100`) and the shared top chrome header/footer, each tool enjoys complete creative freedom over its interactive layout.
+* **Sober, Minimalist Aesthetic:** SpinFoundry prioritizes clean, high-contrast, light-mode typography (`bg-neutral-50 text-neutral-900`) and bare-bones, clutter-free utility interfaces. Visual noise, complex nested ribbons, and gratuitous dark-mode neon gradients are avoided in favor of functional elegance and fast task completion.
 
 ---
 
