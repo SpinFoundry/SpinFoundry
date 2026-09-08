@@ -3,14 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SpinFoundry — Zero-Overhead Client-Side Micro-App Hub</title>
-  <meta name="description" content="SpinFoundry is a curated catalog of 100% client-side micro-apps, calculators, and simulations. Zero runtime build, deterministic math, and privacy-first.">
+  <title>SpinFoundry — Zero-runtime utilities for daily work</title>
+  <meta name="description" content="Single-purpose calculators and simulations running purely in your browser. No trackers, no frameworks, zero latency.">
   <link rel="canonical" href="https://spinfoundry.pages.dev/">
 
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://spinfoundry.pages.dev/">
-  <meta property="og:title" content="SpinFoundry — Zero-Overhead Client-Side Micro-App Hub">
-  <meta property="og:description" content="Sober, high-performance client-side micro-apps and calculators.">
+  <meta property="og:title" content="SpinFoundry — Zero-runtime utilities for daily work">
+  <meta property="og:description" content="Single-purpose calculators and simulations running purely in your browser. No trackers, no frameworks, zero latency.">
   <meta name="twitter:card" content="summary">
 
   <link rel="stylesheet" href="/assets/styles.css">
@@ -25,130 +25,115 @@
   }
   </script>
 </head>
-<body class="bg-neutral-50 text-neutral-900 min-h-screen flex flex-col font-sans antialiased">
+<body class="bg-[#F8F9FA] text-slate-800 antialiased font-sans min-h-screen">
 
-  <!-- Header -->
-  <header class="border-b border-neutral-200 bg-white">
-    <div class="max-w-4xl mx-auto px-4 h-14 flex items-center justify-between">
-      <div class="flex items-center space-x-2">
-        <a href="/" class="font-bold text-base tracking-tight text-neutral-900 hover:text-neutral-700 transition-colors">SpinFoundry</a>
-        <span class="text-neutral-300">/</span>
-        <span class="text-xs text-neutral-500 font-mono">Micro-App Hub</span>
-      </div>
-      <a href="https://github.com/SpinFoundry/SpinFoundry" target="_blank" rel="noopener noreferrer" class="text-xs text-neutral-600 hover:text-neutral-900 font-medium transition-colors">
-        GitHub
-      </a>
-    </div>
-  </header>
-
-  <!-- Hero Section -->
-  <section class="bg-white border-b border-neutral-200 py-10 sm:py-14">
-    <div class="max-w-4xl mx-auto px-4 space-y-3">
-      <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-neutral-900">
-        Deterministic, zero-runtime tools.
-      </h1>
-      <p class="text-sm sm:text-base text-neutral-600 max-w-2xl leading-relaxed">
-        Single-purpose utilities and calculators running 100% in your browser. Pure HTML5 and vanilla JavaScript with zero framework overhead.
-      </p>
-    </div>
-  </section>
-
-  <!-- Catalog Explorer -->
-  <main class="flex-grow max-w-4xl w-full mx-auto px-4 py-8 space-y-6">
+  <!-- Container principal resserré pour un meilleur rythme -->
+  <main class="max-w-5xl mx-auto px-6 py-12">
     
-    <!-- Controls: Search & Category Filter -->
-    <div class="space-y-3">
-      <!-- Search Input -->
-      <div class="max-w-md">
-        <input type="text" id="searchInput" placeholder="Search tools..." class="w-full bg-white border border-neutral-300 focus:border-neutral-900 rounded-md px-3.5 py-2 text-sm text-neutral-900 placeholder-neutral-400 outline-none transition-colors shadow-sm font-sans">
+    <!-- Hero Section -->
+    <header class="mb-10">
+      <div class="inline-flex items-center gap-2 px-2.5 py-1 rounded-full text-xs font-mono bg-emerald-50 text-emerald-700 border border-emerald-200/60 mb-4">
+        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+        100% Client-Side & Deterministic
+      </div>
+      <h1 class="text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl">
+        Zero-runtime utilities for daily work.
+      </h1>
+      <p class="mt-2 text-base text-slate-600 max-w-2xl">
+        Single-purpose calculators and simulations running purely in your browser. No trackers, no frameworks, zero latency.
+      </p>
+    </header>
+
+    <!-- Barres de filtres & Recherche -->
+    <div class="flex flex-col md:flex-row gap-4 items-center justify-between mb-8 pb-6 border-b border-slate-200">
+      
+      <!-- Input Recherche avec Icône -->
+      <div class="relative w-full md:w-72">
+        <input type="text" id="searchInput" placeholder="Search tools..." class="w-full pl-9 pr-4 py-2 bg-white border border-slate-200 rounded-lg text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-400 transition-all shadow-sm">
+        <svg class="w-4 h-4 absolute left-3 top-2.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
       </div>
 
-      <!-- Category Filter Pills Ribbon -->
-      <div class="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none" id="categoryPills">
-        <button type="button" data-category="all" class="category-pill px-3 py-1 rounded-full text-xs font-semibold bg-neutral-900 text-white transition-colors">
+      <!-- Pilules de Catégories (Hauteur égale & Scroll propre) -->
+      <div class="flex items-center gap-2 overflow-x-auto w-full md:w-auto pb-2 md:pb-0 scrollbar-none" id="categoryPills">
+        <button type="button" data-category="all" class="category-pill px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap bg-slate-900 text-white shadow-sm transition-all">
           All (1)
         </button>
-        <button type="button" data-category="nutrition" class="category-pill px-3 py-1 rounded-full text-xs font-medium bg-neutral-200 text-neutral-700 hover:bg-neutral-300 transition-colors">
+        <button type="button" data-category="nutrition" class="category-pill px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 transition-colors shadow-sm">
           🥗 Nutrition & Kitchen (1)
         </button>
-        <button type="button" data-category="finance" class="category-pill px-3 py-1 rounded-full text-xs font-medium bg-neutral-100 text-neutral-500 hover:bg-neutral-200 transition-colors">
-          📊 Finance & Wealth
+        <button type="button" data-category="finance" class="category-pill px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap bg-white text-slate-400 border border-slate-200 opacity-50 cursor-not-allowed" title="Coming soon">
+          📊 Finance & Wealth (0)
         </button>
-        <button type="button" data-category="conversions" class="category-pill px-3 py-1 rounded-full text-xs font-medium bg-neutral-100 text-neutral-500 hover:bg-neutral-200 transition-colors">
-          📏 Measures & Conversions
+        <button type="button" data-category="conversions" class="category-pill px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap bg-white text-slate-400 border border-slate-200 opacity-50 cursor-not-allowed" title="Coming soon">
+          📏 Measures & Conversions (0)
         </button>
-        <button type="button" data-category="simulations" class="category-pill px-3 py-1 rounded-full text-xs font-medium bg-neutral-100 text-neutral-500 hover:bg-neutral-200 transition-colors">
-          🧪 Simulations & Physics
+        <button type="button" data-category="simulations" class="category-pill px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap bg-white text-slate-400 border border-slate-200 opacity-50 cursor-not-allowed" title="Coming soon">
+          🧪 Simulations & Physics (0)
         </button>
-        <button type="button" data-category="games" class="category-pill px-3 py-1 rounded-full text-xs font-medium bg-neutral-100 text-neutral-500 hover:bg-neutral-200 transition-colors">
-          🕹️ Mini-Games & Puzzles
+        <button type="button" data-category="games" class="category-pill px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap bg-white text-slate-400 border border-slate-200 opacity-50 cursor-not-allowed" title="Coming soon">
+          🕹️ Mini-Games & Puzzles (0)
         </button>
-        <button type="button" data-category="coffee-brew" class="category-pill px-3 py-1 rounded-full text-xs font-medium bg-neutral-100 text-neutral-500 hover:bg-neutral-200 transition-colors">
-          ☕ Coffee & Fermentation
+        <button type="button" data-category="coffee-brew" class="category-pill px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap bg-white text-slate-400 border border-slate-200 opacity-50 cursor-not-allowed" title="Coming soon">
+          ☕ Coffee & Fermentation (0)
         </button>
-        <button type="button" data-category="garden" class="category-pill px-3 py-1 rounded-full text-xs font-medium bg-neutral-100 text-neutral-500 hover:bg-neutral-200 transition-colors">
-          🌿 Home & Garden
+        <button type="button" data-category="garden" class="category-pill px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap bg-white text-slate-400 border border-slate-200 opacity-50 cursor-not-allowed" title="Coming soon">
+          🌿 Home & Garden (0)
         </button>
-        <button type="button" data-category="dev-tools" class="category-pill px-3 py-1 rounded-full text-xs font-medium bg-neutral-100 text-neutral-500 hover:bg-neutral-200 transition-colors">
-          🛠️ Dev & Design
+        <button type="button" data-category="dev-tools" class="category-pill px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap bg-white text-slate-400 border border-slate-200 opacity-50 cursor-not-allowed" title="Coming soon">
+          🛠️ Dev & Design (0)
         </button>
       </div>
     </div>
 
-    <!-- Active Tools Grid Container -->
+    <!-- Grille de Cartes d'Outils -->
     <!-- TOOLS_GRID_START -->
-    <div id="toolsGrid" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+    <div id="toolsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
       
-      <!-- Tool Card -->
-      <article data-tool-id="dough-hydration-calculator" data-category="nutrition" data-tags="baking sourdough hydration percentages bread dough" class="tool-card group relative flex flex-col justify-between p-5 rounded-lg bg-white border border-neutral-200 hover:border-neutral-400 transition-all shadow-sm">
-        <div class="space-y-2">
-          <div class="flex items-center justify-between text-xs text-neutral-500 font-mono">
-            <span>🥗 Nutrition & Kitchen</span>
-            <span>2026-09-08</span>
+      <!-- Carte Cliquable -->
+      <a href="/dough-hydration-calculator/" data-tool-id="dough-hydration-calculator" data-category="nutrition" data-tags="baking sourdough hydration percentages bread dough" class="tool-card group flex flex-col justify-between p-5 bg-white border border-slate-200/80 rounded-xl shadow-sm hover:shadow-md hover:border-slate-300 hover:-translate-y-0.5 transition-all duration-150">
+        <div>
+          <div class="flex items-center justify-between text-xs font-mono text-slate-500 mb-3">
+            <span class="inline-flex items-center gap-1.5 font-medium text-slate-700">
+              <span class="w-1.5 h-1.5 rounded-full bg-orange-500"></span>
+              Nutrition & Kitchen
+            </span>
+            <time>2026-09-08</time>
           </div>
-
-          <h2 class="text-base font-bold text-neutral-900 group-hover:text-neutral-700 transition-colors">
-            <a href="/dough-hydration-calculator/" class="focus:outline-none">
-              <span class="absolute inset-0" aria-hidden="true"></span>
-              Baker's Percentage & True Hydration Calculator
-            </a>
+          <h2 class="text-base font-bold text-slate-900 group-hover:text-slate-700 transition-colors">
+            Baker's Percentage & True Hydration Calculator
           </h2>
-
-          <p class="text-xs text-neutral-600 leading-relaxed">
+          <p class="text-xs text-slate-600 mt-2 leading-relaxed line-clamp-3">
             Precise dough formulas by baker's percentage, with true-hydration math for sourdough starters.
           </p>
         </div>
-
-        <div class="pt-4 mt-3 border-t border-neutral-100 flex items-center justify-between text-xs font-medium text-neutral-900">
+        
+        <div class="mt-5 pt-3 border-t border-slate-100 flex items-center justify-between text-xs font-medium text-slate-900 group-hover:text-slate-600">
           <span>Open Calculator</span>
-          <span class="transform group-hover:translate-x-0.5 transition-transform">→</span>
+          <span class="transform group-hover:translate-x-1 transition-transform">→</span>
         </div>
-      </article>
+      </a>
 
     </div>
     <!-- TOOLS_GRID_END -->
 
     <!-- Empty State -->
-    <div id="emptyState" class="hidden text-center py-12 px-4 rounded-lg bg-white border border-neutral-200">
-      <p class="text-sm font-medium text-neutral-800">No micro-apps found</p>
-      <p class="text-xs text-neutral-500 mt-1">Try another search term or filter.</p>
+    <div id="emptyState" class="hidden text-center py-12 px-4 rounded-xl bg-white border border-slate-200/80">
+      <p class="text-sm font-medium text-slate-800">No tools found</p>
+      <p class="text-xs text-slate-500 mt-1">Try another search term or filter.</p>
     </div>
+
+    <!-- Minimal Footer -->
+    <footer class="mt-16 pt-6 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 gap-3">
+      <span>SpinFoundry — Zero-overhead, 100% client-side hub.</span>
+      <div class="flex items-center gap-4">
+        <a href="https://github.com/SpinFoundry/SpinFoundry" target="_blank" rel="noopener noreferrer" class="hover:text-slate-800 transition-colors">GitHub</a>
+        <a href="/sitemap.xml" class="hover:text-slate-800 transition-colors">Sitemap</a>
+        <a href="/registry.json" class="hover:text-slate-800 transition-colors">Registry</a>
+      </div>
+    </footer>
 
   </main>
 
-  <!-- Footer -->
-  <footer class="border-t border-neutral-200 bg-white py-6 text-neutral-500 text-xs mt-16">
-    <div class="max-w-4xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3">
-      <span>SpinFoundry — Zero-overhead client-side hub.</span>
-      <div class="flex items-center space-x-4">
-        <a href="https://github.com/SpinFoundry/SpinFoundry" target="_blank" rel="noopener noreferrer" class="hover:text-neutral-900 transition-colors">GitHub</a>
-        <a href="/sitemap.xml" class="hover:text-neutral-900 transition-colors">Sitemap</a>
-        <a href="/registry.json" class="hover:text-neutral-900 transition-colors">Registry</a>
-      </div>
-    </div>
-  </footer>
-
-  <!-- Instant Search Script -->
   <script>
     (function () {
       'use strict';
@@ -194,14 +179,17 @@
       });
 
       categoryPills.forEach(pill => {
+        if (pill.classList.contains('opacity-50')) return;
+
         pill.addEventListener('click', () => {
           categoryPills.forEach(p => {
-            p.classList.remove('bg-neutral-900', 'text-white');
-            p.classList.add('bg-neutral-100', 'text-neutral-500');
+            if (p.classList.contains('opacity-50')) return;
+            p.classList.remove('bg-slate-900', 'text-white');
+            p.classList.add('bg-white', 'text-slate-600', 'border', 'border-slate-200');
           });
 
-          pill.classList.add('bg-neutral-900', 'text-white');
-          pill.classList.remove('bg-neutral-100', 'text-neutral-500');
+          pill.classList.add('bg-slate-900', 'text-white');
+          pill.classList.remove('bg-white', 'text-slate-600', 'border', 'border-slate-200');
 
           currentCategory = pill.dataset.category;
           filterTools();
