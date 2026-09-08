@@ -1,1 +1,337 @@
-This is just a test
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SpinFoundry — Zero-Overhead Client-Side Micro-App Hub</title>
+  <meta name="description" content="SpinFoundry is a high-performance directory of 100% client-side micro-apps, calculators, and simulations. Zero runtime build, deterministic math, and privacy-first.">
+  <meta name="keywords" content="micro-apps, calculators, client-side tools, baker's percentage calculator, dough hydration, simulations, web tools">
+  <link rel="canonical" href="https://spinfoundry.pages.dev/">
+
+  <!-- OpenGraph / Facebook -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://spinfoundry.pages.dev/">
+  <meta property="og:title" content="SpinFoundry — Zero-Overhead Client-Side Micro-App Hub">
+  <meta property="og:description" content="High-performance client-side micro-apps, calculators, and simulations. Pure vanilla HTML5/ES6, instant load, zero runtime tracking.">
+  <meta property="og:site_name" content="SpinFoundry">
+
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:url" content="https://spinfoundry.pages.dev/">
+  <meta name="twitter:title" content="SpinFoundry — Zero-Overhead Client-Side Micro-App Hub">
+  <meta name="twitter:description" content="High-performance client-side micro-apps, calculators, and simulations. Pure vanilla HTML5/ES6, instant load, zero runtime tracking.">
+
+  <!-- Precompiled Purged Tailwind CSS -->
+  <link rel="stylesheet" href="/assets/styles.css">
+
+  <!-- JSON-LD Structured Data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "SpinFoundry",
+    "url": "https://spinfoundry.pages.dev/",
+    "description": "Zero-overhead client-side micro-app engine and high-intent calculation hub.",
+    "potentialAction": {
+      "@type": "SearchAction",
+      "target": "https://spinfoundry.pages.dev/?q={search_term_string}",
+      "query-input": "required name=search_term_string"
+    }
+  }
+  </script>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col font-sans selection:bg-amber-500 selection:text-slate-950">
+
+  <!-- Main Navigation Header -->
+  <header class="border-b border-slate-800/80 bg-slate-900/60 backdrop-blur sticky top-0 z-40">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <a href="/" class="flex items-center space-x-2.5 group">
+          <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-slate-950 font-black shadow-lg shadow-amber-500/20 group-hover:scale-105 transition-transform">
+            ⚡
+          </div>
+          <span class="font-bold text-lg tracking-tight text-white group-hover:text-amber-300 transition-colors">SpinFoundry</span>
+        </a>
+        <span class="hidden md:inline-block text-[11px] font-mono px-2 py-0.5 rounded-full bg-slate-800/80 text-slate-400 border border-slate-700/60">
+          v1.0 • 100% Client-Side
+        </span>
+      </div>
+
+      <div class="flex items-center space-x-4">
+        <a href="https://github.com/SpinFoundry/SpinFoundry" target="_blank" rel="noopener noreferrer" class="flex items-center space-x-1.5 text-xs font-medium text-slate-400 hover:text-white bg-slate-800/80 hover:bg-slate-800 border border-slate-700/60 px-3 py-1.5 rounded-lg transition-colors">
+          <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"></path>
+          </svg>
+          <span class="hidden sm:inline">GitHub</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="border-b border-slate-800/60 bg-gradient-to-b from-slate-900/40 via-slate-950 to-slate-950 py-12 sm:py-16">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6">
+      <div class="max-w-3xl space-y-4">
+        <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-amber-950/60 border border-amber-800/60 text-amber-400 text-xs font-semibold uppercase tracking-wider">
+          <span>⚡ Micro-App Lab & High-Intent Calculators</span>
+        </div>
+        <h1 class="text-3xl sm:text-5xl font-extrabold tracking-tight text-white leading-tight">
+          Deterministic tools. <br class="hidden sm:block">
+          <span class="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 via-orange-300 to-yellow-200">
+            Zero runtime bloat.
+          </span>
+        </h1>
+        <p class="text-slate-400 text-base sm:text-lg leading-relaxed">
+          Specialized, single-purpose utilities built in vanilla HTML5 and ES6. Hosted on Cloudflare Pages with zero client-side framework overhead, instant load times, and deterministic client-side calculation.
+        </p>
+
+        <!-- Value Pillar Badges -->
+        <div class="pt-2 flex flex-wrap gap-2 text-xs font-mono text-slate-400">
+          <span class="inline-flex items-center px-2.5 py-1 rounded-md bg-slate-900 border border-slate-800">
+            <span class="text-emerald-400 mr-1.5">✓</span> 100% Client-Side
+          </span>
+          <span class="inline-flex items-center px-2.5 py-1 rounded-md bg-slate-900 border border-slate-800">
+            <span class="text-emerald-400 mr-1.5">✓</span> Zero Framework Bundles
+          </span>
+          <span class="inline-flex items-center px-2.5 py-1 rounded-md bg-slate-900 border border-slate-800">
+            <span class="text-emerald-400 mr-1.5">✓</span> Deterministic Math
+          </span>
+          <span class="inline-flex items-center px-2.5 py-1 rounded-md bg-slate-900 border border-slate-800">
+            <span class="text-emerald-400 mr-1.5">✓</span> Local Storage Persistence
+          </span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Hub Catalog Explorer -->
+  <main class="flex-grow max-w-6xl w-full mx-auto px-4 sm:px-6 py-10 space-y-8">
+    
+    <!-- Controls: Instant Search & Category Filter Pills -->
+    <div class="space-y-4">
+      
+      <!-- Search Input -->
+      <div class="relative max-w-xl">
+        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+          </svg>
+        </div>
+        <input type="text" id="searchInput" placeholder="Search micro-apps by title, category, or keyword..." class="w-full bg-slate-900 border border-slate-800 rounded-xl pl-10 pr-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-amber-500 transition-colors shadow-inner font-sans">
+      </div>
+
+      <!-- Category Filter Pills Ribbon -->
+      <div class="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none" id="categoryPills">
+        <button type="button" data-category="all" class="category-pill flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors bg-amber-500 text-slate-950 shadow-md">
+          <span>✨</span>
+          <span>All Micro-Apps</span>
+          <span class="ml-1 px-1.5 py-0.2 rounded-full bg-slate-950/20 text-[10px]" id="countAll">1</span>
+        </button>
+
+        <button type="button" data-category="nutrition" class="category-pill flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors bg-slate-900 text-slate-300 hover:text-white hover:bg-slate-800 border border-slate-800">
+          <span>🥗</span>
+          <span>Nutrition & Kitchen</span>
+          <span class="ml-1 px-1.5 py-0.2 rounded-full bg-slate-800 text-[10px] text-slate-400">1</span>
+        </button>
+
+        <button type="button" data-category="finance" class="category-pill flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors bg-slate-900 text-slate-300 hover:text-white hover:bg-slate-800 border border-slate-800">
+          <span>📊</span>
+          <span>Finance & Wealth</span>
+          <span class="ml-1 px-1.5 py-0.2 rounded-full bg-slate-800 text-[10px] text-slate-400">0</span>
+        </button>
+
+        <button type="button" data-category="conversions" class="category-pill flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors bg-slate-900 text-slate-300 hover:text-white hover:bg-slate-800 border border-slate-800">
+          <span>📏</span>
+          <span>Measures & Conversions</span>
+          <span class="ml-1 px-1.5 py-0.2 rounded-full bg-slate-800 text-[10px] text-slate-400">0</span>
+        </button>
+
+        <button type="button" data-category="simulations" class="category-pill flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors bg-slate-900 text-slate-300 hover:text-white hover:bg-slate-800 border border-slate-800">
+          <span>🧪</span>
+          <span>Simulations & Physics</span>
+          <span class="ml-1 px-1.5 py-0.2 rounded-full bg-slate-800 text-[10px] text-slate-400">0</span>
+        </button>
+
+        <button type="button" data-category="games" class="category-pill flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors bg-slate-900 text-slate-300 hover:text-white hover:bg-slate-800 border border-slate-800">
+          <span>🕹️</span>
+          <span>Mini-Games & Puzzles</span>
+          <span class="ml-1 px-1.5 py-0.2 rounded-full bg-slate-800 text-[10px] text-slate-400">0</span>
+        </button>
+
+        <button type="button" data-category="coffee-brew" class="category-pill flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors bg-slate-900 text-slate-300 hover:text-white hover:bg-slate-800 border border-slate-800">
+          <span>☕</span>
+          <span>Coffee & Fermentation</span>
+          <span class="ml-1 px-1.5 py-0.2 rounded-full bg-slate-800 text-[10px] text-slate-400">0</span>
+        </button>
+
+        <button type="button" data-category="garden" class="category-pill flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors bg-slate-900 text-slate-300 hover:text-white hover:bg-slate-800 border border-slate-800">
+          <span>🌿</span>
+          <span>Home & Garden</span>
+          <span class="ml-1 px-1.5 py-0.2 rounded-full bg-slate-800 text-[10px] text-slate-400">0</span>
+        </button>
+
+        <button type="button" data-category="dev-tools" class="category-pill flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors bg-slate-900 text-slate-300 hover:text-white hover:bg-slate-800 border border-slate-800">
+          <span>🛠️</span>
+          <span>Dev & Design</span>
+          <span class="ml-1 px-1.5 py-0.2 rounded-full bg-slate-800 text-[10px] text-slate-400">0</span>
+        </button>
+      </div>
+
+    </div>
+
+    <!-- Active Tools Grid Container -->
+    <!-- TOOLS_GRID_START -->
+    <div id="toolsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      
+      <!-- TOOL CARD: Dough Hydration Calculator -->
+      <article data-tool-id="dough-hydration-calculator" data-category="nutrition" data-tags="baking sourdough hydration percentages bread dough true-hydration" class="tool-card group relative flex flex-col justify-between p-6 rounded-2xl bg-slate-900/90 border border-slate-800 hover:border-amber-500/50 hover:bg-slate-900 transition-all duration-200 shadow-lg hover:shadow-amber-500/10">
+        <div class="space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="inline-flex items-center space-x-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-950/40 border border-amber-800/50 text-amber-400">
+              <span>🥗</span>
+              <span>Nutrition & Kitchen</span>
+            </span>
+            <span class="text-[11px] font-mono text-slate-500">2026-09-08</span>
+          </div>
+
+          <h2 class="text-lg font-bold text-white group-hover:text-amber-300 transition-colors">
+            <a href="/dough-hydration-calculator/" class="focus:outline-none">
+              <span class="absolute inset-0" aria-hidden="true"></span>
+              Baker's Percentage & True Hydration Calculator
+            </a>
+          </h2>
+
+          <p class="text-xs sm:text-sm text-slate-400 leading-relaxed">
+            Precise dough formulas by baker's percentage, with true-hydration math for sourdough starters. Never skew your dough hydration again.
+          </p>
+
+          <div class="flex flex-wrap gap-1.5 pt-1">
+            <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-950 text-slate-400 border border-slate-800">#baking</span>
+            <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-950 text-slate-400 border border-slate-800">#sourdough</span>
+            <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-950 text-slate-400 border border-slate-800">#hydration</span>
+            <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-950 text-slate-400 border border-slate-800">#true-math</span>
+          </div>
+        </div>
+
+        <div class="pt-5 mt-4 border-t border-slate-800/80 flex items-center justify-between text-xs font-semibold text-amber-400 group-hover:text-amber-300 transition-colors">
+          <span>Launch Micro-App</span>
+          <svg class="w-4 h-4 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
+          </svg>
+        </div>
+      </article>
+
+    </div>
+    <!-- TOOLS_GRID_END -->
+
+    <!-- Empty State (Shown when search/filter yields 0 matches) -->
+    <div id="emptyState" class="hidden text-center py-16 px-4 rounded-2xl bg-slate-900/40 border border-slate-800/60">
+      <span class="text-4xl block mb-3">🔍</span>
+      <h3 class="text-base font-bold text-white mb-1">No micro-apps match your query</h3>
+      <p class="text-xs text-slate-400 max-w-sm mx-auto mb-4">Try checking another category or clearing your search term.</p>
+      <button type="button" id="clearFilterBtn" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-colors">
+        Clear Filter & Search
+      </button>
+    </div>
+
+  </main>
+
+  <!-- Global Footer -->
+  <footer class="border-t border-slate-800/80 bg-slate-950 py-10 text-slate-500 text-xs mt-20">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 space-y-6">
+      <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div class="flex items-center space-x-3">
+          <div class="w-6 h-6 rounded bg-amber-500/20 text-amber-400 flex items-center justify-center font-bold text-xs">⚡</div>
+          <span class="text-white font-bold tracking-tight">SpinFoundry</span>
+          <span class="text-slate-700">|</span>
+          <span>Deterministic Client-Side Micro-App Hub</span>
+        </div>
+        <div class="flex items-center space-x-6">
+          <a href="https://github.com/SpinFoundry/SpinFoundry" target="_blank" rel="noopener noreferrer" class="hover:text-slate-300 transition-colors">GitHub Repository</a>
+          <a href="/sitemap.xml" class="hover:text-slate-300 transition-colors">sitemap.xml</a>
+          <a href="/registry.json" class="hover:text-slate-300 transition-colors font-mono">registry.json</a>
+        </div>
+      </div>
+      <div class="border-t border-slate-900 pt-6 flex flex-col sm:flex-row items-center justify-between gap-2 text-slate-600">
+        <p>© 2026 SpinFoundry. 100% Client-side. Zero runtime tracking.</p>
+        <p class="text-[11px]">Hosted on Cloudflare Pages via GitHub CI</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Client-Side Search & Filter Script -->
+  <script>
+    (function () {
+      'use strict';
+
+      const searchInput = document.getElementById('searchInput');
+      const categoryPills = document.querySelectorAll('.category-pill');
+      const toolCards = document.querySelectorAll('.tool-card');
+      const emptyState = document.getElementById('emptyState');
+      const clearFilterBtn = document.getElementById('clearFilterBtn');
+
+      let currentCategory = 'all';
+      let currentQuery = '';
+
+      function filterTools() {
+        let visibleCount = 0;
+        const q = currentQuery.trim().toLowerCase();
+
+        toolCards.forEach(card => {
+          const category = card.dataset.category || '';
+          const tags = card.dataset.tags || '';
+          const text = card.textContent.toLowerCase();
+
+          const matchesCategory = (currentCategory === 'all' || category === currentCategory);
+          const matchesQuery = !q || text.includes(q) || tags.includes(q);
+
+          if (matchesCategory && matchesQuery) {
+            card.classList.remove('hidden');
+            visibleCount++;
+          } else {
+            card.classList.add('hidden');
+          }
+        });
+
+        if (visibleCount === 0) {
+          emptyState.classList.remove('hidden');
+        } else {
+          emptyState.classList.add('hidden');
+        }
+      }
+
+      // Search input listener
+      searchInput.addEventListener('input', (e) => {
+        currentQuery = e.target.value;
+        filterTools();
+      });
+
+      // Category Pill click listeners
+      categoryPills.forEach(pill => {
+        pill.addEventListener('click', () => {
+          categoryPills.forEach(p => {
+            p.classList.remove('bg-amber-500', 'text-slate-950', 'shadow-md', 'font-semibold');
+            p.classList.add('bg-slate-900', 'text-slate-300', 'border', 'border-slate-800', 'font-medium');
+          });
+
+          pill.classList.add('bg-amber-500', 'text-slate-950', 'shadow-md', 'font-semibold');
+          pill.classList.remove('bg-slate-900', 'text-slate-300', 'border', 'border-slate-800', 'font-medium');
+
+          currentCategory = pill.dataset.category;
+          filterTools();
+        });
+      });
+
+      // Clear filter listener
+      if (clearFilterBtn) {
+        clearFilterBtn.addEventListener('click', () => {
+          searchInput.value = '';
+          currentQuery = '';
+          const allPill = document.querySelector('[data-category="all"]');
+          if (allPill) allPill.click();
+        });
+      }
+    })();
+  </script>
+</body>
+</html>

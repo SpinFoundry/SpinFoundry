@@ -1,0 +1,22 @@
+{
+  "categories": [
+    { "slug": "finance", "label": "Finance & Wealth", "emoji": "📊" },
+    { "slug": "nutrition", "label": "Nutrition & Kitchen", "emoji": "🥗" },
+    { "slug": "conversions", "label": "Measures & Conversions", "emoji": "📏" },
+    { "slug": "simulations", "label": "Simulations & Physics", "emoji": "🧪" },
+    { "slug": "games", "label": "Mini-Games & Puzzles", "emoji": "🕹️" },
+    { "slug": "coffee-brew", "label": "Coffee & Fermentation", "emoji": "☕" },
+    { "slug": "garden", "label": "Home & Garden", "emoji": "🌿" },
+    { "slug": "dev-tools", "label": "Dev & Design", "emoji": "🛠️" }
+  ],
+  "tools": [
+    {
+      "id": "dough-hydration-calculator",
+      "title": "Baker's Percentage & True Hydration Calculator",
+      "description": "Precise dough formulas by baker's percentage, with true-hydration math for sourdough starters.",
+      "category": "nutrition",
+      "path": "/dough-hydration-calculator/",
+      "dateAdded": "2026-09-08"
+    }
+  ]
+}
