@@ -66,6 +66,14 @@
       "category": "conversions",
       "path": "/interval-timer/",
       "dateAdded": "2026-09-09"
+    },
+    {
+      "id": "binary-decision-tournament",
+      "title": "Binary Decision Tournament",
+      "description": "Overcome decision paralysis with rapid-fire 1v1 binary duels. Prioritize tasks and backlogs into single champions or full rankings using keyboard shortcuts.",
+      "category": "dev-tools",
+      "path": "/binary-decision-tournament/",
+      "dateAdded": "2026-09-09"
     }
   ]
 }
