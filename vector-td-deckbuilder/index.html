@@ -1,0 +1,2114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vector Defense: 2D Tower Defense Deckbuilder | SpinFoundry</title>
+  <meta name="description" content="An ultra-minimalist retro vector arcade Tower Defense Deckbuilder inspired by 1970s Asteroids aesthetics. Defend the Wall, stack tower modifiers, craft terrain, and survive procedural waves.">
+  <meta name="keywords" content="tower defense deckbuilder, vector arcade game, asteroids style game, retro defense game, minimalist tower defense, roguelite deckbuilder">
+  <link rel="canonical" href="https://spinfoundry.pages.dev/vector-td-deckbuilder/">
+
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://spinfoundry.pages.dev/vector-td-deckbuilder/">
+  <meta property="og:title" content="Vector Defense: 2D Tower Defense Deckbuilder | SpinFoundry">
+  <meta property="og:description" content="Defend the Wall using pre-placed towers, stackable card modifiers, and terrain traps. Pure 1970s vector arcade aesthetic.">
+  <meta name="twitter:card" content="summary">
+
+  <link rel="stylesheet" href="/assets/styles.css">
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "Vector Defense: 2D Tower Defense Deckbuilder",
+    "url": "https://spinfoundry.pages.dev/vector-td-deckbuilder/",
+    "description": "Minimalist retro vector arcade Tower Defense Deckbuilder featuring procedural waves, dynamic enemy pathfinding, stackable tower modifiers, and a roguelite card economy.",
+    "applicationCategory": "GameApplication",
+    "operatingSystem": "All"
+  }
+  </script>
+
+  <style>
+    /* Arcade Dark Theme Root */
+    :root {
+      --bg-dark: #0B0F19;
+      --vector-cyan: #38bdf8;
+      --vector-green: #34d399;
+      --vector-amber: #fbbf24;
+      --vector-red: #f87171;
+      --vector-purple: #c084fc;
+      --vector-white: #f8fafc;
+    }
+
+    body {
+      background-color: #080c14;
+      color: #e2e8f0;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    }
+
+    /* Category Badge */
+    .badge-games {
+      background-color: rgba(245, 158, 11, 0.12);
+      color: #f59e0b;
+      border: 1px solid rgba(245, 158, 11, 0.35);
+    }
+    .badge-games-dot {
+      background-color: #f59e0b;
+    }
+
+    /* Canvas Frame */
+    .arcade-cabinet {
+      background-color: var(--bg-dark);
+      border: 2px solid #1e293b;
+      box-shadow: 0 0 30px rgba(0, 0, 0, 0.8), inset 0 0 20px rgba(0, 0, 0, 0.7);
+      position: relative;
+      overflow: hidden;
+      border-radius: 0.75rem;
+    }
+
+    /* CRT Scanline Overlay */
+    .crt-overlay {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background: linear-gradient(
+        rgba(18, 16, 16, 0) 50%, 
+        rgba(0, 0, 0, 0.35) 50%
+      ), linear-gradient(
+        90deg,
+        rgba(255, 0, 0, 0.02),
+        rgba(0, 255, 0, 0.01),
+        rgba(0, 0, 255, 0.02)
+      );
+      background-size: 100% 3px, 4px 100%;
+      opacity: 0.65;
+      z-index: 20;
+    }
+
+    /* CRT Screen Vignette */
+    .crt-vignette {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      box-shadow: inset 0 0 60px rgba(0, 0, 0, 0.7);
+      z-index: 21;
+    }
+
+    /* Game Canvas */
+    #gameCanvas {
+      display: block;
+      width: 100%;
+      height: auto;
+      aspect-ratio: 12 / 16;
+      background-color: var(--bg-dark);
+      cursor: crosshair;
+      image-rendering: pixelated;
+    }
+
+    /* AP Pip Gauge */
+    .ap-pip {
+      display: inline-block;
+      width: 12px;
+      height: 12px;
+      border: 1.5px solid var(--vector-cyan);
+      border-radius: 2px;
+      transition: all 0.2s ease;
+    }
+    .ap-pip.filled {
+      background-color: var(--vector-cyan);
+      box-shadow: 0 0 8px var(--vector-cyan);
+    }
+    .ap-pip.empty {
+      background-color: transparent;
+      border-color: #334155;
+    }
+
+    /* Cards UI */
+    .card-item {
+      background: #0f172a;
+      border: 1.5px solid #334155;
+      border-radius: 0.5rem;
+      padding: 0.65rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-height: 120px;
+      cursor: pointer;
+      user-select: none;
+      transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+    }
+    .card-item:hover {
+      border-color: var(--vector-cyan);
+      transform: translateY(-3px);
+      box-shadow: 0 4px 14px rgba(56, 189, 248, 0.25);
+    }
+    .card-item.selected {
+      border-color: #38bdf8;
+      background: #13233b;
+      box-shadow: 0 0 16px rgba(56, 189, 248, 0.4);
+      outline: 2px solid #38bdf8;
+    }
+    .card-item.unplayable {
+      opacity: 0.45;
+      cursor: not-allowed;
+      border-color: #1e293b;
+    }
+    .card-item.unplayable:hover {
+      border-color: #1e293b;
+      transform: none;
+      box-shadow: none;
+    }
+
+    /* Modals & Overlays */
+    .arcade-modal {
+      position: absolute;
+      inset: 0;
+      background: rgba(11, 15, 25, 0.94);
+      backdrop-filter: blur(4px);
+      z-index: 30;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+    }
+
+    /* Glowing Vector Buttons */
+    .btn-vector {
+      font-family: inherit;
+      text-transform: uppercase;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      padding: 0.6rem 1.2rem;
+      border-radius: 0.375rem;
+      transition: all 0.15s ease;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+    }
+    .btn-vector-cyan {
+      background-color: transparent;
+      color: var(--vector-cyan);
+      border: 1.5px solid var(--vector-cyan);
+      box-shadow: 0 0 10px rgba(56, 189, 248, 0.2);
+    }
+    .btn-vector-cyan:hover:not(:disabled) {
+      background-color: var(--vector-cyan);
+      color: #080c14;
+      box-shadow: 0 0 18px rgba(56, 189, 248, 0.6);
+    }
+    .btn-vector-amber {
+      background-color: transparent;
+      color: var(--vector-amber);
+      border: 1.5px solid var(--vector-amber);
+      box-shadow: 0 0 10px rgba(251, 191, 36, 0.2);
+    }
+    .btn-vector-amber:hover:not(:disabled) {
+      background-color: var(--vector-amber);
+      color: #080c14;
+      box-shadow: 0 0 18px rgba(251, 191, 36, 0.6);
+    }
+    .btn-vector:disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+      border-color: #334155;
+      color: #64748b;
+      box-shadow: none;
+    }
+
+    /* Custom Scrollbars */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #0b0f19;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #1e293b;
+      border-radius: 3px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #334155;
+    }
+
+    /* Utility fallbacks */
+    .flex { display: flex; }
+    .flex-col { flex-direction: column; }
+    .items-center { align-items: center; }
+    .justify-between { justify-content: space-between; }
+    .justify-center { justify-content: center; }
+    .gap-1 { gap: 0.25rem; }
+    .gap-2 { gap: 0.5rem; }
+    .gap-3 { gap: 0.75rem; }
+    .gap-4 { gap: 1rem; }
+    .grid { display: grid; }
+    .grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .grid-cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .w-full { width: 100%; }
+    .max-w-xl { max-width: 36rem; }
+    .max-w-2xl { max-width: 42rem; }
+    .mx-auto { margin-left: auto; margin-right: auto; }
+    .hidden { display: none !important; }
+    .text-xs { font-size: 0.75rem; line-height: 1rem; }
+    .text-sm { font-size: 0.875rem; line-height: 1.25rem; }
+    .text-lg { font-size: 1.125rem; line-height: 1.75rem; }
+    .text-xl { font-size: 1.25rem; line-height: 1.75rem; }
+    .text-2xl { font-size: 1.5rem; line-height: 2rem; }
+    .font-bold { font-weight: 700; }
+    .font-semibold { font-weight: 600; }
+    .uppercase { text-transform: uppercase; }
+    .tracking-wider { letter-spacing: 0.05em; }
+    .text-cyan-400 { color: #38bdf8; }
+    .text-green-400 { color: #34d399; }
+    .text-amber-400 { color: #fbbf24; }
+    .text-red-400 { color: #f87171; }
+    .text-slate-400 { color: #94a3b8; }
+    .text-slate-500 { color: #64748b; }
+    .text-slate-300 { color: #cbd5e1; }
+    .bg-slate-900 { background-color: #0f172a; }
+    .border-slate-800 { border-color: #1e293b; }
+    .p-3 { padding: 0.75rem; }
+    .p-4 { padding: 1rem; }
+    .p-6 { padding: 1.5rem; }
+    .px-3 { padding-left: 0.75rem; padding-right: 0.75rem; }
+    .py-1 { padding-top: 0.25rem; padding-bottom: 0.25rem; }
+    .py-10 { padding-top: 2.5rem; padding-bottom: 2.5rem; }
+    .rounded-lg { border-radius: 0.5rem; }
+    .rounded-xl { border-radius: 0.75rem; }
+    .rounded-full { border-radius: 9999px; }
+
+    /* Extended Arcade Styling & Utility Fallbacks */
+    .bg-\[\#0B0F19\] { background-color: #0B0F19; }
+    .bg-cyan-950 { background-color: #082f49; }
+    .bg-emerald-950 { background-color: #064e3b; }
+    .bg-green-400 { background-color: #4ade80; }
+    .bg-red-400 { background-color: #f87171; }
+    .bg-slate-900\/50 { background-color: rgba(15, 23, 42, 0.5); }
+    .border-2 { border-width: 2px; }
+    .border-cyan-400\/80 { border-color: rgba(56, 189, 248, 0.8); }
+    .border-cyan-800 { border-color: #155e75; }
+    .border-emerald-800 { border-color: #065f46; }
+    .border-red-500\/80 { border-color: rgba(239, 68, 68, 0.8); }
+    .border-slate-700 { border-color: #334155; }
+    .border-slate-800\/80 { border-color: rgba(30, 41, 59, 0.8); }
+    .col-span-full { grid-column: 1 / -1; }
+    .duration-300 { transition-duration: 300ms; }
+    .h-full { height: 100%; }
+    .hover\:text-slate-200:hover { color: #e2e8f0; }
+    .hover\:text-white:hover { color: #ffffff; }
+    .leading-snug { line-height: 1.375; }
+    .line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .max-w-sm { max-width: 24rem; }
+    .mb-0\.5 { margin-bottom: 0.125rem; }
+    .mb-2 { margin-bottom: 0.5rem; }
+    .min-h-\[120px\] { min-height: 120px; }
+    .mt-8 { margin-top: 2rem; }
+    .mt-10 { margin-top: 2.5rem; }
+    .pb-3 { padding-bottom: 0.75rem; }
+    .pt-1\.5 { padding-top: 0.375rem; }
+    .pt-2 { padding-top: 0.5rem; }
+    .px-1\.5 { padding-left: 0.375rem; padding-right: 0.375rem; }
+    .py-2\.5 { padding-top: 0.625rem; padding-bottom: 0.625rem; }
+    .py-6 { padding-top: 1.5rem; padding-bottom: 1.5rem; }
+    .select-none { user-select: none; -webkit-user-select: none; }
+    .shadow-2xl { box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); }
+    .space-y-0\.5 > :not([hidden]) ~ :not([hidden]) { margin-top: 0.125rem; }
+    .space-y-4 > :not([hidden]) ~ :not([hidden]) { margin-top: 1rem; }
+    .text-\[10px\] { font-size: 10px; }
+    .text-\[9px\] { font-size: 9px; }
+    .text-\[11px\] { font-size: 11px; }
+    .text-red-500 { color: #ef4444; }
+    .text-slate-100 { color: #f1f5f9; }
+    .text-slate-200 { color: #e2e8f0; }
+    .tracking-widest { letter-spacing: 0.1em; }
+    .z-10 { z-index: 10; }
+
+    @media (min-width: 640px) {
+      .sm\:grid-cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+      .sm\:inline { display: inline; }
+      .sm\:p-5 { padding: 1.25rem; }
+      .sm\:py-10 { padding-top: 2.5rem; padding-bottom: 2.5rem; }
+      .sm\:text-2xl { font-size: 1.5rem; line-height: 2rem; }
+    }
+  </style>
+</head>
+<body class="antialiased min-h-screen">
+
+  <main class="max-w-xl mx-auto px-3 py-6 sm:py-10">
+
+    <!-- Top Chrome / Breadcrumb -->
+    <div class="flex items-center justify-between mb-4">
+      <a href="/" class="text-xs font-medium text-slate-400 hover:text-slate-200 flex items-center gap-1.5 transition-colors">
+        <span>←</span>
+        <span>SpinFoundry Hub</span>
+      </a>
+      <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-mono badge-games">
+        <span class="w-1.5 h-1.5 rounded-full badge-games-dot"></span>
+        Mini-Games &amp; Puzzles
+      </div>
+    </div>
+
+    <!-- Header Banner -->
+    <header class="mb-4 pb-3 border-b border-slate-800">
+      <div class="flex items-center justify-between">
+        <div>
+          <div class="flex items-center gap-2 mb-1">
+            <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-cyan-950 text-cyan-400 border border-cyan-800">ARCADE VECTOR</span>
+            <span class="text-xs text-slate-400 uppercase tracking-wider">Asteroids-Style TD Deckbuilder</span>
+          </div>
+          <h1 class="text-xl sm:text-2xl font-bold tracking-tight text-white">
+            Vector Defense
+          </h1>
+        </div>
+        <div class="text-right">
+          <div class="text-[10px] uppercase text-slate-400">High Score</div>
+          <div class="text-sm font-bold text-amber-400 font-mono" id="hudHighScore">0</div>
+        </div>
+      </div>
+    </header>
+
+    <!-- ARCADE CABINET WRAPPER -->
+    <div class="arcade-cabinet mb-4">
+      
+      <!-- CRT Atmosphere Layers -->
+      <div class="crt-overlay"></div>
+      <div class="crt-vignette"></div>
+
+      <!-- IN-GAME TOP HUD (ARCADE VECTOR DASHBOARD) -->
+      <div class="p-3 bg-[#0B0F19] border-b border-slate-800 flex flex-col gap-2 relative z-10 select-none">
+        
+        <!-- Row 1: Telemetry -->
+        <div class="flex items-center justify-between text-xs">
+          <div class="flex items-center gap-2">
+            <span class="px-2 py-0.5 rounded bg-slate-900 border border-slate-700 text-cyan-400 font-bold" id="hudStageWave">
+              STAGE 1 • WAVE 1/3
+            </span>
+            <span class="text-[11px] font-mono text-slate-400 hidden sm:inline" id="hudPhaseStatus">
+              [ PREPARATION ]
+            </span>
+          </div>
+
+          <!-- Gold Counter -->
+          <div class="flex items-center gap-1 text-amber-400 font-bold">
+            <span class="text-xs">⟡</span>
+            <span id="hudGold">0</span>
+            <span class="text-[10px] text-slate-400">G</span>
+          </div>
+        </div>
+
+        <!-- Row 2: Wall Integrity & Speed -->
+        <div class="space-y-1">
+          <div class="flex items-center justify-between text-[11px]">
+            <span class="text-slate-400 uppercase tracking-wider">Wall Integrity</span>
+            <span class="font-bold text-green-400 font-mono" id="hudWallHpText">100 / 100 HP</span>
+          </div>
+          <div class="w-full h-2 bg-slate-900 rounded-full border border-slate-700 overflow-hidden">
+            <div id="hudWallHpBar" class="h-full bg-green-400 transition-all duration-300" style="width: 100%;"></div>
+          </div>
+        </div>
+
+        <!-- Row 3: Action Points (AP) Gauge -->
+        <div class="flex items-center justify-between text-xs pt-1 border-t border-slate-800/80">
+          <div class="flex items-center gap-1.5">
+            <span class="text-[10px] text-cyan-400 font-bold uppercase tracking-wider">AP:</span>
+            <div class="flex items-center gap-1" id="hudApPips">
+              <!-- Rendered dynamically -->
+            </div>
+          </div>
+          <div class="flex items-center gap-2">
+            <button id="btnSpeedToggle" type="button" class="text-[10px] px-2 py-0.5 rounded bg-slate-900 border border-slate-700 text-slate-300 hover:text-white transition-colors cursor-pointer">
+              SPEED: <span id="speedVal" class="text-cyan-400 font-bold">1X</span>
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- MAIN 12x16 VECTOR CANVAS -->
+      <div class="relative">
+        <canvas id="gameCanvas" width="480" height="640"></canvas>
+
+        <!-- INTERSTAGE SHOP MODAL -->
+        <div id="shopModal" class="arcade-modal hidden">
+          <div class="w-full max-w-sm bg-[#0B0F19] border-2 border-cyan-400/80 rounded-xl p-4 sm:p-5 shadow-2xl flex flex-col gap-4 text-center">
+            
+            <div>
+              <div class="text-[10px] uppercase tracking-widest text-cyan-400 font-bold mb-0.5">Tactical Resupply</div>
+              <h2 class="text-lg font-bold text-white">Interstage Depot</h2>
+              <p class="text-xs text-slate-400 mt-1">Wave cleared! Requisition cards or permanent upgrades.</p>
+            </div>
+
+            <!-- Available Gold in Shop -->
+            <div class="inline-flex items-center justify-center gap-2 py-1 px-3 bg-slate-900 rounded-lg border border-slate-800 text-sm font-bold text-amber-400">
+              <span>Gold Reserve:</span>
+              <span id="shopGoldVal">0</span> G
+            </div>
+
+            <!-- Card Offerings (3 Random Cards) -->
+            <div class="space-y-1.5 text-left">
+              <div class="text-[10px] uppercase tracking-wider text-slate-400 font-semibold">New Cards (Adds to Deck)</div>
+              <div class="grid grid-cols-3 gap-2" id="shopCardList">
+                <!-- Injected by JS -->
+              </div>
+            </div>
+
+            <!-- Permanent Run Upgrades -->
+            <div class="space-y-1.5 text-left pt-2 border-t border-slate-800">
+              <div class="text-[10px] uppercase tracking-wider text-slate-400 font-semibold">System Upgrades</div>
+              <div class="grid grid-cols-2 gap-2" id="shopUpgradeList">
+                <!-- Injected by JS -->
+              </div>
+            </div>
+
+            <!-- Resume / Next Wave Button -->
+            <div class="pt-2">
+              <button id="btnExitShop" type="button" class="btn-vector btn-vector-cyan w-full text-xs py-2.5">
+                Next Wave →
+              </button>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- GAME OVER OVERLAY -->
+        <div id="gameOverModal" class="arcade-modal hidden">
+          <div class="w-full max-w-sm bg-[#0B0F19] border-2 border-red-500/80 rounded-xl p-5 shadow-2xl flex flex-col gap-4 text-center">
+            
+            <div>
+              <div class="text-[10px] uppercase tracking-widest text-red-400 font-bold mb-0.5">Telemetry Lost</div>
+              <h2 class="text-xl font-bold text-red-500">WALL DESTROYED</h2>
+              <p class="text-xs text-slate-400 mt-1">Defense perimeter breached. Final run diagnostics:</p>
+            </div>
+
+            <!-- Diagnostics Metrics Table -->
+            <div class="grid grid-cols-2 gap-2 bg-slate-900 p-3 rounded-lg border border-slate-800 text-xs text-left font-mono">
+              <div>
+                <span class="text-slate-400 text-[10px] uppercase block">Stage Cleared</span>
+                <span id="resStage" class="text-white font-bold text-sm">Stage 1</span>
+              </div>
+              <div>
+                <span class="text-slate-400 text-[10px] uppercase block">Waves Defended</span>
+                <span id="resWaves" class="text-white font-bold text-sm">2 Waves</span>
+              </div>
+              <div class="pt-2 border-t border-slate-800">
+                <span class="text-slate-400 text-[10px] uppercase block">Enemies Neutralized</span>
+                <span id="resKills" class="text-cyan-400 font-bold text-sm">0</span>
+              </div>
+              <div class="pt-2 border-t border-slate-800">
+                <span class="text-slate-400 text-[10px] uppercase block">Total Gold Extracted</span>
+                <span id="resGold" class="text-amber-400 font-bold text-sm">0 G</span>
+              </div>
+            </div>
+
+            <!-- Restart Button -->
+            <button id="btnRestartRun" type="button" class="btn-vector btn-vector-cyan w-full text-xs py-2.5">
+              Deploy New Run ↺
+            </button>
+
+          </div>
+        </div>
+
+      </div>
+
+      <!-- IN-GAME BOTTOM DECK & HAND CONTROLLER -->
+      <div class="p-3 bg-[#0B0F19] border-t border-slate-800 relative z-10">
+        
+        <!-- Controls Header: Turn Instructions & Engage Wave Button -->
+        <div class="flex items-center justify-between mb-2">
+          <div class="text-[11px] text-slate-400 font-mono" id="controllerInstructions">
+            Select a card to play (Costs AP):
+          </div>
+          <button id="btnStartWave" type="button" class="btn-vector btn-vector-cyan text-xs py-1 px-3">
+            Engage Wave ⚔
+          </button>
+        </div>
+
+        <!-- Cards Hand Container -->
+        <div id="handCardsContainer" class="grid grid-cols-3 sm:grid-cols-4 gap-2 mb-2 min-h-[120px]">
+          <!-- Hand cards rendered here -->
+        </div>
+
+        <!-- Deck & Cemetery Footer Stats -->
+        <div class="flex items-center justify-between text-[10px] font-mono text-slate-400 pt-1.5 border-t border-slate-800/80">
+          <div class="flex items-center gap-3">
+            <span>DRAW PILE: <strong id="hudDrawCount" class="text-slate-200">17</strong></span>
+            <span>CEMETERY: <strong id="hudDiscardCount" class="text-slate-200">0</strong></span>
+          </div>
+          <div class="text-cyan-400 font-semibold" id="hudActiveTargetText">
+            Tap card, then target tower or tile
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- Educational & Game Manual Section -->
+    <article class="mt-8 pt-6 border-t border-slate-800 text-xs text-slate-400 space-y-4">
+      <h2 class="text-sm font-bold uppercase tracking-wider text-slate-200">System Field Manual</h2>
+      
+      <div class="space-y-1">
+        <h3 class="font-semibold text-slate-300">1. Vector Arcade Foundations</h3>
+        <p>
+          Vector Defense draws direct inspiration from the glowing electron beam displays of 1970s arcade hardware (such as <em>Asteroids</em>, <em>Battlezone</em>, and <em>Tempest</em>). All game entities are rendered purely via mathematical vector geometry and radiant line physics on a high-precision 12×16 logical coordinate grid.
+        </p>
+      </div>
+
+      <div class="space-y-1">
+        <h3 class="font-semibold text-slate-300">2. The AP &amp; Deck Economy</h3>
+        <p>
+          Each wave, you gain Action Points (AP) according to the formula <code>AP = min(currentWave, 10)</code>. Cards cost AP only and can only be played during the <strong>Preparation Phase</strong>. Unused AP does not roll over. Once you engage combat, your hand is locked while your defense grid automatically targets descending enemy squadrons.
+        </p>
+      </div>
+
+      <div class="space-y-1">
+        <h3 class="font-semibold text-slate-300">3. Tower Evolution &amp; Terrain Engineering</h3>
+        <p>
+          You command up to 3 fixed tower positions along the defense line. Playing modifier cards dynamically mutates the tower's geometry:
+        </p>
+        <ul class="list-disc pl-5 space-y-0.5 text-slate-400">
+          <li><strong>Rapid Fire / Attack Speed:</strong> Adds internal vector crosshairs and boosts shot cadence.</li>
+          <li><strong>Double Barrel:</strong> Adds twin parallel emitter lines to fire tandem projectiles.</li>
+          <li><strong>Heavy Barrel / Damage:</strong> Throws reinforced geometric armor plating and increases impact punch.</li>
+          <li><strong>Ice &amp; Spike Terrain:</strong> Deploys spatial friction tiles (slowing targets by 30%) or kinetic puncturing arrays.</li>
+        </ul>
+      </div>
+
+      <div class="space-y-1">
+        <h3 class="font-semibold text-slate-300">4. The Unforgiving Wall</h3>
+        <p>
+          The Wall protects your core station. <strong>Wall HP never regenerates between waves or stages</strong>. Defeating enemies rewards Gold, which you can reinvest in the Interstage Depot for permanent system upgrades or emergency wall reinforcement.
+        </p>
+      </div>
+    </article>
+
+    <!-- SpinFoundry Footer -->
+    <footer class="mt-10 pt-6 border-t border-slate-800 flex flex-col sm:flex-row items-center justify-between text-[11px] text-slate-400 gap-3">
+      <span>SpinFoundry — Zero-overhead, 100% client-side micro-app engine.</span>
+      <div class="flex items-center gap-4">
+        <a href="/" class="hover:text-slate-200 transition-colors">Catalog Hub</a>
+        <a href="/color-acuity-test/" class="hover:text-slate-200 transition-colors">Test I</a>
+        <a href="/color-matching-test/" class="hover:text-slate-200 transition-colors">Test III</a>
+        <a href="https://github.com/SpinFoundry/SpinFoundry" target="_blank" rel="noopener noreferrer" class="hover:text-slate-200 transition-colors">GitHub</a>
+        <a href="/sitemap.xml" class="hover:text-slate-200 transition-colors">Sitemap</a>
+      </div>
+    </footer>
+
+  </main>
+
+  <!-- GAME LOGIC ENGINE -->
+  <script>
+  (function () {
+    'use strict';
+
+    /* ═════════════════════════════════════════════
+       1. CONFIGURATION & CONSTANTS
+       ═════════════════════════════════════════════ */
+    const COLS = 12;
+    const ROWS = 16;
+    const STORAGE_KEY = 'spinfoundry_vector_td';
+
+    // Phase machine states
+    const PHASES = {
+      STAGE_SELECT:   'stageSelect',
+      PREPARATION:    'preparation',
+      WAVE_COMBAT:    'waveCombat',
+      INTERSTAGE_SHOP:'interstageShop',
+      GAME_OVER:      'gameOver'
+    };
+
+    // Enemy Archetypes (Strict vector parameters)
+    const ENEMY_DEFS = {
+      RUNNER: {
+        id: 'runner',
+        name: 'Runner',
+        size: 8,
+        hp: 14,
+        speed: 2.1,
+        gold: 1,
+        wallDamage: 5,
+        color: '#38bdf8' // cyan
+      },
+      GRUNT: {
+        id: 'grunt',
+        name: 'Grunt',
+        size: 14,
+        hp: 30,
+        speed: 1.3,
+        gold: 2,
+        wallDamage: 8,
+        color: '#34d399' // green
+      },
+      TANK: {
+        id: 'tank',
+        name: 'Tank',
+        size: 26,
+        hp: 95,
+        speed: 0.75,
+        gold: 5,
+        wallDamage: 18,
+        color: '#fbbf24' // amber
+      },
+      SPLITTER: {
+        id: 'splitter',
+        name: 'Splitter',
+        size: 20,
+        hp: 45,
+        speed: 1.1,
+        gold: 3,
+        wallDamage: 10,
+        color: '#c084fc', // purple
+        children: 2 // spawns 2 runners upon death
+      },
+      SHIELD: {
+        id: 'shield',
+        name: 'Shield',
+        size: 18,
+        hp: 40,
+        shieldHp: 30,
+        speed: 1.1,
+        gold: 4,
+        wallDamage: 12,
+        color: '#60a5fa' // blue
+      },
+      BOSS: {
+        id: 'boss',
+        name: 'Goliath Boss',
+        size: 42,
+        hp: 360,
+        speed: 0.5,
+        gold: 25,
+        wallDamage: 35,
+        color: '#f87171' // red
+      }
+    };
+
+    // Base Card Definitions
+    const CARD_CATALOG = [
+      {
+        id: 'rapid_fire',
+        name: 'Rapid Fire',
+        cost: 1,
+        targetType: 'tower',
+        desc: '+35% Attack Speed to target tower',
+        apply: (tower) => { tower.modifiers.push('rapid_fire'); }
+      },
+      {
+        id: 'damage',
+        name: 'Damage Boost',
+        cost: 1,
+        targetType: 'tower',
+        desc: '+6 Flat Projectile Damage',
+        apply: (tower) => { tower.modifiers.push('damage'); }
+      },
+      {
+        id: 'range',
+        name: 'Range Array',
+        cost: 1,
+        targetType: 'tower',
+        desc: '+1.5 Cells Range Indicator',
+        apply: (tower) => { tower.modifiers.push('range'); }
+      },
+      {
+        id: 'double_barrel',
+        name: 'Double Barrel',
+        cost: 2,
+        targetType: 'tower',
+        desc: 'Fires dual parallel projectiles simultaneously',
+        apply: (tower) => { tower.modifiers.push('double_barrel'); }
+      },
+      {
+        id: 'heavy_barrel',
+        name: 'Heavy Barrel',
+        cost: 2,
+        targetType: 'tower',
+        desc: '+14 Heavy Damage & reinforced frame',
+        apply: (tower) => { tower.modifiers.push('heavy_barrel'); }
+      },
+      {
+        id: 'attack_speed',
+        name: 'Overclock',
+        cost: 1,
+        targetType: 'tower',
+        desc: '+25% Rate of Fire to target tower',
+        apply: (tower) => { tower.modifiers.push('attack_speed'); }
+      },
+      {
+        id: 'ice_tile',
+        name: 'Ice Tile',
+        cost: 1,
+        targetType: 'terrain',
+        desc: 'Deploys Ice trap: slows enemies by 30%',
+        apply: (grid, col, row) => { grid.setTerrain(col, row, 'ice'); }
+      },
+      {
+        id: 'spike_tile',
+        name: 'Spike Tile',
+        cost: 1,
+        targetType: 'terrain',
+        desc: 'Deploys Spikes: continuous kinetic puncture damage',
+        apply: (grid, col, row) => { grid.setTerrain(col, row, 'spike'); }
+      }
+    ];
+
+    /* ═════════════════════════════════════════════
+       2. DATA-DRIVEN DECK & CARD SYSTEM
+       ═════════════════════════════════════════════ */
+    class DeckManager {
+      constructor() {
+        this.drawPile = [];
+        this.hand = [];
+        this.cemetery = [];
+      }
+
+      initStartingDeck() {
+        this.drawPile = [];
+        this.hand = [];
+        this.cemetery = [];
+
+        // 20-card canonical starting deck composition
+        const composition = [
+          'rapid_fire', 'rapid_fire', 'rapid_fire', 'rapid_fire',
+          'damage', 'damage', 'damage',
+          'range', 'range', 'range',
+          'heavy_barrel', 'heavy_barrel',
+          'double_barrel', 'double_barrel',
+          'ice_tile', 'ice_tile', 'ice_tile',
+          'spike_tile', 'spike_tile',
+          'attack_speed'
+        ];
+
+        composition.forEach((cardId, index) => {
+          const base = CARD_CATALOG.find(c => c.id === cardId);
+          if (base) {
+            this.drawPile.push({
+              uid: `card_${Date.now()}_${index}_${Math.random()}`,
+              ...base
+            });
+          }
+        });
+
+        this.shuffle(this.drawPile);
+      }
+
+      shuffle(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [array[i], array[j]] = [array[j], array[i]];
+        }
+      }
+
+      draw(count = 1) {
+        for (let i = 0; i < count; i++) {
+          if (this.drawPile.length === 0) {
+            if (this.cemetery.length === 0) break;
+            this.drawPile = [...this.cemetery];
+            this.cemetery = [];
+            this.shuffle(this.drawPile);
+          }
+          if (this.drawPile.length > 0) {
+            this.hand.push(this.drawPile.pop());
+          }
+        }
+      }
+
+      discard(cardUid) {
+        const idx = this.hand.findIndex(c => c.uid === cardUid);
+        if (idx !== -1) {
+          const [card] = this.hand.splice(idx, 1);
+          this.cemetery.push(card);
+        }
+      }
+
+      addCardToDraw(cardId) {
+        const base = CARD_CATALOG.find(c => c.id === cardId);
+        if (base) {
+          this.drawPile.push({
+            uid: `card_${Date.now()}_${Math.random()}`,
+            ...base
+          });
+          this.shuffle(this.drawPile);
+        }
+      }
+    }
+
+    /* ═════════════════════════════════════════════
+       3. LOGICAL BATTLEFIELD GRID & PATHFINDING
+       ═════════════════════════════════════════════ */
+    class BattlefieldGrid {
+      constructor(cols, rows) {
+        this.cols = cols;
+        this.rows = rows;
+        this.terrain = {}; // key: "col,row" -> 'ice' | 'spike'
+      }
+
+      clear() {
+        this.terrain = {};
+      }
+
+      setTerrain(c, r, type) {
+        if (c >= 0 && c < this.cols && r >= 2 && r <= 11) {
+          this.terrain[`${c},${r}`] = type;
+        }
+      }
+
+      getTerrain(c, r) {
+        return this.terrain[`${c},${r}`] || null;
+      }
+
+      // Dynamic pathfinding: calculate optimal path from (col, row) downward to the Wall (row 14)
+      findNextStep(currentX, currentY) {
+        const currentC = Math.max(0, Math.min(this.cols - 1, Math.floor(currentX)));
+        const currentR = Math.floor(currentY);
+
+        // If close to wall, straight down
+        if (currentR >= 13) {
+          return { targetX: currentC + 0.5, targetY: 14 };
+        }
+
+        // Evaluate candidate steps: downward, diagonal-left, diagonal-right
+        let bestScore = -Infinity;
+        let chosenX = currentC + 0.5;
+        let chosenY = currentR + 1 + 0.5;
+
+        const candidateCols = [currentC, currentC - 1, currentC + 1].filter(c => c >= 0 && c < this.cols);
+
+        for (const c of candidateCols) {
+          const nextR = currentR + 1;
+          let score = 100 - (nextR * 5); // base progression toward wall
+          const t = this.getTerrain(c, nextR);
+
+          if (t === 'spike') score -= 80; // avoid spikes if detour exists
+          if (t === 'ice')   score -= 30; // slightly avoid ice
+
+          // slight centering bias to prevent bunching at wall edges
+          const centerDist = Math.abs(c - (this.cols / 2 - 0.5));
+          score -= centerDist * 2;
+
+          if (score > bestScore) {
+            bestScore = score;
+            chosenX = c + 0.5;
+            chosenY = nextR + 0.5;
+          }
+        }
+
+        return { targetX: chosenX, targetY: chosenY };
+      }
+    }
+
+    /* ═════════════════════════════════════════════
+       4. TOWERS & PROJECTILES
+       ═════════════════════════════════════════════ */
+    class Tower {
+      constructor(slotId, col, row, active = false) {
+        this.slotId = slotId;
+        this.col = col;
+        this.row = row;
+        this.active = active;
+        this.modifiers = []; // stackable modifiers reset every stage
+        this.lastShotTime = 0;
+        this.targetEnemy = null;
+      }
+
+      // Derived capabilities from base stats + modifiers + permanent upgrades
+      getStats(permUpgrades) {
+        let baseDamage = 12 * (1 + permUpgrades.damageBoost * 0.20);
+        let baseFireRate = 1.0 * (1 + permUpgrades.fireRateBoost * 0.20); // shots per sec
+        let baseRange = 4.2 * (1 + permUpgrades.rangeBoost * 0.20); // in grid units
+        let doubleBarrel = false;
+
+        this.modifiers.forEach(mod => {
+          if (mod === 'rapid_fire')   baseFireRate += 0.35;
+          if (mod === 'attack_speed') baseFireRate += 0.25;
+          if (mod === 'damage')       baseDamage += 6;
+          if (mod === 'heavy_barrel') baseDamage += 14;
+          if (mod === 'range')        baseRange += 1.5;
+          if (mod === 'double_barrel') doubleBarrel = true;
+        });
+
+        return {
+          damage: baseDamage,
+          fireRate: baseFireRate,
+          range: baseRange,
+          doubleBarrel: doubleBarrel
+        };
+      }
+
+      resetStageModifiers() {
+        this.modifiers = [];
+      }
+    }
+
+    class Projectile {
+      constructor(x, y, targetEnemy, damage, isDouble = false, angleOffset = 0) {
+        this.x = x;
+        this.y = y;
+        this.targetEnemy = targetEnemy;
+        this.damage = damage;
+        this.speed = 8.5; // units per second
+        this.isDouble = isDouble;
+        this.active = true;
+        this.trail = [];
+
+        // Pre-calculate trajectory vector
+        const dx = targetEnemy.x - x;
+        const dy = targetEnemy.y - y;
+        const dist = Math.hypot(dx, dy) || 1;
+        const angle = Math.atan2(dy, dx) + angleOffset;
+
+        this.vx = Math.cos(angle) * this.speed;
+        this.vy = Math.sin(angle) * this.speed;
+      }
+
+      update(dt) {
+        this.trail.unshift({ x: this.x, y: this.y });
+        if (this.trail.length > 4) this.trail.pop();
+
+        this.x += this.vx * dt;
+        this.y += this.vy * dt;
+
+        // Check collision with target
+        if (this.targetEnemy && this.targetEnemy.active) {
+          const d = Math.hypot(this.targetEnemy.x - this.x, this.targetEnemy.y - this.y);
+          if (d < (this.targetEnemy.sizeInUnits / 2) + 0.2) {
+            this.targetEnemy.takeDamage(this.damage);
+            this.active = false;
+          }
+        }
+
+        // Out of bounds
+        if (this.y < 0 || this.y > ROWS || this.x < 0 || this.x > COLS) {
+          this.active = false;
+        }
+      }
+    }
+
+    /* ═════════════════════════════════════════════
+       5. ENEMY ENTITY
+       ═════════════════════════════════════════════ */
+    class Enemy {
+      constructor(def, x, y, hpMultiplier = 1.0) {
+        this.def = def;
+        this.x = x;
+        this.y = y;
+        this.maxHp = Math.round(def.hp * hpMultiplier);
+        this.hp = this.maxHp;
+        this.shieldHp = def.shieldHp ? Math.round(def.shieldHp * hpMultiplier) : 0;
+        this.maxShieldHp = this.shieldHp;
+        this.speed = def.speed;
+        this.gold = def.gold;
+        this.wallDamage = def.wallDamage;
+        this.color = def.color;
+        this.active = true;
+        this.reachedWall = false;
+        this.sizeInUnits = def.size / 30; // normalized to grid units
+        this.targetX = x;
+        this.targetY = y + 1;
+        this.repathTimer = 0;
+        this.pulseAngle = Math.random() * Math.PI * 2;
+      }
+
+      takeDamage(amount) {
+        if (this.shieldHp > 0) {
+          if (this.shieldHp >= amount) {
+            this.shieldHp -= amount;
+            return;
+          } else {
+            amount -= this.shieldHp;
+            this.shieldHp = 0;
+          }
+        }
+
+        this.hp -= amount;
+        if (this.hp <= 0) {
+          this.active = false;
+        }
+      }
+
+      update(dt, grid) {
+        this.pulseAngle += dt * 4;
+        this.repathTimer -= dt;
+
+        if (this.repathTimer <= 0) {
+          const step = grid.findNextStep(this.x, this.y);
+          this.targetX = step.targetX;
+          this.targetY = step.targetY;
+          this.repathTimer = 0.45; // check terrain every 450ms
+        }
+
+        // Terrain influence
+        let currentSpeed = this.speed;
+        const currentTerrain = grid.getTerrain(Math.floor(this.x), Math.floor(this.y));
+        if (currentTerrain === 'ice') {
+          currentSpeed *= 0.70; // 30% reduction
+        } else if (currentTerrain === 'spike') {
+          this.takeDamage(12 * dt); // Continuous damage
+        }
+
+        // Step toward path target
+        const dx = this.targetX - this.x;
+        const dy = this.targetY - this.y;
+        const dist = Math.hypot(dx, dy);
+
+        if (dist > 0.05) {
+          this.x += (dx / dist) * currentSpeed * dt;
+          this.y += (dy / dist) * currentSpeed * dt;
+        } else {
+          this.y += currentSpeed * dt * 0.8;
+        }
+
+        // Check if reached Wall (row 14)
+        if (this.y >= 14.0) {
+          this.reachedWall = true;
+          this.active = false;
+        }
+      }
+    }
+
+    /* ═════════════════════════════════════════════
+       6. VECTOR PARTICLES & FX
+       ═════════════════════════════════════════════ */
+    class Particle {
+      constructor(x, y, color) {
+        this.x = x;
+        this.y = y;
+        this.color = color;
+        const angle = Math.random() * Math.PI * 2;
+        const speed = 1.5 + Math.random() * 4.5;
+        this.vx = Math.cos(angle) * speed;
+        this.vy = Math.sin(angle) * speed;
+        this.life = 0.35 + Math.random() * 0.35;
+        this.maxLife = this.life;
+        this.len = 3 + Math.random() * 5;
+      }
+
+      update(dt) {
+        this.x += this.vx * dt;
+        this.y += this.vy * dt;
+        this.life -= dt;
+      }
+    }
+
+    /* ═════════════════════════════════════════════
+       7. MAIN GAME ENGINE
+       ═════════════════════════════════════════════ */
+    class GameEngine {
+      constructor() {
+        this.canvas = document.getElementById('gameCanvas');
+        this.ctx = this.canvas.getContext('2d');
+
+        // Layout constants
+        this.cols = COLS;
+        this.rows = ROWS;
+        this.cellW = this.canvas.width / this.cols;
+        this.cellH = this.canvas.height / this.rows;
+
+        // Run-level progression
+        this.stage = 1;
+        this.wave = 1;
+        this.wavesPerStage = 3;
+        this.gold = 0;
+        this.wallHp = 100;
+        this.wallMaxHp = 100;
+        this.currentAP = 1;
+        this.maxAP = 1;
+        this.phase = PHASES.PREPARATION;
+        this.speedMultiplier = 1.0;
+
+        // Permanent Upgrades (Persists for current run)
+        this.permUpgrades = {
+          damageBoost: 0,
+          fireRateBoost: 0,
+          rangeBoost: 0,
+          handSizeBoost: 0
+        };
+
+        // Telemetry
+        this.totalKills = 0;
+        this.totalGoldEarned = 0;
+
+        // Grid & Systems
+        this.grid = new BattlefieldGrid(this.cols, this.rows);
+        this.deck = new DeckManager();
+
+        // 3 Tower Slots along row 12
+        this.towers = [
+          new Tower(0, 2, 12, false), // Left Slot (locked initially)
+          new Tower(1, 5.5, 12, true), // Center Slot (active by default)
+          new Tower(2, 9, 12, false)  // Right Slot (locked initially)
+        ];
+
+        // Active combat collections
+        this.enemies = [];
+        this.projectiles = [];
+        this.particles = [];
+        this.waveQueue = [];
+        this.spawnTimer = 0;
+        this.screenShake = 0;
+
+        // Interaction state
+        this.selectedCard = null;
+
+        // Bind DOM elements
+        this.dom = {
+          hudStageWave: document.getElementById('hudStageWave'),
+          hudPhaseStatus: document.getElementById('hudPhaseStatus'),
+          hudGold: document.getElementById('hudGold'),
+          hudWallHpText: document.getElementById('hudWallHpText'),
+          hudWallHpBar: document.getElementById('hudWallHpBar'),
+          hudApPips: document.getElementById('hudApPips'),
+          hudHighScore: document.getElementById('hudHighScore'),
+          hudDrawCount: document.getElementById('hudDrawCount'),
+          hudDiscardCount: document.getElementById('hudDiscardCount'),
+          hudActiveTargetText: document.getElementById('hudActiveTargetText'),
+          handCardsContainer: document.getElementById('handCardsContainer'),
+          btnStartWave: document.getElementById('btnStartWave'),
+          btnSpeedToggle: document.getElementById('btnSpeedToggle'),
+          speedVal: document.getElementById('speedVal'),
+          controllerInstructions: document.getElementById('controllerInstructions'),
+          shopModal: document.getElementById('shopModal'),
+          shopGoldVal: document.getElementById('shopGoldVal'),
+          shopCardList: document.getElementById('shopCardList'),
+          shopUpgradeList: document.getElementById('shopUpgradeList'),
+          btnExitShop: document.getElementById('btnExitShop'),
+          gameOverModal: document.getElementById('gameOverModal'),
+          resStage: document.getElementById('resStage'),
+          resWaves: document.getElementById('resWaves'),
+          resKills: document.getElementById('resKills'),
+          resGold: document.getElementById('resGold'),
+          btnRestartRun: document.getElementById('btnRestartRun')
+        };
+
+        this.initEventListeners();
+        this.loadHighScore();
+        this.startRun();
+
+        // Start Loop
+        this.lastTime = performance.now();
+        requestAnimationFrame(this.loop.bind(this));
+      }
+
+      loadHighScore() {
+        try {
+          const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+          this.highScore = saved.highScore || 0;
+          this.dom.hudHighScore.textContent = this.highScore;
+        } catch (e) {
+          this.highScore = 0;
+        }
+      }
+
+      saveHighScore() {
+        const score = (this.stage - 1) * 300 + (this.wave - 1) * 100 + this.totalKills * 10 + this.totalGoldEarned * 2;
+        if (score > this.highScore) {
+          this.highScore = score;
+          this.dom.hudHighScore.textContent = this.highScore;
+          try {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify({ highScore: this.highScore }));
+          } catch (e) {}
+        }
+      }
+
+      startRun() {
+        this.stage = 1;
+        this.wave = 1;
+        this.wavesPerStage = 3;
+        this.gold = 0;
+        this.wallHp = 100;
+        this.wallMaxHp = 100;
+        this.totalKills = 0;
+        this.totalGoldEarned = 0;
+        this.permUpgrades = {
+          damageBoost: 0,
+          fireRateBoost: 0,
+          rangeBoost: 0,
+          handSizeBoost: 0
+        };
+
+        // Reset towers (Only Center active)
+        this.towers[0].active = false;
+        this.towers[0].resetStageModifiers();
+        this.towers[1].active = true;
+        this.towers[1].resetStageModifiers();
+        this.towers[2].active = false;
+        this.towers[2].resetStageModifiers();
+
+        this.grid.clear();
+        this.deck.initStartingDeck();
+        this.deck.draw(3);
+
+        this.startPreparationPhase();
+      }
+
+      startPreparationPhase() {
+        this.phase = PHASES.PREPARATION;
+        this.selectedCard = null;
+        this.enemies = [];
+        this.projectiles = [];
+        this.waveQueue = [];
+
+        // Calculate AP: AP = min(currentWave, 10)
+        this.maxAP = Math.min(this.wave, 10);
+        this.currentAP = this.maxAP;
+
+        // Draw 1 card at beginning of each preparation phase
+        this.deck.draw(1 + this.permUpgrades.handSizeBoost);
+
+        this.updateHUD();
+        this.renderHandUI();
+      }
+
+      startWaveCombat() {
+        if (this.phase !== PHASES.PREPARATION) return;
+
+        // Unused AP is lost
+        this.currentAP = 0;
+        this.phase = PHASES.WAVE_COMBAT;
+        this.selectedCard = null;
+
+        // Build procedural wave composition
+        this.waveQueue = this.generateWaveComposition(this.stage, this.wave);
+        this.spawnTimer = 0.5;
+
+        this.updateHUD();
+        this.renderHandUI(); // will render locked
+      }
+
+      generateWaveComposition(stage, wave) {
+        const queue = [];
+        const hpMultiplier = 1.0 + (stage - 1) * 0.45 + (wave - 1) * 0.15;
+        let budget = 12 + (stage - 1) * 16 + wave * 9;
+
+        // If final wave of stage, add Boss!
+        if (wave === this.wavesPerStage) {
+          queue.push({ def: ENEMY_DEFS.BOSS, hpMultiplier: hpMultiplier * 1.2 });
+          budget -= 20;
+        }
+
+        while (budget > 0) {
+          const roll = Math.random();
+          let choice = ENEMY_DEFS.GRUNT;
+
+          if (stage >= 2 && roll < 0.22) {
+            choice = ENEMY_DEFS.SHIELD;
+          } else if (stage >= 2 && roll < 0.42) {
+            choice = ENEMY_DEFS.SPLITTER;
+          } else if (roll < 0.35) {
+            choice = ENEMY_DEFS.RUNNER;
+          } else if (roll < 0.65) {
+            choice = ENEMY_DEFS.GRUNT;
+          } else {
+            choice = ENEMY_DEFS.TANK;
+          }
+
+          queue.push({ def: choice, hpMultiplier });
+          budget -= (choice.gold * 3);
+        }
+
+        return queue;
+      }
+
+      playCard(card, targetCol = null, targetRow = null) {
+        if (this.phase !== PHASES.PREPARATION) return;
+        if (this.currentAP < card.cost) return;
+
+        if (card.targetType === 'tower') {
+          // Apply to target tower, or default to center tower if specified
+          const activeTowers = this.towers.filter(t => t.active);
+          let chosen = null;
+
+          if (targetCol !== null) {
+            chosen = activeTowers.find(t => Math.abs(t.col - targetCol) < 1.5);
+          }
+          if (!chosen && activeTowers.length === 1) {
+            chosen = activeTowers[0];
+          }
+
+          if (chosen) {
+            this.currentAP -= card.cost;
+            card.apply(chosen);
+            this.deck.discard(card.uid);
+            this.selectedCard = null;
+            this.createParticleExplosion(chosen.col * this.cellW + this.cellW / 2, chosen.row * this.cellH + this.cellH / 2, '#38bdf8', 12);
+          } else {
+            this.dom.hudActiveTargetText.textContent = 'Please tap a tower slot to apply!';
+            return;
+          }
+        } else if (card.targetType === 'terrain') {
+          if (targetCol !== null && targetRow !== null) {
+            if (targetRow >= 2 && targetRow <= 11) {
+              this.currentAP -= card.cost;
+              card.apply(this.grid, targetCol, targetRow);
+              this.deck.discard(card.uid);
+              this.selectedCard = null;
+              this.createParticleExplosion(targetCol * this.cellW + this.cellW / 2, targetRow * this.cellH + this.cellH / 2, '#34d399', 8);
+            } else {
+              this.dom.hudActiveTargetText.textContent = 'Can only place terrain in the field (rows 2-11)!';
+              return;
+            }
+          } else {
+            this.dom.hudActiveTargetText.textContent = 'Tap an empty cell on the field to deploy!';
+            return;
+          }
+        }
+
+        this.updateHUD();
+        this.renderHandUI();
+      }
+
+      checkWaveCompletion() {
+        if (this.waveQueue.length === 0 && this.enemies.length === 0) {
+          // Wave Cleared!
+          this.saveHighScore();
+
+          if (this.wave >= this.wavesPerStage) {
+            // Stage Complete! Modifiers reset, transition to next stage
+            this.openShop(true);
+          } else {
+            // Wave Complete, open interstage shop
+            this.openShop(false);
+          }
+        }
+      }
+
+      openShop(isStageClear = false) {
+        this.phase = PHASES.INTERSTAGE_SHOP;
+        this.isStageClearAfterShop = isStageClear;
+
+        this.dom.shopGoldVal.textContent = this.gold;
+        this.renderShopOfferings();
+        this.dom.shopModal.classList.remove('hidden');
+      }
+
+      renderShopOfferings() {
+        // 3 Random Cards for gold
+        const sampleCards = [];
+        while (sampleCards.length < 3) {
+          const rand = CARD_CATALOG[Math.floor(Math.random() * CARD_CATALOG.length)];
+          if (!sampleCards.some(c => c.id === rand.id)) {
+            sampleCards.push(rand);
+          }
+        }
+
+        this.dom.shopCardList.innerHTML = sampleCards.map(c => `
+          <div class="p-2 rounded bg-slate-900 border border-slate-700 flex flex-col justify-between">
+            <div>
+              <div class="text-[11px] font-bold text-cyan-400">${c.name}</div>
+              <div class="text-[9px] text-slate-400 mt-0.5 line-clamp-2">${c.desc}</div>
+            </div>
+            <button type="button" data-buy-card="${c.id}" class="mt-2 w-full py-1 text-[10px] btn-vector btn-vector-amber ${this.gold < 15 ? 'opacity-40' : ''}">
+              Buy (15G)
+            </button>
+          </div>
+        `).join('');
+
+        // Fixed Upgrades
+        const upgrades = [
+          {
+            id: 'unlock_tower',
+            name: 'Tower Slot',
+            cost: 50,
+            desc: 'Unlocks +1 permanent Tower Slot (Max 3)',
+            disabled: this.towers.every(t => t.active)
+          },
+          {
+            id: 'wall_repair',
+            name: 'Reinforce Wall',
+            cost: 30,
+            desc: '+35 Max HP & heals +35 Wall HP',
+            disabled: false
+          },
+          {
+            id: 'damage_boost',
+            name: 'Heavy Cores',
+            cost: 25,
+            desc: '+20% Global Tower Damage',
+            disabled: false
+          },
+          {
+            id: 'fire_rate',
+            name: 'Flux Accelerators',
+            cost: 25,
+            desc: '+20% Global Tower Fire Rate',
+            disabled: false
+          }
+        ];
+
+        this.dom.shopUpgradeList.innerHTML = upgrades.map(u => `
+          <div class="p-2 rounded bg-slate-900 border border-slate-700 flex flex-col justify-between">
+            <div>
+              <div class="text-[11px] font-bold text-white">${u.name}</div>
+              <div class="text-[9px] text-slate-400 mt-0.5">${u.desc}</div>
+            </div>
+            <button type="button" data-buy-upgrade="${u.id}" ${u.disabled || this.gold < u.cost ? 'disabled' : ''} class="mt-2 w-full py-1 text-[10px] btn-vector btn-vector-cyan">
+              ${u.disabled ? 'MAXED' : `${u.cost}G`}
+            </button>
+          </div>
+        `).join('');
+
+        // Bind purchase buttons
+        this.dom.shopCardList.querySelectorAll('[data-buy-card]').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            const cardId = e.currentTarget.getAttribute('data-buy-card');
+            if (this.gold >= 15) {
+              this.gold -= 15;
+              this.deck.addCardToDraw(cardId);
+              this.dom.shopGoldVal.textContent = this.gold;
+              this.renderShopOfferings();
+              this.updateHUD();
+            }
+          });
+        });
+
+        this.dom.shopUpgradeList.querySelectorAll('[data-buy-upgrade]').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            const upId = e.currentTarget.getAttribute('data-buy-upgrade');
+            this.handleUpgradePurchase(upId);
+          });
+        });
+      }
+
+      handleUpgradePurchase(id) {
+        if (id === 'unlock_tower' && this.gold >= 50) {
+          const locked = this.towers.find(t => !t.active);
+          if (locked) {
+            this.gold -= 50;
+            locked.active = true;
+          }
+        } else if (id === 'wall_repair' && this.gold >= 30) {
+          this.gold -= 30;
+          this.wallMaxHp += 35;
+          this.wallHp = Math.min(this.wallMaxHp, this.wallHp + 35);
+        } else if (id === 'damage_boost' && this.gold >= 25) {
+          this.gold -= 25;
+          this.permUpgrades.damageBoost++;
+        } else if (id === 'fire_rate' && this.gold >= 25) {
+          this.gold -= 25;
+          this.permUpgrades.fireRateBoost++;
+        }
+
+        this.dom.shopGoldVal.textContent = this.gold;
+        this.renderShopOfferings();
+        this.updateHUD();
+      }
+
+      exitShop() {
+        this.dom.shopModal.classList.add('hidden');
+
+        if (this.isStageClearAfterShop) {
+          // Advance Stage
+          this.stage++;
+          this.wave = 1;
+          this.wavesPerStage = 3 + Math.min(3, Math.floor(this.stage / 2));
+          // Reset stage modifiers & terrain! Wall HP persists!
+          this.towers.forEach(t => t.resetStageModifiers());
+          this.grid.clear();
+        } else {
+          // Advance Wave within same stage
+          this.wave++;
+        }
+
+        this.startPreparationPhase();
+      }
+
+      triggerGameOver() {
+        this.phase = PHASES.GAME_OVER;
+        this.saveHighScore();
+
+        this.dom.resStage.textContent = `Stage ${this.stage}`;
+        this.dom.resWaves.textContent = `${this.wave} / ${this.wavesPerStage}`;
+        this.dom.resKills.textContent = this.totalKills;
+        this.dom.resGold.textContent = `${this.totalGoldEarned} G`;
+
+        this.dom.gameOverModal.classList.remove('hidden');
+      }
+
+      createParticleExplosion(x, y, color, count = 10) {
+        for (let i = 0; i < count; i++) {
+          this.particles.push(new Particle(x, y, color));
+        }
+      }
+
+      /* ═════════════════════════════════════════════
+         8. MAIN UPDATE & PHYSICS LOOP
+         ═════════════════════════════════════════════ */
+      update(dt) {
+        if (this.screenShake > 0) {
+          this.screenShake -= dt * 15;
+          if (this.screenShake < 0) this.screenShake = 0;
+        }
+
+        if (this.phase !== PHASES.WAVE_COMBAT) return;
+
+        // Spawn enemies from waveQueue
+        this.spawnTimer -= dt;
+        if (this.spawnTimer <= 0 && this.waveQueue.length > 0) {
+          const item = this.waveQueue.shift();
+          const spawnCol = 1 + Math.random() * (this.cols - 2); // random top lane
+          this.enemies.push(new Enemy(item.def, spawnCol, 0.5, item.hpMultiplier));
+          this.spawnTimer = 0.9 + Math.random() * 0.7; // staggering
+        }
+
+        // Update enemies
+        for (let i = this.enemies.length - 1; i >= 0; i--) {
+          const enemy = this.enemies[i];
+          enemy.update(dt, this.grid);
+
+          // If reached wall
+          if (enemy.reachedWall) {
+            this.wallHp -= enemy.wallDamage;
+            this.screenShake = 12;
+            const px = enemy.x * this.cellW;
+            const py = 14 * this.cellH;
+            this.createParticleExplosion(px, py, '#f87171', 18);
+
+            if (this.wallHp <= 0) {
+              this.wallHp = 0;
+              this.updateHUD();
+              this.triggerGameOver();
+              return;
+            }
+            this.updateHUD();
+          }
+
+          // If destroyed by towers
+          if (!enemy.active && !enemy.reachedWall) {
+            this.totalKills++;
+            this.gold += enemy.gold;
+            this.totalGoldEarned += enemy.gold;
+            this.updateHUD();
+
+            const px = enemy.x * this.cellW;
+            const py = enemy.y * this.cellH;
+            this.createParticleExplosion(px, py, enemy.color, 14);
+
+            // Splitter mechanics: spawns child runners
+            if (enemy.def.children) {
+              for (let c = 0; c < enemy.def.children; c++) {
+                const child = new Enemy(ENEMY_DEFS.RUNNER, enemy.x + (c === 0 ? -0.4 : 0.4), enemy.y);
+                this.enemies.push(child);
+              }
+            }
+          }
+        }
+        this.enemies = this.enemies.filter(e => e.active);
+
+        // Update Towers & Target Acquisition
+        const now = performance.now() / 1000;
+        this.towers.forEach(tower => {
+          if (!tower.active) return;
+          const stats = tower.getStats(this.permUpgrades);
+
+          // Find nearest enemy within range
+          let nearest = null;
+          let minDist = stats.range;
+
+          for (const e of this.enemies) {
+            const d = Math.hypot(e.x - tower.col, e.y - tower.row);
+            if (d <= minDist) {
+              minDist = d;
+              nearest = e;
+            }
+          }
+
+          tower.targetEnemy = nearest;
+
+          // Fire projectile
+          if (nearest && (now - tower.lastShotTime) >= (1 / stats.fireRate)) {
+            tower.lastShotTime = now;
+            const startX = tower.col;
+            const startY = tower.row - 0.4;
+
+            if (stats.doubleBarrel) {
+              this.projectiles.push(new Projectile(startX, startY, nearest, stats.damage * 0.7, true, -0.08));
+              this.projectiles.push(new Projectile(startX, startY, nearest, stats.damage * 0.7, true, 0.08));
+            } else {
+              this.projectiles.push(new Projectile(startX, startY, nearest, stats.damage));
+            }
+          }
+        });
+
+        // Update Projectiles
+        for (let i = this.projectiles.length - 1; i >= 0; i--) {
+          const p = this.projectiles[i];
+          p.update(dt);
+          if (!p.active) {
+            const px = p.x * this.cellW;
+            const py = p.y * this.cellH;
+            this.createParticleExplosion(px, py, '#38bdf8', 4);
+          }
+        }
+        this.projectiles = this.projectiles.filter(p => p.active);
+
+        // Update Particles
+        this.particles.forEach(p => p.update(dt));
+        this.particles = this.particles.filter(p => p.life > 0);
+
+        this.checkWaveCompletion();
+      }
+
+      /* ═════════════════════════════════════════════
+         9. STRICT VECTOR ARCADE RENDERING
+         ═════════════════════════════════════════════ */
+      render() {
+        const ctx = this.ctx;
+        const w = this.canvas.width;
+        const h = this.canvas.height;
+
+        ctx.save();
+
+        // Screen Shake
+        if (this.screenShake > 0) {
+          const sx = (Math.random() - 0.5) * this.screenShake;
+          const sy = (Math.random() - 0.5) * this.screenShake;
+          ctx.translate(sx, sy);
+        }
+
+        // 1. Dark Background (#0B0F19)
+        ctx.fillStyle = '#0B0F19';
+        ctx.fillRect(0, 0, w, h);
+
+        // 2. Faint Grid Lines & Spawn Boundaries
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.035)';
+        ctx.lineWidth = 1;
+        for (let c = 0; c <= this.cols; c++) {
+          ctx.beginPath();
+          ctx.moveTo(c * this.cellW, 0);
+          ctx.lineTo(c * this.cellW, h);
+          ctx.stroke();
+        }
+        for (let r = 0; r <= this.rows; r++) {
+          ctx.beginPath();
+          ctx.moveTo(0, r * this.cellH);
+          ctx.lineTo(w, r * this.cellH);
+          ctx.stroke();
+        }
+
+        // Faint Spawn Line Indicator at row 2
+        ctx.strokeStyle = 'rgba(56, 189, 248, 0.15)';
+        ctx.setLineDash([4, 4]);
+        ctx.beginPath();
+        ctx.moveTo(0, 2 * this.cellH);
+        ctx.lineTo(w, 2 * this.cellH);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // 3. Render Terrain Tiles
+        for (let r = 2; r <= 11; r++) {
+          for (let c = 0; c < this.cols; c++) {
+            const t = this.grid.getTerrain(c, r);
+            if (t) {
+              const x = c * this.cellW;
+              const y = r * this.cellH;
+              if (t === 'ice') {
+                // Cyan vector diamond pattern
+                ctx.strokeStyle = '#38bdf8';
+                ctx.shadowColor = '#38bdf8';
+                ctx.shadowBlur = 6;
+                ctx.lineWidth = 1.2;
+                ctx.beginPath();
+                ctx.moveTo(x + this.cellW / 2, y + 4);
+                ctx.lineTo(x + this.cellW - 4, y + this.cellH / 2);
+                ctx.lineTo(x + this.cellW / 2, y + this.cellH - 4);
+                ctx.lineTo(x + 4, y + this.cellH / 2);
+                ctx.closePath();
+                ctx.stroke();
+                // Inner cross
+                ctx.beginPath();
+                ctx.moveTo(x + this.cellW / 2, y + 10);
+                ctx.lineTo(x + this.cellW / 2, y + this.cellH - 10);
+                ctx.moveTo(x + 10, y + this.cellH / 2);
+                ctx.lineTo(x + this.cellW - 10, y + this.cellH / 2);
+                ctx.stroke();
+              } else if (t === 'spike') {
+                // Red vector spike teeth
+                ctx.strokeStyle = '#f87171';
+                ctx.shadowColor = '#f87171';
+                ctx.shadowBlur = 6;
+                ctx.lineWidth = 1.5;
+                ctx.beginPath();
+                const teeth = 3;
+                const tw = this.cellW / teeth;
+                for (let i = 0; i < teeth; i++) {
+                  ctx.moveTo(x + i * tw, y + this.cellH - 4);
+                  ctx.lineTo(x + (i + 0.5) * tw, y + 8);
+                  ctx.lineTo(x + (i + 1) * tw, y + this.cellH - 4);
+                }
+                ctx.stroke();
+              }
+            }
+          }
+        }
+
+        // 4. Render Wall Component (Row 14)
+        const wallY = 14 * this.cellH;
+        ctx.shadowColor = '#34d399';
+        ctx.shadowBlur = 8;
+        ctx.strokeStyle = '#34d399';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(0, wallY);
+        ctx.lineTo(w, wallY);
+        ctx.stroke();
+
+        // Secondary Wall Grid Lattice
+        ctx.strokeStyle = 'rgba(52, 211, 153, 0.25)';
+        ctx.lineWidth = 1;
+        for (let c = 0; c < this.cols; c++) {
+          ctx.beginPath();
+          ctx.moveTo(c * this.cellW, wallY);
+          ctx.lineTo((c + 1) * this.cellW, wallY + this.cellH);
+          ctx.stroke();
+        }
+
+        // 5. Render Towers (Row 12)
+        this.towers.forEach(tower => {
+          const cx = tower.col * this.cellW + this.cellW / 2;
+          const cy = tower.row * this.cellH + this.cellH / 2;
+          const half = 14;
+
+          if (!tower.active) {
+            // Unlocked placeholder slot (faint dashed vector outline)
+            ctx.shadowBlur = 0;
+            ctx.strokeStyle = '#334155';
+            ctx.setLineDash([3, 3]);
+            ctx.lineWidth = 1.5;
+            ctx.strokeRect(cx - half, cy - half, half * 2, half * 2);
+            ctx.setLineDash([]);
+            return;
+          }
+
+          const stats = tower.getStats(this.permUpgrades);
+
+          // Range circle indicator during preparation or hover
+          if (this.phase === PHASES.PREPARATION) {
+            ctx.shadowBlur = 4;
+            ctx.strokeStyle = 'rgba(56, 189, 248, 0.15)';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.arc(cx, cy, stats.range * this.cellW, 0, Math.PI * 2);
+            ctx.stroke();
+          }
+
+          // Dynamic Tower Vector Appearance derived from modifiers:
+          ctx.shadowColor = '#38bdf8';
+          ctx.shadowBlur = 10;
+          ctx.strokeStyle = '#f8fafc';
+          ctx.lineWidth = 2;
+
+          // Base Solid Square
+          ctx.strokeRect(cx - half, cy - half, half * 2, half * 2);
+
+          // Heavy Barrel: add outer corner brackets
+          if (tower.modifiers.includes('heavy_barrel')) {
+            ctx.strokeStyle = '#fbbf24';
+            ctx.shadowColor = '#fbbf24';
+            ctx.lineWidth = 2.5;
+            const bLen = 6;
+            // 4 corners
+            ctx.beginPath();
+            ctx.moveTo(cx - half - 4, cy - half + bLen);
+            ctx.lineTo(cx - half - 4, cy - half - 4);
+            ctx.lineTo(cx - half + bLen, cy - half - 4);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(cx + half + 4, cy - half + bLen);
+            ctx.lineTo(cx + half + 4, cy - half - 4);
+            ctx.lineTo(cx + half - bLen, cy - half - 4);
+            ctx.stroke();
+          }
+
+          // Rapid Fire: inner crosshairs
+          if (tower.modifiers.includes('rapid_fire') || tower.modifiers.includes('attack_speed')) {
+            ctx.strokeStyle = '#38bdf8';
+            ctx.lineWidth = 1.2;
+            ctx.beginPath();
+            ctx.moveTo(cx - half + 4, cy);
+            ctx.lineTo(cx + half - 4, cy);
+            ctx.moveTo(cx, cy - half + 4);
+            ctx.lineTo(cx, cy + half - 4);
+            ctx.stroke();
+          }
+
+          // Double Barrel: twin emitter lines
+          if (stats.doubleBarrel) {
+            ctx.strokeStyle = '#38bdf8';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(cx - 5, cy - half);
+            ctx.lineTo(cx - 5, cy - half - 8);
+            ctx.moveTo(cx + 5, cy - half);
+            ctx.lineTo(cx + 5, cy - half - 8);
+            ctx.stroke();
+          } else {
+            // Single emitter line
+            ctx.strokeStyle = '#38bdf8';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(cx, cy - half);
+            ctx.lineTo(cx, cy - half - 6);
+            ctx.stroke();
+          }
+        });
+
+        // 6. Render Projectiles
+        this.projectiles.forEach(p => {
+          const px = p.x * this.cellW;
+          const py = p.y * this.cellH;
+
+          // Glowing Vector Beam
+          ctx.shadowColor = '#38bdf8';
+          ctx.shadowBlur = 8;
+          ctx.strokeStyle = '#f8fafc';
+          ctx.lineWidth = p.isDouble ? 1.5 : 2;
+
+          ctx.beginPath();
+          ctx.moveTo(px, py);
+          ctx.lineTo(px - (p.vx * 0.05 * this.cellW), py - (p.vy * 0.05 * this.cellH));
+          ctx.stroke();
+        });
+
+        // 7. Render Enemies (Vector Squares & Archetypes)
+        this.enemies.forEach(e => {
+          const ex = e.x * this.cellW;
+          const ey = e.y * this.cellH;
+          const size = e.def.size;
+          const half = size / 2;
+
+          ctx.save();
+          ctx.translate(ex, ey);
+          ctx.shadowColor = e.color;
+          ctx.shadowBlur = 10;
+          ctx.strokeStyle = e.color;
+          ctx.lineWidth = 2;
+
+          if (e.def.id === 'boss') {
+            // Boss: Heavy double-layered square with rotating core
+            ctx.lineWidth = 3;
+            ctx.strokeRect(-half, -half, size, size);
+            ctx.strokeRect(-half + 6, -half + 6, size - 12, size - 12);
+            // Floating Health Line
+            const hpPct = Math.max(0, e.hp / e.maxHp);
+            ctx.shadowBlur = 0;
+            ctx.fillStyle = '#1e293b';
+            ctx.fillRect(-half, -half - 12, size, 4);
+            ctx.fillStyle = '#f87171';
+            ctx.fillRect(-half, -half - 12, size * hpPct, 4);
+          } else if (e.def.id === 'shield') {
+            // Shield: Vector square with outer pulsing ring
+            ctx.strokeRect(-half, -half, size, size);
+            if (e.shieldHp > 0) {
+              ctx.strokeStyle = '#93c5fd';
+              ctx.shadowColor = '#93c5fd';
+              ctx.lineWidth = 1.5;
+              ctx.beginPath();
+              ctx.arc(0, 0, half + 5 + Math.sin(e.pulseAngle) * 1.5, 0, Math.PI * 2);
+              ctx.stroke();
+            }
+          } else if (e.def.id === 'splitter') {
+            // Splitter: 4 subdivided quadrants
+            ctx.strokeRect(-half, -half, size, size);
+            ctx.beginPath();
+            ctx.moveTo(-half, 0);
+            ctx.lineTo(half, 0);
+            ctx.moveTo(0, -half);
+            ctx.lineTo(0, half);
+            ctx.stroke();
+          } else {
+            // Grunt / Runner / Tank
+            ctx.strokeRect(-half, -half, size, size);
+            if (e.def.id === 'tank') {
+              // Tank crossbars
+              ctx.strokeRect(-half + 4, -half + 4, size - 8, size - 8);
+            }
+          }
+
+          ctx.restore();
+        });
+
+        // 8. Render Particles
+        this.particles.forEach(p => {
+          const alpha = p.life / p.maxLife;
+          ctx.shadowBlur = 4;
+          ctx.shadowColor = p.color;
+          ctx.strokeStyle = p.color;
+          ctx.lineWidth = 1.2;
+          ctx.globalAlpha = alpha;
+
+          ctx.beginPath();
+          ctx.moveTo(p.x, p.y);
+          ctx.lineTo(p.x - p.vx * 0.03, p.y - p.vy * 0.03);
+          ctx.stroke();
+          ctx.globalAlpha = 1.0;
+        });
+
+        ctx.restore();
+      }
+
+      loop(timestamp) {
+        const dt = Math.min((timestamp - this.lastTime) / 1000, 0.1) * this.speedMultiplier;
+        this.lastTime = timestamp;
+
+        this.update(dt);
+        this.render();
+
+        requestAnimationFrame(this.loop.bind(this));
+      }
+
+      /* ═════════════════════════════════════════════
+         10. HUD & UI BINDINGS
+         ═════════════════════════════════════════════ */
+      updateHUD() {
+        this.dom.hudStageWave.textContent = `STAGE ${this.stage} • WAVE ${this.wave}/${this.wavesPerStage}`;
+        this.dom.hudGold.textContent = this.gold;
+
+        // Wall HP
+        const hpPct = Math.max(0, Math.min(100, Math.round((this.wallHp / this.wallMaxHp) * 100)));
+        this.dom.hudWallHpText.textContent = `${this.wallHp} / ${this.wallMaxHp} HP`;
+        this.dom.hudWallHpBar.style.width = `${hpPct}%`;
+        if (hpPct < 30) {
+          this.dom.hudWallHpBar.className = 'h-full bg-red-400 transition-all duration-300';
+        } else if (hpPct < 60) {
+          this.dom.hudWallHpBar.className = 'h-full bg-amber-400 transition-all duration-300';
+        } else {
+          this.dom.hudWallHpBar.className = 'h-full bg-green-400 transition-all duration-300';
+        }
+
+        // AP Pips
+        this.dom.hudApPips.innerHTML = Array.from({ length: this.maxAP }).map((_, i) => {
+          const isFilled = i < this.currentAP;
+          return `<span class="ap-pip ${isFilled ? 'filled' : 'empty'}"></span>`;
+        }).join('');
+
+        // Counts
+        this.dom.hudDrawCount.textContent = this.deck.drawPile.length;
+        this.dom.hudDiscardCount.textContent = this.deck.cemetery.length;
+
+        // Status text
+        if (this.phase === PHASES.PREPARATION) {
+          this.dom.hudPhaseStatus.textContent = '[ PREPARATION ]';
+          this.dom.btnStartWave.disabled = false;
+        } else if (this.phase === PHASES.WAVE_COMBAT) {
+          this.dom.hudPhaseStatus.textContent = `[ COMBAT: ${this.enemies.length + this.waveQueue.length} REMAINING ]`;
+          this.dom.btnStartWave.disabled = true;
+        }
+      }
+
+      renderHandUI() {
+        if (this.phase !== PHASES.PREPARATION) {
+          this.dom.handCardsContainer.innerHTML = `
+            <div class="col-span-full py-6 text-center text-xs font-mono text-slate-400 bg-slate-900/50 rounded-lg border border-slate-800">
+              ⚔ COMBAT IN PROGRESS — DEFENSE TOWERS ENGAGING DESCENDING TARGETS ⚔
+            </div>
+          `;
+          return;
+        }
+
+        if (this.deck.hand.length === 0) {
+          this.dom.handCardsContainer.innerHTML = `
+            <div class="col-span-full py-6 text-center text-xs font-mono text-slate-400 bg-slate-900/50 rounded-lg border border-slate-800">
+              No cards in hand. Engage wave to proceed.
+            </div>
+          `;
+          return;
+        }
+
+        this.dom.handCardsContainer.innerHTML = this.deck.hand.map(card => {
+          const canAfford = this.currentAP >= card.cost;
+          const isSelected = this.selectedCard && this.selectedCard.uid === card.uid;
+          const badgeColor = card.targetType === 'tower' ? 'text-cyan-400 border-cyan-800 bg-cyan-950' : 'text-emerald-400 border-emerald-800 bg-emerald-950';
+
+          return `
+            <div class="card-item ${!canAfford ? 'unplayable' : ''} ${isSelected ? 'selected' : ''}" data-card-uid="${card.uid}">
+              <div>
+                <div class="flex items-center justify-between text-[10px] font-bold mb-1">
+                  <span class="px-1.5 py-0.5 rounded border ${badgeColor}">${card.targetType.toUpperCase()}</span>
+                  <span class="text-cyan-400 font-mono">${card.cost} AP</span>
+                </div>
+                <div class="text-xs font-bold text-slate-100">${card.name}</div>
+                <div class="text-[10px] text-slate-400 mt-1 leading-snug">${card.desc}</div>
+              </div>
+              <div class="text-[9px] text-right font-mono uppercase ${isSelected ? 'text-cyan-400 font-bold' : 'text-slate-400'}">
+                ${isSelected ? '● ACTIVE' : 'TAP TO PLAY'}
+              </div>
+            </div>
+          `;
+        }).join('');
+
+        // Attach Card Click Handlers
+        this.dom.handCardsContainer.querySelectorAll('[data-card-uid]').forEach(el => {
+          el.addEventListener('click', (e) => {
+            const uid = e.currentTarget.getAttribute('data-card-uid');
+            const card = this.deck.hand.find(c => c.uid === uid);
+            if (!card || this.currentAP < card.cost) return;
+
+            if (this.selectedCard && this.selectedCard.uid === card.uid) {
+              // Toggle off
+              this.selectedCard = null;
+              this.dom.hudActiveTargetText.textContent = 'Tap card, then target tower or tile';
+            } else {
+              this.selectedCard = card;
+              if (card.targetType === 'tower') {
+                this.dom.hudActiveTargetText.textContent = `Targeting Tower for [${card.name}]. Click a tower slot!`;
+              } else {
+                this.dom.hudActiveTargetText.textContent = `Targeting Field for [${card.name}]. Click a field cell!`;
+              }
+            }
+            this.renderHandUI();
+          });
+        });
+      }
+
+      initEventListeners() {
+        // Start Wave Button
+        this.dom.btnStartWave.addEventListener('click', () => {
+          this.startWaveCombat();
+        });
+
+        // Speed Toggle Button
+        this.dom.btnSpeedToggle.addEventListener('click', () => {
+          this.speedMultiplier = this.speedMultiplier === 1.0 ? 2.0 : 1.0;
+          this.dom.speedVal.textContent = `${this.speedMultiplier}X`;
+        });
+
+        // Shop Exit Button
+        this.dom.btnExitShop.addEventListener('click', () => {
+          this.exitShop();
+        });
+
+        // Restart Run Button
+        this.dom.btnRestartRun.addEventListener('click', () => {
+          this.dom.gameOverModal.classList.add('hidden');
+          this.startRun();
+        });
+
+        // Canvas Interaction (Targeting towers / terrain)
+        this.canvas.addEventListener('click', (e) => {
+          if (!this.selectedCard || this.phase !== PHASES.PREPARATION) return;
+
+          const rect = this.canvas.getBoundingClientRect();
+          const clickX = ((e.clientX - rect.left) / rect.width) * this.canvas.width;
+          const clickY = ((e.clientY - rect.top) / rect.height) * this.canvas.height;
+
+          const targetCol = Math.floor(clickX / this.cellW);
+          const targetRow = Math.floor(clickY / this.cellH);
+
+          this.playCard(this.selectedCard, targetCol, targetRow);
+        });
+      }
+    }
+
+    // Initialize Game Engine on Page Load
+    window.addEventListener('DOMContentLoaded', () => {
+      new GameEngine();
+    });
+
+  })();
+  </script>
+</body>
+</html>

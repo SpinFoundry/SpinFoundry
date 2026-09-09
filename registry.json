@@ -42,6 +42,14 @@
       "category": "color-vision",
       "path": "/color-matching-test/",
       "dateAdded": "2026-09-09"
+    },
+    {
+      "id": "vector-td-deckbuilder",
+      "title": "Vector Defense: 2D Tower Defense Deckbuilder",
+      "description": "Ultra-minimalist retro vector arcade Tower Defense Deckbuilder inspired by Asteroids. Defend the Wall using cards to stack tower modifiers and lay terrain across procedural waves.",
+      "category": "games",
+      "path": "/vector-td-deckbuilder/",
+      "dateAdded": "2026-09-09"
     }
   ]
 }
