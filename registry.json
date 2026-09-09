@@ -25,6 +25,14 @@
       "category": "simulations",
       "path": "/color-acuity-test/",
       "dateAdded": "2026-09-09"
+    },
+    {
+      "id": "color-acuity-test-2",
+      "title": "Color Vision & Acuity Test II: 6-Spectrum Diagnostic",
+      "description": "Sequential chromatic discrimination test across 6 primary and secondary color channels (Red, Yellow, Blue, Orange, Purple, Green) with interactive 6-axis radar graph profiling.",
+      "category": "simulations",
+      "path": "/color-acuity-test-2/",
+      "dateAdded": "2026-09-09"
     }
   ]
 }
