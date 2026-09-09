@@ -436,6 +436,33 @@
     </div>
   </header>
 
+  <!-- Cloudflare D1 Diagnostic Alert Banner (Shows when D1 is not bound or schema tables missing) -->
+  <div id="d1AlertBanner" class="hidden border-b px-4 py-2.5 text-xs transition-all bg-orange-50 border-orange-200/60 text-slate-800">
+    <div class="max-w-5xl mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+      <div class="flex items-center gap-2">
+        <span class="text-base" id="d1AlertIcon">⚠️</span>
+        <div class="space-y-0.5">
+          <p class="font-bold font-mono text-slate-900" id="d1AlertTitle">Cloudflare D1 SQL non configuré</p>
+          <p class="text-slate-600 text-[11px]" id="d1AlertDetail">La liaison 'DB' est absente dans vos paramètres Cloudflare Pages.</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2.5 shrink-0">
+        <button type="button" id="btnOpenD1Guide" class="btn-tap px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-white font-mono text-[11px] font-bold flex items-center gap-1 shadow-sm">
+          <span>📘 Guide d'activation D1 &rarr;</span>
+        </button>
+        <button type="button" id="btnDismissD1Alert" class="text-slate-400 hover:text-slate-900 p-1 text-sm font-bold" title="Masquer l'alerte">&times;</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Cloud Loading Overlay -->
+  <div id="cloudLoadingOverlay" class="hidden fixed inset-0 bg-white/80 backdrop-blur-xs z-50 flex items-center justify-center">
+    <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-xl flex items-center gap-3">
+      <div class="w-5 h-5 border-2 border-slate-900 border-t-transparent rounded-full animate-spin"></div>
+      <span class="text-xs font-mono font-semibold text-slate-800" id="cloudLoadingText">Synchronisation Cloudflare D1 SQL...</span>
+    </div>
+  </div>
+
   <!-- Main Viewport Workspace -->
   <main class="max-w-5xl mx-auto px-4 py-6 flex-1 w-full pb-safe-nav">
 
@@ -698,7 +725,7 @@
             </div>
             <div>
               <h2 class="text-sm font-bold text-slate-900">Base de données SQL Cloudflare Pages (D1)</h2>
-              <p class="text-xs text-slate-500">Rétention permanente des données par utilisateur dans le cloud.</p>
+              <p class="text-xs text-slate-500">100% Cloud SQL — Aucun stockage local de vos recettes et plannings.</p>
             </div>
           </div>
           <span id="badgeD1Connectivity" class="text-xs font-mono font-medium px-2.5 py-1 rounded-full bg-slate-100 text-slate-700">
@@ -706,19 +733,36 @@
           </span>
         </div>
 
+        <!-- Diagnostics breakdown -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs font-mono">
+          <div class="p-2.5 bg-slate-50 rounded-xl border border-slate-200/60 flex items-center justify-between">
+            <span class="text-slate-600">Liaison Pages (DB) :</span>
+            <span id="diagD1Binding" class="font-bold text-slate-500">Vérification...</span>
+          </div>
+          <div class="p-2.5 bg-slate-50 rounded-xl border border-slate-200/60 flex items-center justify-between">
+            <span class="text-slate-600">Schéma (Tables SQL) :</span>
+            <span id="diagD1Schema" class="font-bold text-slate-500">Vérification...</span>
+          </div>
+        </div>
+
         <div class="p-3 bg-slate-50 rounded-xl border border-slate-200/60 text-xs font-mono flex items-center justify-between flex-wrap gap-2">
           <div>
             <span class="text-slate-400">Identifiant Utilisateur (X-User-Id) : </span>
             <span id="lblUserIdDisplay" class="font-bold text-slate-800">usr_...</span>
           </div>
-          <button type="button" id="btnCopyUserId" class="btn-tap text-[11px] text-blue-600 hover:text-blue-800 font-semibold">
+          <button type="button" id="btnCopyUserId" class="btn-tap text-[11px] text-slate-900 hover:text-slate-700 font-semibold underline">
             Copier l'ID
           </button>
         </div>
 
-        <p class="text-[11px] text-slate-500 leading-relaxed">
-          Lorsque Cloudflare D1 est actif sur votre projet Pages (liaison <code>DB</code>), toutes vos recettes et plannings sont conservés dans une base SQL SQLite sécurisée. En mode local ou hors-ligne, vos données restent enregistrées dans le navigateur.
-        </p>
+        <div class="flex items-center justify-between pt-1">
+          <p class="text-[11px] text-slate-500 leading-relaxed">
+            Vos données sont conservées en direct dans Cloudflare D1. Aucune donnée n'est dupliquée dans le stockage local du navigateur.
+          </p>
+          <button type="button" id="btnOpenD1GuideSettings" class="btn-tap shrink-0 ml-3 text-xs font-mono text-slate-900 hover:text-slate-700 font-bold underline">
+            📘 Guide d'activation D1 &rarr;
+          </button>
+        </div>
       </div>
 
       <!-- CSV & ZIP Tools Grid -->
@@ -1057,10 +1101,100 @@
     </div>
   </div>
 
+  <!-- ═════════════════════════════════════════════
+       CLOUDFLARE D1 SETUP GUIDE MODAL
+       ═════════════════════════════════════════════ -->
+  <div id="modalD1SetupGuide" class="hidden modal-overlay">
+    <div class="modal-box space-y-4 max-w-2xl">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+        <h3 class="text-base font-extrabold text-slate-900 font-mono flex items-center gap-2">
+          <span>☁️</span>
+          <span>Guide d'activation Cloudflare D1 SQL</span>
+        </h3>
+        <button type="button" id="btnCloseD1Guide" class="text-slate-400 hover:text-slate-700 p-1 text-base leading-none">&times;</button>
+      </div>
+
+      <p class="text-xs text-slate-600 leading-relaxed">
+        MonPlanningRepas est désormais <strong>100% Cloud SQL</strong> : aucune recette n'est stockée localement dans le navigateur. Suivez ces 3 étapes simples dans votre Dashboard Cloudflare pour connecter votre base de données :
+      </p>
+
+      <div class="space-y-3 text-xs">
+        <!-- Step 1 -->
+        <div class="p-3 bg-slate-50 rounded-xl border border-slate-200/80 space-y-1">
+          <h4 class="font-mono font-bold text-slate-900 flex items-center gap-1.5">
+            <span class="w-5 h-5 rounded-full bg-slate-900 text-white flex items-center justify-center text-[10px] shrink-0 font-bold">1</span>
+            <span>Créer la base D1 dans Cloudflare</span>
+          </h4>
+          <p class="text-slate-600 pl-6 leading-relaxed">
+            Dans votre Dashboard Cloudflare : allez dans <strong>Storage &amp; Databases</strong> &rarr; <strong>D1 SQL Database</strong> &rarr; cliquez sur <strong>Create database</strong>. Nommez-la par exemple <code>spinfoundry-db</code>.
+          </p>
+        </div>
+
+        <!-- Step 2 -->
+        <div class="p-3 bg-slate-50 rounded-xl border border-slate-200/80 space-y-1">
+          <h4 class="font-mono font-bold text-slate-900 flex items-center gap-1.5">
+            <span class="w-5 h-5 rounded-full bg-slate-900 text-white flex items-center justify-center text-[10px] shrink-0 font-bold">2</span>
+            <span>Lier la base au projet Cloudflare Pages (Variable 'DB')</span>
+          </h4>
+          <p class="text-slate-600 pl-6 leading-relaxed">
+            Allez dans <strong>Workers &amp; Pages</strong> &rarr; cliquez sur votre projet <strong>spinfoundry</strong> &rarr; onglet <strong>Settings</strong> &rarr; sous-menu <strong>Functions</strong> &rarr; descendez à <strong>D1 database bindings</strong> &rarr; cliquez sur <strong>Add binding</strong> :
+          </p>
+          <div class="pl-6 pt-1 font-mono text-[11px] text-slate-800 space-y-0.5">
+            <div>&bull; Variable name : <strong class="bg-amber-100 text-amber-900 px-1 py-0.5 rounded border border-amber-300">DB</strong> <em>(impérativement en MAJUSCULES)</em></div>
+            <div>&bull; D1 database : sélectionnez <strong class="bg-slate-200 px-1 py-0.5 rounded">spinfoundry-db</strong></div>
+          </div>
+          <p class="text-slate-500 pl-6 pt-1 text-[11px]">
+            Cliquez sur <strong>Save</strong> pour enregistrer la liaison.
+          </p>
+        </div>
+
+        <!-- Step 3 -->
+        <div class="p-3 bg-slate-50 rounded-xl border border-slate-200/80 space-y-1.5">
+          <div class="flex items-center justify-between">
+            <h4 class="font-mono font-bold text-slate-900 flex items-center gap-1.5">
+              <span class="w-5 h-5 rounded-full bg-slate-900 text-white flex items-center justify-center text-[10px] shrink-0 font-bold">3</span>
+              <span>Créer les tables SQL (Exécuter le schéma)</span>
+            </h4>
+            <button type="button" id="btnCopySqlSchema" class="btn-tap px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 text-white font-mono text-[11px] font-bold shadow-sm">
+              Copier le SQL
+            </button>
+          </div>
+          <p class="text-slate-600 pl-6 leading-relaxed">
+            Dans <strong>Storage &amp; Databases</strong> &rarr; <strong>D1 SQL Database</strong> &rarr; cliquez sur <code>spinfoundry-db</code> &rarr; onglet <strong>Console</strong>. Collez et exécutez le script SQL ci-dessous :
+          </p>
+          <div class="pl-6">
+            <textarea id="txtSqlSchema" readonly rows="6" class="w-full p-2.5 rounded-lg bg-slate-900 text-slate-100 font-mono text-[10px] border border-slate-800 select-all"></textarea>
+          </div>
+        </div>
+
+        <!-- Step 4 -->
+        <div class="p-3 bg-slate-50 rounded-xl border border-slate-200/80 space-y-1">
+          <h4 class="font-mono font-bold text-slate-900 flex items-center gap-1.5">
+            <span class="w-5 h-5 rounded-full bg-slate-900 text-white flex items-center justify-center text-[10px] shrink-0 font-bold">4</span>
+            <span>Redéployer Cloudflare Pages</span>
+          </h4>
+          <p class="text-slate-600 pl-6 leading-relaxed">
+            Pour que la nouvelle liaison soit activée, allez dans l'onglet <strong>Deployments</strong> de votre projet Pages et cliquez sur les 3 points du dernier déploiement &rarr; <strong>Retry deployment</strong> (ou faites simplement un <code>git push</code>).
+          </p>
+        </div>
+      </div>
+
+      <div class="pt-2 border-t border-slate-100 flex items-center justify-end">
+        <button type="button" id="btnCloseD1GuideBtn" class="btn-tap px-5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-mono font-bold tracking-wider uppercase shadow-sm">
+          J'ai compris / Fermer
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- SCRIPT: MONPLANNINGREPAS ENGINE -->
   <script>
   (function() {
     'use strict';
+    window.__mprError = null;
+    window.addEventListener('error', (e) => {
+      window.__mprError = (e.message || 'Unknown error') + ' at ' + (e.filename || '') + ':' + (e.lineno || '') + ':' + (e.colno || '');
+    });
 
     /* ═════════════════════════════════════════════
        1. INITIAL SEED RECIPES (USER CSV SPEC)
@@ -1167,34 +1301,23 @@
     const DAYS_FR = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"];
 
     /* ═════════════════════════════════════════════
-       2. USER ID & LOCAL STORAGE KEYS
+       2. USER IDENTITY & CLOUD AUTH (NO LOCAL DATA)
        ═════════════════════════════════════════════ */
-    const KEY_USER_ID = 'spinfoundry_mpr_userid_v1';
-    const KEY_USERNAME = 'spinfoundry_mpr_username_v1';
-    const KEY_LOCAL_MEALS = 'spinfoundry_mpr_meals_v1';
-    const KEY_LOCAL_PLANS = 'spinfoundry_mpr_plans_v1';
-    const KEY_LOCAL_SETTINGS = 'spinfoundry_mpr_settings_v1';
+    // Only the active username string is remembered on this device.
+    // 100% of meals, recipes, schedules, and settings live strictly in Cloudflare D1 SQL.
+    const KEY_ACTIVE_USER = 'spinfoundry_mpr_active_user_v2';
 
-    let currentUsername = localStorage.getItem(KEY_USERNAME) || '';
-
-    function getOrCreateGuestUserId() {
-      let uid = localStorage.getItem(KEY_USER_ID);
-      if (!uid) {
-        uid = 'usr_' + Math.random().toString(36).substring(2, 11) + Date.now().toString(36);
-        localStorage.setItem(KEY_USER_ID, uid);
-      }
-      return uid;
-    }
+    let currentUsername = localStorage.getItem(KEY_ACTIVE_USER) || '';
 
     function getEffectiveUserId() {
       if (currentUsername && currentUsername.trim()) {
         const clean = currentUsername.trim().toLowerCase().replace(/[^a-z0-9_-]/g, '_');
         return 'usr_' + clean;
       }
-      return getOrCreateGuestUserId();
+      return '';
     }
 
-    /* App Global State */
+    /* App Global State (In-Memory Only, Hydrated from Cloud SQL) */
     let meals = [];
     let weeklyPlans = []; // 14 slots: { dayIndex: 0..6, slot: 'lunch'|'dinner', mealId: string|null, isLocked: boolean }
     let settings = {
@@ -1207,9 +1330,10 @@
     let currentEditingMealId = null;
     let currentSlotPicking = null; // { dayIndex, slot }
     let d1Connected = false;
+    let d1Diagnostics = { d1Bound: false, d1Connected: false, tablesCreated: false, missingTables: [] };
 
     /* ═════════════════════════════════════════════
-       3. CLOUDFLARE D1 SQL SYNC ENGINE & USER MGMT
+       3. CLOUDFLARE D1 SQL ENGINE (100% CLOUD)
        ═════════════════════════════════════════════ */
     function normalizeMeal(m) {
       return {
@@ -1246,7 +1370,7 @@
       const lblUid = document.getElementById('lblUserIdDisplay');
 
       const effId = getEffectiveUserId();
-      if (lblUid) lblUid.textContent = effId;
+      if (lblUid) lblUid.textContent = effId || 'Non connecté';
 
       if (currentUsername && currentUsername.trim()) {
         const display = '@' + currentUsername.trim();
@@ -1261,15 +1385,15 @@
         if (lblModalAccount) lblModalAccount.textContent = display;
         if (inputModal) inputModal.value = currentUsername.trim();
       } else {
-        if (btnHeader) btnHeader.textContent = 'Connexion';
+        if (btnHeader) btnHeader.textContent = '👤 Connexion';
         if (dotHeader) dotHeader.className = 'w-2 h-2 rounded-full bg-slate-400';
         if (badgeSettings) {
           badgeSettings.className = 'text-xs font-mono font-medium px-2.5 py-1 rounded-full bg-slate-100 text-slate-600 border border-slate-200';
-          badgeSettings.textContent = '○ Mode Invité (Non connecté)';
+          badgeSettings.textContent = '○ Non connecté (Connexion requise)';
         }
         if (inputSettings) inputSettings.value = '';
         if (btnLoginSettings) btnLoginSettings.textContent = 'Se connecter';
-        if (lblModalAccount) lblModalAccount.textContent = 'Mode Invité';
+        if (lblModalAccount) lblModalAccount.textContent = 'Non connecté';
         if (inputModal) inputModal.value = '';
       }
     }
@@ -1277,93 +1401,134 @@
     async function loginWithUsername(newUsername) {
       const trimmed = (newUsername || '').trim();
       if (!trimmed) {
-        // Log out to guest mode
         if (currentUsername) {
-          if (confirm('Voulez-vous vous déconnecter et revenir au mode invité ?')) {
+          if (confirm('Voulez-vous vous déconnecter de votre compte Cloud D1 ?')) {
             currentUsername = '';
-            localStorage.removeItem(KEY_USERNAME);
+            localStorage.removeItem(KEY_ACTIVE_USER);
             updateUserUI();
-            loadLocalState();
+            initEmptyState();
             renderMeals();
             renderPlanning();
-            alert('Vous êtes maintenant en mode invité.');
+            alert('Vous êtes déconnecté.');
           }
         }
         return;
       }
 
       currentUsername = trimmed.toLowerCase();
-      localStorage.setItem(KEY_USERNAME, currentUsername);
+      localStorage.setItem(KEY_ACTIVE_USER, currentUsername);
       updateUserUI();
 
-      if (d1Connected) {
-        await fetchUserDataFromD1();
-        alert(`Connecté avec succès en tant que @${currentUsername} ! Vos données Cloudflare D1 sont synchronisées.`);
-      } else {
-        // Even if offline/local, still bound to user identity
-        alert(`Nom d'utilisateur actif : @${currentUsername}. Vos données sont prêtes et se synchroniseront avec Cloud SQL dès connexion.`);
-      }
+      await fetchUserDataFromD1();
+      alert(`Connecté en tant que @${currentUsername} sur la base Cloud SQL Cloudflare D1 !`);
     }
 
     async function checkD1Status() {
       try {
+        const uid = getEffectiveUserId() || 'check';
         const res = await fetch('/api/status', {
-          headers: { 'X-User-Id': getEffectiveUserId() }
-        });
-        if (res.ok) {
-          const data = await res.json();
-          d1Connected = !!data.d1Bound && !!data.d1Connected;
-          updateD1Badge(d1Connected);
-          if (d1Connected) {
-            syncWithCloudflareD1();
-          }
-        } else {
-          updateD1Badge(false);
-        }
-      } catch (err) {
-        updateD1Badge(false);
-      }
-    }
-
-    function updateD1Badge(connected) {
-      const dot = document.getElementById('d1StatusDot');
-      const txt = document.getElementById('d1StatusText');
-      const badgeConn = document.getElementById('badgeD1Connectivity');
-
-      if (connected) {
-        dot.className = 'w-2 h-2 rounded-full bg-emerald-500 animate-pulse';
-        txt.textContent = 'Cloudflare D1 Actif';
-        badgeConn.className = 'text-xs font-mono font-medium px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200';
-        badgeConn.textContent = '● Connecté (D1 SQL)';
-      } else {
-        dot.className = 'w-2 h-2 rounded-full bg-slate-400';
-        txt.textContent = 'Stockage Local';
-        badgeConn.className = 'text-xs font-mono font-medium px-2.5 py-1 rounded-full bg-slate-100 text-slate-600 border border-slate-200';
-        badgeConn.textContent = '○ Mode Local (Prêt D1)';
-      }
-    }
-
-    async function fetchUserDataFromD1() {
-      if (!d1Connected) return;
-      const uid = getEffectiveUserId();
-      try {
-        const res = await fetch('/api/meals', {
           headers: { 'X-User-Id': uid }
         });
         if (res.ok) {
           const data = await res.json();
-          if (data.meals && Array.isArray(data.meals) && data.meals.length > 0) {
-            meals = data.meals.map(normalizeMeal);
-          } else if (meals.length > 0) {
-            // Push current meals to Cloud SQL for this newly logged-in account
-            await fetch('/api/meals', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json', 'X-User-Id': uid },
-              body: JSON.stringify({ meals })
-            });
+          d1Diagnostics = data;
+          updateD1Badge(data);
+          if (data.d1Bound && data.d1Connected && data.tablesCreated) {
+            if (currentUsername) {
+              await fetchUserDataFromD1();
+            }
           }
+        } else {
+          updateD1Badge({ d1Bound: false, d1Connected: false, tablesCreated: false });
+        }
+      } catch (err) {
+        updateD1Badge({ d1Bound: false, d1Connected: false, tablesCreated: false, error: err.message });
+      }
+    }
+
+    function updateD1Badge(data) {
+      const dot = document.getElementById('d1StatusDot');
+      const txt = document.getElementById('d1StatusText');
+      const badgeConn = document.getElementById('badgeD1Connectivity');
+      const diagBinding = document.getElementById('diagD1Binding');
+      const diagSchema = document.getElementById('diagD1Schema');
+      const banner = document.getElementById('d1AlertBanner');
+      const alertTitle = document.getElementById('d1AlertTitle');
+      const alertDetail = document.getElementById('d1AlertDetail');
+
+      const allGood = data && data.d1Bound && data.d1Connected && data.tablesCreated;
+      d1Connected = Boolean(allGood);
+
+      if (allGood) {
+        if (dot) dot.className = 'w-2 h-2 rounded-full bg-emerald-500 animate-pulse';
+        if (txt) txt.textContent = 'Cloud D1 Actif';
+        if (badgeConn) {
+          badgeConn.className = 'text-xs font-mono font-medium px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200';
+          badgeConn.textContent = '● 100% Cloud D1 Connecté';
+        }
+        if (diagBinding) { diagBinding.textContent = '✓ Connectée (DB)'; diagBinding.className = 'font-bold text-emerald-600'; }
+        if (diagSchema) { diagSchema.textContent = '✓ Tables prêtes (3/3)'; diagSchema.className = 'font-bold text-emerald-600'; }
+        if (banner) banner.classList.add('hidden');
+      } else {
+        if (dot) dot.className = 'w-2 h-2 rounded-full bg-rose-500';
+        if (txt) txt.textContent = 'D1 Non Connecté';
+        if (badgeConn) {
+          badgeConn.className = 'text-xs font-mono font-medium px-2.5 py-1 rounded-full bg-rose-50 text-rose-700 border border-rose-200';
+          badgeConn.textContent = '✗ Cloud D1 Inactif';
         }
 
+        if (banner) {
+          banner.classList.remove('hidden');
+          if (!data || !data.d1Bound) {
+            if (alertTitle) alertTitle.textContent = 'Liaison Cloudflare D1 manquante';
+            if (alertDetail) alertDetail.textContent = 'La liaison nommée \'DB\' n\'est pas configurée dans Cloudflare Pages > Settings > Functions > D1 database bindings.';
+            if (diagBinding) { diagBinding.textContent = '✗ Manquante (Binding DB)'; diagBinding.className = 'font-bold text-rose-600'; }
+            if (diagSchema) { diagSchema.textContent = '○ En attente de liaison'; diagSchema.className = 'font-bold text-slate-400'; }
+          } else if (!data.tablesCreated) {
+            if (alertTitle) alertTitle.textContent = 'Schéma SQL incomplet dans D1';
+            const missing = (data.missingTables || []).join(', ') || 'tables';
+            if (alertDetail) alertDetail.textContent = `Les tables (${missing}) doivent être créées dans votre console D1 Cloudflare.`;
+            if (diagBinding) { diagBinding.textContent = '✓ Connectée (DB)'; diagBinding.className = 'font-bold text-emerald-600'; }
+            if (diagSchema) { diagSchema.textContent = `✗ Tables manquantes (${missing})`; diagSchema.className = 'font-bold text-rose-600'; }
+          } else {
+            if (alertTitle) alertTitle.textContent = 'Erreur de connexion Cloud D1';
+            if (alertDetail) alertDetail.textContent = data.error || 'Impossible de joindre la base Cloudflare D1.';
+            if (diagBinding) { diagBinding.textContent = '✓ Connectée'; diagBinding.className = 'font-bold text-emerald-600'; }
+            if (diagSchema) { diagSchema.textContent = '✗ Erreur SQL'; diagSchema.className = 'font-bold text-rose-600'; }
+          }
+        }
+      }
+    }
+
+    async function fetchUserDataFromD1() {
+      const uid = getEffectiveUserId();
+      if (!uid) {
+        initEmptyState();
+        renderMeals();
+        renderPlanning();
+        return;
+      }
+
+      const overlay = document.getElementById('cloudLoadingOverlay');
+      if (overlay) overlay.classList.remove('hidden');
+
+      try {
+        // 1. Fetch Meals from D1 SQL
+        const resMeals = await fetch('/api/meals', {
+          headers: { 'X-User-Id': uid }
+        });
+        if (resMeals.ok) {
+          const data = await resMeals.json();
+          if (data.meals && Array.isArray(data.meals)) {
+            meals = data.meals.map(normalizeMeal);
+          } else {
+            meals = [];
+          }
+        } else {
+          meals = [];
+        }
+
+        // 2. Fetch Weekly Plans from D1 SQL
         const resPlans = await fetch('/api/planner', {
           headers: { 'X-User-Id': uid }
         });
@@ -1371,14 +1536,31 @@
           const data = await resPlans.json();
           if (data.plans && Array.isArray(data.plans) && data.plans.length > 0) {
             weeklyPlans = data.plans.map(normalizePlan);
+          } else {
+            initEmptyWeeklyPlans();
+          }
+        } else {
+          initEmptyWeeklyPlans();
+        }
+
+        // 3. Fetch Settings from D1 SQL
+        const resSettings = await fetch('/api/settings', {
+          headers: { 'X-User-Id': uid }
+        });
+        if (resSettings.ok) {
+          const data = await resSettings.json();
+          if (data.settings) {
+            settings = Object.assign(settings, data.settings);
+            updateSettingsUI();
           }
         }
 
-        saveLocalState();
         renderMeals();
         renderPlanning();
       } catch (err) {
-        console.warn('Sync with D1 error:', err);
+        console.error('Erreur fetchUserDataFromD1:', err);
+      } finally {
+        if (overlay) overlay.classList.add('hidden');
       }
     }
 
@@ -1387,60 +1569,91 @@
     }
 
     async function persistMealRemote(meal) {
-      if (!d1Connected) return;
+      const uid = getEffectiveUserId();
+      if (!uid) {
+        alert('Veuillez vous connecter avec votre pseudo pour enregistrer dans Cloudflare D1.');
+        document.getElementById('modalUserAccount').classList.remove('hidden');
+        return false;
+      }
       try {
-        await fetch('/api/meals', {
+        const res = await fetch('/api/meals', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'X-User-Id': getEffectiveUserId() },
+          headers: { 'Content-Type': 'application/json', 'X-User-Id': uid },
           body: JSON.stringify({ meal })
         });
-      } catch (e) {}
+        if (!res.ok) {
+          const err = await res.json();
+          throw new Error(err.error || `Erreur HTTP ${res.status}`);
+        }
+        return true;
+      } catch (e) {
+        alert('Erreur lors de la sauvegarde dans Cloudflare D1 : ' + e.message);
+        return false;
+      }
     }
 
     async function deleteMealRemote(id) {
-      if (!d1Connected) return;
+      const uid = getEffectiveUserId();
+      if (!uid) return false;
       try {
-        await fetch(`/api/meals?id=${encodeURIComponent(id)}`, {
+        const res = await fetch(`/api/meals?id=${encodeURIComponent(id)}`, {
           method: 'DELETE',
-          headers: { 'X-User-Id': getEffectiveUserId() }
+          headers: { 'X-User-Id': uid }
         });
-      } catch (e) {}
+        if (!res.ok) {
+          const err = await res.json();
+          throw new Error(err.error || `Erreur HTTP ${res.status}`);
+        }
+        return true;
+      } catch (e) {
+        alert('Erreur lors de la suppression dans Cloudflare D1 : ' + e.message);
+        return false;
+      }
     }
 
     async function persistPlannerRemote() {
-      if (!d1Connected) return;
+      const uid = getEffectiveUserId();
+      if (!uid) return false;
       try {
-        await fetch('/api/planner', {
+        const res = await fetch('/api/planner', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'X-User-Id': getEffectiveUserId() },
+          headers: { 'Content-Type': 'application/json', 'X-User-Id': uid },
           body: JSON.stringify({ plans: weeklyPlans })
         });
-      } catch (e) {}
+        return res.ok;
+      } catch (e) {
+        console.warn('persistPlannerRemote error:', e);
+        return false;
+      }
+    }
+
+    async function persistSettingsRemote() {
+      const uid = getEffectiveUserId();
+      if (!uid) return false;
+      try {
+        const res = await fetch('/api/settings', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'X-User-Id': uid },
+          body: JSON.stringify(settings)
+        });
+        return res.ok;
+      } catch (e) {
+        console.warn('persistSettingsRemote error:', e);
+        return false;
+      }
     }
 
     /* ═════════════════════════════════════════════
-       4. LOCAL STATE PERSISTENCE
+       4. IN-MEMORY STATE INITIALIZATION (NO LOCAL STORAGE)
        ═════════════════════════════════════════════ */
-    function loadLocalState() {
-      try {
-        const rawMeals = localStorage.getItem(KEY_LOCAL_MEALS);
-        meals = rawMeals ? JSON.parse(rawMeals) : [...SEED_MEALS];
-
-        const rawPlans = localStorage.getItem(KEY_LOCAL_PLANS);
-        if (rawPlans) {
-          weeklyPlans = JSON.parse(rawPlans);
-        } else {
-          initEmptyWeeklyPlans();
-        }
-
-        const rawSettings = localStorage.getItem(KEY_LOCAL_SETTINGS);
-        if (rawSettings) {
-          settings = Object.assign(settings, JSON.parse(rawSettings));
-        }
-      } catch (e) {
-        meals = [...SEED_MEALS];
-        initEmptyWeeklyPlans();
-      }
+    function initEmptyState() {
+      meals = [];
+      initEmptyWeeklyPlans();
+      settings = {
+        dietProportions: { veggie: 40, meat: 30, fish: 20, seafood: 10 },
+        excludedTags: []
+      };
+      updateSettingsUI();
     }
 
     function initEmptyWeeklyPlans() {
@@ -1451,12 +1664,73 @@
       }
     }
 
-    function saveLocalState() {
+    function updateSettingsUI() {
+      if (settings.dietProportions) {
+        ['Veggie', 'Meat', 'Fish', 'Seafood'].forEach(type => {
+          const val = settings.dietProportions[type.toLowerCase()];
+          const slider = document.getElementById(`sliderProp${type}`);
+          const lbl = document.getElementById(`lblProp${type}`);
+          if (slider && val !== undefined) slider.value = val;
+          if (lbl && val !== undefined) lbl.textContent = `${val}%`;
+        });
+      }
+      renderExcludedChips();
+    }
+
+    function renderExcludedChips() {
+      const excludedContainer = document.getElementById('excludedTagsContainer');
+      if (!excludedContainer) return;
+      excludedContainer.innerHTML = '';
+      (settings.excludedTags || []).forEach(tag => {
+        const chip = document.createElement('span');
+        chip.className = 'inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs bg-rose-50 text-rose-800 border border-rose-200';
+        chip.innerHTML = `<span>${tag}</span><button type="button" class="text-rose-600 hover:text-rose-900 font-bold ml-1">&times;</button>`;
+        chip.querySelector('button').addEventListener('click', () => {
+          settings.excludedTags = settings.excludedTags.filter(t => t !== tag);
+          persistSettingsRemote();
+          renderExcludedChips();
+        });
+        excludedContainer.appendChild(chip);
+      });
+    }
+
+    async function persistAllMealsRemote(mealsList) {
+      const uid = getEffectiveUserId();
+      if (!uid) return false;
+      const overlay = document.getElementById('cloudLoadingOverlay');
+      if (overlay) overlay.classList.remove('hidden');
       try {
-        localStorage.setItem(KEY_LOCAL_MEALS, JSON.stringify(meals));
-        localStorage.setItem(KEY_LOCAL_PLANS, JSON.stringify(weeklyPlans));
-        localStorage.setItem(KEY_LOCAL_SETTINGS, JSON.stringify(settings));
-      } catch (e) {}
+        const res = await fetch('/api/meals', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'X-User-Id': uid },
+          body: JSON.stringify({ meals: mealsList })
+        });
+        return res.ok;
+      } catch (e) {
+        console.error('persistAllMealsRemote error:', e);
+        return false;
+      } finally {
+        if (overlay) overlay.classList.add('hidden');
+      }
+    }
+
+    async function deleteAllDataRemote() {
+      const uid = getEffectiveUserId();
+      if (!uid) return false;
+      const overlay = document.getElementById('cloudLoadingOverlay');
+      if (overlay) overlay.classList.remove('hidden');
+      try {
+        await Promise.all([
+          fetch('/api/meals?all=true', { method: 'DELETE', headers: { 'X-User-Id': uid } }),
+          fetch('/api/planner', { method: 'DELETE', headers: { 'X-User-Id': uid } })
+        ]);
+        return true;
+      } catch (e) {
+        console.error('deleteAllDataRemote error:', e);
+        return false;
+      } finally {
+        if (overlay) overlay.classList.add('hidden');
+      }
     }
 
     /* ═════════════════════════════════════════════
@@ -1645,12 +1919,15 @@
     function confirmDeleteMeal(id, name) {
       if (confirm(`Voulez-vous vraiment supprimer "${name}" de votre carnet ?`)) {
         meals = meals.filter(m => m.id !== id);
-        // Clear from any weekly plan slots
+        let planModified = false;
         weeklyPlans.forEach(p => {
-          if (p.mealId === id) p.mealId = null;
+          if (p.mealId === id) {
+            p.mealId = null;
+            planModified = true;
+          }
         });
-        saveLocalState();
         deleteMealRemote(id);
+        if (planModified) persistPlannerRemote();
         renderMeals();
         renderPlanning();
       }
@@ -1791,7 +2068,6 @@
         meals.unshift(savedMeal);
       }
 
-      saveLocalState();
       if (savedMeal) persistMealRemote(savedMeal);
 
       closeMealEditor();
@@ -1938,7 +2214,6 @@
       const p = weeklyPlans.find(item => item.dayIndex === day && item.slot === slot);
       if (p) {
         p.isLocked = !p.isLocked;
-        saveLocalState();
         persistPlannerRemote();
         renderPlanning();
       }
@@ -2020,7 +2295,6 @@
         }
       });
 
-      saveLocalState();
       persistPlannerRemote();
       renderPlanning();
     }
@@ -2038,7 +2312,6 @@
       const randomChoice = pool[Math.floor(Math.random() * pool.length)];
       if (randomChoice) {
         slotObj.mealId = randomChoice.id;
-        saveLocalState();
         persistPlannerRemote();
         renderPlanning();
       }
@@ -2091,7 +2364,6 @@
             const p = weeklyPlans.find(item => item.dayIndex === currentSlotPicking.dayIndex && item.slot === currentSlotPicking.slot);
             if (p) {
               p.mealId = m.id;
-              saveLocalState();
               persistPlannerRemote();
               renderPlanning();
             }
@@ -2142,7 +2414,7 @@
       return str;
     }
 
-    function importFromCsv(csvText) {
+    async function importFromCsv(csvText) {
       const lines = csvText.split(/\r?\n/).filter(line => line.trim().length > 0);
       if (lines.length <= 1) {
         alert('Le fichier CSV est vide ou ne contient pas de données.');
@@ -2208,8 +2480,9 @@
         importedCount++;
       }
 
-      saveLocalState();
-      syncWithCloudflareD1();
+      if (meals.length > 0) {
+        await persistAllMealsRemote(meals);
+      }
       renderMeals();
       alert(`Importation réussie : ${importedCount} recette(s) importée(s) ou mise(s) à jour !`);
     }
@@ -2410,11 +2683,12 @@
           settings = Object.assign(settings, parsed.settings);
         }
 
-        saveLocalState();
-        syncWithCloudflareD1();
+        if (meals.length > 0) await persistAllMealsRemote(meals);
+        await persistPlannerRemote();
+        await persistSettingsRemote();
         renderMeals();
         renderPlanning();
-        alert('Restauration réussie depuis l\'archive ZIP !');
+        alert('Restauration réussie depuis l\'archive ZIP et synchronisée dans le Cloud !');
       } catch (err) {
         alert('Erreur lors de la lecture du fichier ZIP : ' + err.message);
       }
@@ -2626,32 +2900,21 @@
       });
 
       // Sliders
+      let debounceSettingsTimer = null;
       ['Veggie', 'Meat', 'Fish', 'Seafood'].forEach(type => {
         const slider = document.getElementById(`sliderProp${type}`);
         const lbl = document.getElementById(`lblProp${type}`);
         slider.addEventListener('input', () => {
           lbl.textContent = `${slider.value}%`;
           settings.dietProportions[type.toLowerCase()] = parseInt(slider.value, 10);
-          saveLocalState();
+          clearTimeout(debounceSettingsTimer);
+          debounceSettingsTimer = setTimeout(() => {
+            persistSettingsRemote();
+          }, 400);
         });
       });
 
       // Excluded tags
-      const excludedContainer = document.getElementById('excludedTagsContainer');
-      function renderExcludedChips() {
-        excludedContainer.innerHTML = '';
-        (settings.excludedTags || []).forEach(tag => {
-          const chip = document.createElement('span');
-          chip.className = 'inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs bg-rose-50 text-rose-800 border border-rose-200';
-          chip.innerHTML = `<span>${tag}</span><button type="button" class="text-rose-600 hover:text-rose-900 font-bold ml-1">&times;</button>`;
-          chip.querySelector('button').addEventListener('click', () => {
-            settings.excludedTags = settings.excludedTags.filter(t => t !== tag);
-            saveLocalState();
-            renderExcludedChips();
-          });
-          excludedContainer.appendChild(chip);
-        });
-      }
       renderExcludedChips();
 
       document.getElementById('btnAddExcludedTag').addEventListener('click', () => {
@@ -2660,7 +2923,7 @@
         if (val && !settings.excludedTags.includes(val)) {
           settings.excludedTags.push(val);
           input.value = '';
-          saveLocalState();
+          persistSettingsRemote();
           renderExcludedChips();
         }
       });
@@ -2677,7 +2940,6 @@
           const p = weeklyPlans.find(item => item.dayIndex === currentSlotPicking.dayIndex && item.slot === currentSlotPicking.slot);
           if (p) {
             p.mealId = null;
-            saveLocalState();
             persistPlannerRemote();
             renderPlanning();
           }
@@ -2788,56 +3050,159 @@
         });
       });
 
-      document.getElementById('btnReloadSeedData').addEventListener('click', () => {
+      document.getElementById('btnReloadSeedData').addEventListener('click', async () => {
         if (confirm('Voulez-vous recharger les recettes d\'exemple ? Vos recettes actuelles seront conservées.')) {
+          const newMeals = [];
           SEED_MEALS.forEach(sm => {
             if (!meals.some(m => m.name.toLowerCase() === sm.name.toLowerCase())) {
-              meals.push({ ...sm, id: 'meal_seed_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6) });
+              const seedMeal = { ...sm, id: 'meal_seed_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6) };
+              meals.push(seedMeal);
+              newMeals.push(seedMeal);
             }
           });
-          saveLocalState();
-          syncWithCloudflareD1();
+          if (newMeals.length > 0) {
+            await persistAllMealsRemote(meals);
+          }
           renderMeals();
-          alert('Recettes d\'exemple ajoutées !');
+          renderPlanning();
+          alert('Recettes d\'exemple ajoutées et synchronisées dans le Cloud !');
         }
       });
 
-      document.getElementById('btnResetAllData').addEventListener('click', () => {
+      document.getElementById('btnResetAllData').addEventListener('click', async () => {
         if (confirm('ATTENTION : Voulez-vous vraiment effacer toutes vos recettes et votre planning ?')) {
           if (confirm('Êtes-vous ABSOLUMENT certain ? Cette action est irréversible.')) {
             meals = [];
             initEmptyWeeklyPlans();
-            saveLocalState();
+            await deleteAllDataRemote();
             renderMeals();
             renderPlanning();
-            alert('Toutes les données ont été réinitialisées.');
+            alert('Toutes les données ont été réinitialisées dans le Cloud.');
           }
         }
       });
+
+      // D1 Setup Guide Modal & Alert Banner
+      const modalD1Guide = document.getElementById('modalD1SetupGuide');
+      const btnOpenD1Guide = document.getElementById('btnOpenD1Guide');
+      const btnOpenD1GuideSettings = document.getElementById('btnOpenD1GuideSettings');
+      const btnCloseD1Guide = document.getElementById('btnCloseD1Guide');
+      const btnCloseD1GuideBtn = document.getElementById('btnCloseD1GuideBtn');
+      const btnDismissD1Alert = document.getElementById('btnDismissD1Alert');
+      const btnCopySqlSchema = document.getElementById('btnCopySqlSchema');
+      const txtSqlSchema = document.getElementById('txtSqlSchema');
+
+      const D1_SQL_SCHEMA = `-- Cloudflare D1 SQL Schema for MonPlanningRepas
+CREATE TABLE IF NOT EXISTS meals (
+  id TEXT PRIMARY KEY,
+  user_id TEXT NOT NULL,
+  name TEXT NOT NULL,
+  type TEXT NOT NULL,
+  season TEXT NOT NULL,
+  calorie_level TEXT NOT NULL,
+  prep_time TEXT NOT NULL,
+  category TEXT NOT NULL DEFAULT 'main',
+  tags TEXT DEFAULT '',
+  recipe_url TEXT DEFAULT '',
+  photo TEXT DEFAULT '',
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_meals_user ON meals(user_id);
+CREATE INDEX IF NOT EXISTS idx_meals_type ON meals(user_id, type);
+
+CREATE TABLE IF NOT EXISTS weekly_plans (
+  id TEXT PRIMARY KEY,
+  user_id TEXT NOT NULL,
+  day_index INTEGER NOT NULL,
+  slot TEXT NOT NULL,
+  meal_id TEXT,
+  is_locked INTEGER DEFAULT 0,
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_plans_user ON weekly_plans(user_id);
+
+CREATE TABLE IF NOT EXISTS user_settings (
+  user_id TEXT PRIMARY KEY,
+  diet_proportions TEXT,
+  calorie_prefs TEXT,
+  prep_prefs TEXT,
+  excluded_tags TEXT,
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);`;
+
+      if (txtSqlSchema) {
+        txtSqlSchema.value = D1_SQL_SCHEMA;
+      }
+
+      function openD1Guide() {
+        if (modalD1Guide) modalD1Guide.classList.remove('hidden');
+      }
+
+      function closeD1Guide() {
+        if (modalD1Guide) modalD1Guide.classList.add('hidden');
+      }
+
+      if (btnOpenD1Guide) btnOpenD1Guide.addEventListener('click', openD1Guide);
+      if (btnOpenD1GuideSettings) btnOpenD1GuideSettings.addEventListener('click', openD1Guide);
+      if (btnCloseD1Guide) btnCloseD1Guide.addEventListener('click', closeD1Guide);
+      if (btnCloseD1GuideBtn) btnCloseD1GuideBtn.addEventListener('click', closeD1Guide);
+
+      if (btnDismissD1Alert) {
+        btnDismissD1Alert.addEventListener('click', () => {
+          const banner = document.getElementById('d1AlertBanner');
+          if (banner) banner.classList.add('hidden');
+        });
+      }
+
+      if (btnCopySqlSchema) {
+        btnCopySqlSchema.addEventListener('click', () => {
+          navigator.clipboard.writeText(D1_SQL_SCHEMA).then(() => {
+            btnCopySqlSchema.textContent = 'Copié !';
+            setTimeout(() => btnCopySqlSchema.textContent = 'Copier le SQL', 2000);
+          });
+        });
+      }
     }
 
     /* ═════════════════════════════════════════════
        14. INITIALIZATION
        ═════════════════════════════════════════════ */
-    function init() {
-      loadLocalState();
-      updateUserUI();
-      setupEvents();
-      renderMeals();
-      renderPlanning();
-      checkD1Status();
+    async function init() {
+      try {
+        initEmptyState();
+        updateUserUI();
+        setupEvents();
+        renderMeals();
+        renderPlanning();
 
-      // Deep linking via query params
-      const params = new URLSearchParams(window.location.search);
-      if (params.get('modal') === 'editor') {
-        openMealEditor();
-      } else if (params.get('modal') === 'account') {
-        const modalAccount = document.getElementById('modalUserAccount');
-        const inputModal = document.getElementById('inputUsernameModal');
-        if (modalAccount) {
-          inputModal.value = currentUsername || '';
-          modalAccount.classList.remove('hidden');
+        await checkD1Status();
+        if (currentUsername) {
+          await fetchUserDataFromD1();
+        } else {
+          // Unauthenticated demo mode: load seed meals in memory
+          meals = [...SEED_MEALS];
+          renderMeals();
+          renderPlanning();
         }
+
+        // Deep linking via query params
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('modal') === 'editor') {
+          openMealEditor();
+        } else if (params.get('modal') === 'account') {
+          const modalAccount = document.getElementById('modalUserAccount');
+          const inputModal = document.getElementById('inputUsernameModal');
+          if (modalAccount) {
+            inputModal.value = currentUsername || '';
+            modalAccount.classList.remove('hidden');
+          }
+        }
+      } catch (err) {
+        console.error('MPR Init Error:', err);
+        window.__mprInitError = (err.stack || err.toString());
       }
     }
 

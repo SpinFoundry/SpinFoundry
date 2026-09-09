@@ -99,14 +99,20 @@ export async function onRequestDelete(context) {
   const userId = getUserId(context.request);
   const url = new URL(context.request.url);
   const id = url.searchParams.get('id');
+  const all = url.searchParams.get('all') === 'true';
 
-  if (!id) {
-    return jsonResponse({ error: 'Missing meal id' }, 400);
+  if (!id && !all) {
+    return jsonResponse({ error: 'Missing meal id or all=true parameter' }, 400);
   }
 
   try {
-    await db.prepare("DELETE FROM meals WHERE id = ? AND user_id = ?").bind(id, userId).run();
-    return jsonResponse({ success: true, deletedId: id });
+    if (all) {
+      await db.prepare("DELETE FROM meals WHERE user_id = ?").bind(userId).run();
+      return jsonResponse({ success: true, clearedAll: true });
+    } else {
+      await db.prepare("DELETE FROM meals WHERE id = ? AND user_id = ?").bind(id, userId).run();
+      return jsonResponse({ success: true, deletedId: id });
+    }
   } catch (err) {
     return jsonResponse({ error: err.message }, 500);
   }

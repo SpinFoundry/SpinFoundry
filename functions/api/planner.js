@@ -78,3 +78,18 @@ export async function onRequestPost(context) {
     return jsonResponse({ error: err.message }, 500);
   }
 }
+
+export async function onRequestDelete(context) {
+  const db = context.env?.DB;
+  if (!db) {
+    return jsonResponse({ error: 'Cloudflare D1 is not bound to this Pages environment' }, 503);
+  }
+
+  const userId = getUserId(context.request);
+  try {
+    await db.prepare("DELETE FROM weekly_plans WHERE user_id = ?").bind(userId).run();
+    return jsonResponse({ success: true, clearedAll: true });
+  } catch (err) {
+    return jsonResponse({ error: err.message }, 500);
+  }
+}
