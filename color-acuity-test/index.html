@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Color Vision & Acuity Test | SpinFoundry</title>
+  <meta name="description" content="Test your color discrimination threshold with 30 progressive levels. Find the odd tile in a growing grid with ever-finer color deltas — no timers, just pure visual acuity.">
+  <meta name="keywords" content="color vision test, color acuity test, color discrimination, Ishihara alternative, hue perception test, color blindness test online">
+  <link rel="canonical" href="https://spinfoundry.pages.dev/color-acuity-test/">
+
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://spinfoundry.pages.dev/color-acuity-test/">
+  <meta property="og:title" content="Color Vision & Acuity Test | SpinFoundry">
+  <meta property="og:description" content="30-level progressive color discrimination test. Find the odd tile — no timers, pure perceptual precision.">
+  <meta name="twitter:card" content="summary">
+
+  <link rel="stylesheet" href="/assets/styles.css">
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "Color Vision & Acuity Test",
+    "url": "https://spinfoundry.pages.dev/color-acuity-test/",
+    "description": "Progressive 30-level color discrimination test measuring your minimum perceptible color delta in HSL space.",
+    "applicationCategory": "UtilityApplication",
+    "operatingSystem": "All"
+  }
+  </script>
+
+  <style>
+    /* Game grid tile transitions */
+    .color-tile {
+      border-radius: 0.375rem;
+      cursor: pointer;
+      transition: transform 0.08s ease, box-shadow 0.08s ease;
+      aspect-ratio: 1 / 1;
+    }
+    .color-tile:hover {
+      transform: scale(1.06);
+      box-shadow: 0 4px 16px rgba(0,0,0,0.18);
+      z-index: 1;
+      position: relative;
+    }
+    .color-tile.wrong {
+      animation: shake 0.35s ease;
+    }
+    .color-tile.correct {
+      animation: pulse-correct 0.4s ease;
+    }
+    @keyframes shake {
+      0%,100%{transform:translateX(0)}
+      20%{transform:translateX(-6px)}
+      40%{transform:translateX(6px)}
+      60%{transform:translateX(-4px)}
+      80%{transform:translateX(4px)}
+    }
+    @keyframes pulse-correct {
+      0%{transform:scale(1)}
+      50%{transform:scale(1.18)}
+      100%{transform:scale(1)}
+    }
+    /* Heart lives */
+    .heart-lost { opacity: 0.2; }
+    /* Result rank badge */
+    .rank-badge {
+      display: inline-block;
+      padding: 0.25rem 0.75rem;
+      border-radius: 9999px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+    .badge-simulations {
+      background-color: #f5f3ff;
+      color: #6d28d9;
+      border: 1px solid rgba(221, 214, 254, 0.6);
+    }
+    .badge-simulations-dot {
+      background-color: #8b5cf6;
+    }
+    .rank-tetrachromat {
+      background-color: #f5f3ff;
+      color: #5b21b6;
+    }
+    .rank-lynx {
+      background-color: #fffbeb;
+      color: #92400e;
+    }
+    .rank-inspector {
+      background-color: #ecfdf5;
+      color: #065f46;
+    }
+    .rank-student {
+      background-color: #f1f5f9;
+      color: #334155;
+    }
+    .delta-gradient-bar {
+      background: linear-gradient(to right, #34d399, #fbbf24, #a855f7);
+    }
+  </style>
+</head>
+<body class="bg-[#F8F9FA] text-slate-800 antialiased font-sans min-h-screen">
+
+  <main class="max-w-2xl mx-auto px-4 py-10">
+
+    <!-- Breadcrumb & Top Bar -->
+    <div class="flex items-center justify-between mb-6">
+      <a href="/" class="text-xs font-medium text-slate-500 hover:text-slate-800 flex items-center gap-1.5 transition-colors">
+        <span>←</span>
+        <span>SpinFoundry Hub</span>
+      </a>
+      <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-mono badge-simulations">
+        <span class="w-1.5 h-1.5 rounded-full badge-simulations-dot"></span>
+        Simulations &amp; Physics
+      </div>
+    </div>
+
+    <!-- Header -->
+    <header class="mb-6 pb-5 border-b border-slate-200">
+      <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900">
+        Color Vision &amp; Acuity Test
+      </h1>
+      <p class="mt-1.5 text-sm text-slate-600 max-w-lg">
+        Find the tile that differs from the rest. 30 progressive levels — the color delta shrinks with every correct pick. No timer, no stress.
+      </p>
+    </header>
+
+    <!-- HUD: Level + Lives + Delta -->
+    <div id="hud" class="flex items-center justify-between mb-5 px-4 py-3 bg-white border border-slate-200/80 rounded-xl shadow-sm">
+      <div class="text-center">
+        <div class="text-[10px] font-mono uppercase text-slate-400 tracking-wider">Level</div>
+        <div class="text-xl font-extrabold text-slate-900 font-mono" id="hudLevel">1 / 30</div>
+      </div>
+      <div class="text-center">
+        <div class="text-[10px] font-mono uppercase text-slate-400 tracking-wider mb-1">Lives</div>
+        <div class="flex items-center gap-1" id="hudLives">
+          <span class="text-lg" id="heart0">❤️</span>
+          <span class="text-lg" id="heart1">❤️</span>
+          <span class="text-lg" id="heart2">❤️</span>
+        </div>
+      </div>
+      <div class="text-center">
+        <div class="text-[10px] font-mono uppercase text-slate-400 tracking-wider">Color Delta</div>
+        <div class="text-xl font-extrabold text-slate-900 font-mono" id="hudDelta">ΔL 20.0%</div>
+      </div>
+    </div>
+
+    <!-- Instruction strip -->
+    <p id="instruction" class="text-center text-xs text-slate-500 mb-4">
+      Tap the tile that looks <strong class="text-slate-700">slightly different</strong> from the others.
+    </p>
+
+    <!-- Game Board -->
+    <div id="gameBoard" class="w-full mb-6">
+      <!-- Grid injected by JS -->
+    </div>
+
+    <!-- Progress bar -->
+    <div class="w-full bg-slate-100 rounded-full h-1.5 mb-8 overflow-hidden">
+      <div id="progressBar" class="h-1.5 bg-slate-900 rounded-full transition-all" style="width:3.33%"></div>
+    </div>
+
+    <!-- Results Panel (hidden until game ends) -->
+    <div id="resultPanel" class="hidden">
+      <div class="bg-white border border-slate-200/80 rounded-2xl shadow-sm p-6 sm:p-8 space-y-5">
+
+        <div class="flex items-center justify-between">
+          <h2 class="text-lg font-extrabold tracking-tight text-slate-900">Test Complete</h2>
+          <span id="resultRank" class="rank-badge"></span>
+        </div>
+
+        <!-- Stats grid -->
+        <div class="grid grid-cols-3 gap-3 text-center">
+          <div class="p-3 rounded-xl bg-slate-50 border border-slate-200/80">
+            <div class="text-2xl font-extrabold text-slate-900 font-mono" id="resLevel">—</div>
+            <div class="text-[10px] font-mono uppercase text-slate-400 tracking-wider mt-0.5">Level Reached</div>
+          </div>
+          <div class="p-3 rounded-xl bg-slate-50 border border-slate-200/80">
+            <div class="text-2xl font-extrabold text-slate-900 font-mono" id="resDelta">—</div>
+            <div class="text-[10px] font-mono uppercase text-slate-400 tracking-wider mt-0.5">Min Delta</div>
+          </div>
+          <div class="p-3 rounded-xl bg-slate-50 border border-slate-200/80">
+            <div class="text-2xl font-extrabold text-slate-900 font-mono" id="resAccuracy">—</div>
+            <div class="text-[10px] font-mono uppercase text-slate-400 tracking-wider mt-0.5">Accuracy</div>
+          </div>
+        </div>
+
+        <!-- Rank description -->
+        <div id="resDescription" class="text-sm text-slate-600 leading-relaxed border-l-2 border-slate-200 pl-3"></div>
+
+        <!-- Delta scale visual -->
+        <div>
+          <div class="flex items-center justify-between text-[10px] font-mono text-slate-400 uppercase tracking-wider mb-1.5">
+            <span>Easy (ΔL 20%)</span>
+            <span>Expert (ΔL 0.8%)</span>
+          </div>
+          <div class="relative h-2 bg-slate-100 rounded-full overflow-hidden">
+            <div class="h-2 delta-gradient-bar rounded-full" style="width:100%"></div>
+            <div id="resMarker" class="absolute top-0 h-2 w-0.5 bg-slate-900 rounded-full transition-all" style="left:0%"></div>
+          </div>
+        </div>
+
+        <!-- Action buttons -->
+        <div class="flex flex-col sm:flex-row gap-3 pt-2">
+          <button id="btnTryAgain" type="button"
+            class="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold bg-slate-900 text-white hover:bg-slate-700 shadow-sm transition-all active:scale-95">
+            ↺ Try Again
+          </button>
+          <button id="btnCopyResult" type="button"
+            class="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold bg-white text-slate-800 border border-slate-200 hover:border-slate-400 shadow-sm transition-all active:scale-95">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+            <span id="btnCopyResultText">Copy Result</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Affiliate Module -->
+    <div class="pt-8 border-t border-slate-200 space-y-3 mt-4">
+      <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-500">Precision Color Gear</h3>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+        <a href="https://www.amazon.com/dp/B000FG7RWO?tag=spinfoundry-20" target="_blank" rel="noopener noreferrer sponsored"
+          class="p-3 bg-white border border-slate-200/80 rounded-lg hover:border-slate-300 hover:shadow-sm transition-all block">
+          <span class="font-medium text-slate-900">Pantone Color Guide (Solid Coated)</span>
+          <p class="text-slate-500 mt-0.5">The industry-standard printed swatch fan for designers and printers.</p>
+        </a>
+        <a href="https://www.amazon.com/dp/B07D7CHZH4?tag=spinfoundry-20" target="_blank" rel="noopener noreferrer sponsored"
+          class="p-3 bg-white border border-slate-200/80 rounded-lg hover:border-slate-300 hover:shadow-sm transition-all block">
+          <span class="font-medium text-slate-900">Color Calibrated IPS Monitor</span>
+          <p class="text-slate-500 mt-0.5">Factory-calibrated display for accurate color representation.</p>
+        </a>
+        <a href="https://www.amazon.com/dp/B01NAUBQS9?tag=spinfoundry-20" target="_blank" rel="noopener noreferrer sponsored"
+          class="p-3 bg-white border border-slate-200/80 rounded-lg hover:border-slate-300 hover:shadow-sm transition-all block">
+          <span class="font-medium text-slate-900">X-Rite ColorMunki Display Calibrator</span>
+          <p class="text-slate-500 mt-0.5">Professional colorimeter for hardware display calibration.</p>
+        </a>
+        <a href="https://www.amazon.com/dp/B08MCMV6RB?tag=spinfoundry-20" target="_blank" rel="noopener noreferrer sponsored"
+          class="p-3 bg-white border border-slate-200/80 rounded-lg hover:border-slate-300 hover:shadow-sm transition-all block">
+          <span class="font-medium text-slate-900">Color Vision Deficiency Glasses</span>
+          <p class="text-slate-500 mt-0.5">EnChroma-style lenses that enhance color contrast for CVD users.</p>
+        </a>
+      </div>
+      <p class="text-[11px] text-slate-400 italic">SpinFoundry may earn an affiliate commission on qualifying purchases.</p>
+    </div>
+
+    <!-- SEO Article -->
+    <article class="pt-10 border-t border-slate-200 space-y-5 text-sm text-slate-700 leading-relaxed mt-4">
+      <h2 class="text-xl font-bold tracking-tight text-slate-900">How Color Discrimination Works</h2>
+
+      <div class="space-y-2">
+        <h3 class="font-semibold text-slate-900">What is Color Acuity?</h3>
+        <p>
+          Color acuity refers to the ability of the human visual system to distinguish between two colors that are perceptually very close. While standard color blindness tests (like the Ishihara plates) check for major chromatic deficiencies, color acuity measures the <em>minimum perceptible difference</em> — the threshold at which your eye can no longer reliably tell two hues apart.
+        </p>
+      </div>
+
+      <div class="space-y-2">
+        <h3 class="font-semibold text-slate-900">The Delta L Metric Explained</h3>
+        <p>
+          This test uses <strong>HSL color space</strong> and shifts the target tile's <strong>Lightness (L) channel</strong> by a precise percentage (ΔL). At Level 1, the odd tile is 20% brighter or darker than the rest — trivially easy. By Level 30, the delta shrinks to approximately 0.8%, approaching the limits of typical human vision under normal screen conditions.
+        </p>
+        <p>
+          The delta follows a deterministic exponential decay curve: <code>ΔL = 20 × (0.8 / 20)^((level-1)/29)</code>, ensuring smooth progression across all 30 levels.
+        </p>
+      </div>
+
+      <div class="space-y-2">
+        <h3 class="font-semibold text-slate-900">Rank Tiers</h3>
+        <ul class="list-disc pl-5 space-y-1 text-xs sm:text-sm">
+          <li><strong>Levels 1–8 — Screen Calibrator Student:</strong> Good baseline vision. Consider calibrating your display for better results.</li>
+          <li><strong>Levels 9–16 — Fine Arts Inspector:</strong> Above-average discrimination. Suitable for design review work.</li>
+          <li><strong>Levels 17–24 — Lynx Vision:</strong> Exceptional acuity. You perceive differences most people miss.</li>
+          <li><strong>Levels 25–30 — Tetrachromatic Master:</strong> Near the biological limit of trichromatic human vision. Extraordinary result.</li>
+        </ul>
+      </div>
+
+      <div class="space-y-2">
+        <h3 class="font-semibold text-slate-900">Display & Lighting Conditions</h3>
+        <p>
+          Results vary significantly based on monitor quality, ambient lighting, and screen brightness. For best accuracy: use a calibrated IPS or OLED display, set brightness to 100–120 cd/m², test in a dimly lit room, and avoid glare on the screen surface.
+        </p>
+      </div>
+    </article>
+
+    <!-- Footer -->
+    <footer class="mt-16 pt-6 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 gap-3">
+      <span>SpinFoundry — Zero-overhead, 100% client-side hub.</span>
+      <div class="flex items-center gap-4">
+        <a href="/" class="hover:text-slate-800 transition-colors">Catalog Hub</a>
+        <a href="https://github.com/SpinFoundry/SpinFoundry" target="_blank" rel="noopener noreferrer" class="hover:text-slate-800 transition-colors">GitHub</a>
+        <a href="/sitemap.xml" class="hover:text-slate-800 transition-colors">Sitemap</a>
+      </div>
+    </footer>
+
+  </main>
+
+  <script>
+  (function () {
+    'use strict';
+
+    /* ─────────────────────────────────────────────
+       CONSTANTS & CONFIG
+    ───────────────────────────────────────────── */
+    const STORAGE_KEY  = 'spinfoundry_color_acuity';
+    const TOTAL_LEVELS = 30;
+    const MAX_LIVES    = 3;
+
+    // Grid size per level: 2×2 up to 8×8, stepping every ~4 levels
+    // Levels  1– 4 → 2×2 (4 tiles)
+    // Levels  5– 8 → 3×3 (9 tiles)
+    // Levels  9–12 → 4×4 (16 tiles)
+    // Levels 13–16 → 5×5 (25 tiles)
+    // Levels 17–20 → 6×6 (36 tiles)
+    // Levels 21–24 → 7×7 (49 tiles)
+    // Levels 25–30 → 8×8 (64 tiles)
+    function gridSize(level) {
+      if (level <= 4)  return 2;
+      if (level <= 8)  return 3;
+      if (level <= 12) return 4;
+      if (level <= 16) return 5;
+      if (level <= 20) return 6;
+      if (level <= 24) return 7;
+      return 8;
+    }
+
+    // Delta L (lightness offset, %) for a given level — exponential decay
+    // Level 1 → 20.0%   Level 30 → ~0.80%
+    function deltaForLevel(level) {
+      const start = 20.0;
+      const end   = 0.80;
+      return start * Math.pow(end / start, (level - 1) / (TOTAL_LEVELS - 1));
+    }
+
+    // Hue palette per level group — keeps things visually interesting
+    const PALETTE = [
+      { h: 210, s: 55 },  // blue-steel
+      { h: 340, s: 50 },  // rose
+      { h: 150, s: 45 },  // sage green
+      { h:  28, s: 60 },  // amber
+      { h: 270, s: 45 },  // violet
+      { h: 185, s: 50 },  // teal
+      { h:  10, s: 55 },  // terracotta
+      { h: 300, s: 40 },  // lavender
+    ];
+
+    /* ─────────────────────────────────────────────
+       STATE
+    ───────────────────────────────────────────── */
+    let state = {
+      level:       1,
+      lives:       MAX_LIVES,
+      correctPicks: 0,
+      totalPicks:  0,
+      targetIndex: 0,
+      gameOver:    false,
+      won:         false
+    };
+
+    /* ─────────────────────────────────────────────
+       DOM REFS
+    ───────────────────────────────────────────── */
+    const DOM = {
+      hudLevel:        document.getElementById('hudLevel'),
+      hudDelta:        document.getElementById('hudDelta'),
+      hearts:          [
+        document.getElementById('heart0'),
+        document.getElementById('heart1'),
+        document.getElementById('heart2')
+      ],
+      gameBoard:       document.getElementById('gameBoard'),
+      progressBar:     document.getElementById('progressBar'),
+      instruction:     document.getElementById('instruction'),
+      resultPanel:     document.getElementById('resultPanel'),
+      resLevel:        document.getElementById('resLevel'),
+      resDelta:        document.getElementById('resDelta'),
+      resAccuracy:     document.getElementById('resAccuracy'),
+      resultRank:      document.getElementById('resultRank'),
+      resDescription:  document.getElementById('resDescription'),
+      resMarker:       document.getElementById('resMarker'),
+      btnTryAgain:     document.getElementById('btnTryAgain'),
+      btnCopyResult:   document.getElementById('btnCopyResult'),
+      btnCopyResultText: document.getElementById('btnCopyResultText'),
+      hud:             document.getElementById('hud')
+    };
+
+    /* ─────────────────────────────────────────────
+       COLOR UTILITIES
+    ───────────────────────────────────────────── */
+    function hslStr(h, s, l) {
+      return `hsl(${h}, ${s}%, ${Math.min(95, Math.max(5, l))}%)`;
+    }
+
+    // Pick a base lightness mid-range (40–65%) to ensure delta is visible both ways
+    function baseLightness(level) {
+      // Deterministic but varies per level
+      const vals = [52, 55, 48, 58, 50, 54, 46, 60, 52, 56,
+                    49, 57, 51, 53, 47, 61, 50, 55, 48, 58,
+                    52, 54, 46, 60, 51, 56, 49, 57, 53, 50];
+      return vals[(level - 1) % vals.length];
+    }
+
+    /* ─────────────────────────────────────────────
+       RANDOM TARGET INDEX — Fisher-Yates pick
+    ───────────────────────────────────────────── */
+    function randomTarget(count) {
+      return Math.floor(Math.random() * count);
+    }
+
+    /* ─────────────────────────────────────────────
+       RENDER HUD
+    ───────────────────────────────────────────── */
+    function renderHUD() {
+      const delta = deltaForLevel(state.level);
+      DOM.hudLevel.textContent = `${state.level} / ${TOTAL_LEVELS}`;
+      DOM.hudDelta.textContent = `ΔL ${delta.toFixed(1)}%`;
+      DOM.progressBar.style.width = `${((state.level - 1) / TOTAL_LEVELS) * 100}%`;
+
+      // Hearts
+      for (let i = 0; i < MAX_LIVES; i++) {
+        const alive = i < state.lives;
+        DOM.hearts[i].classList.toggle('heart-lost', !alive);
+      }
+    }
+
+    /* ─────────────────────────────────────────────
+       RENDER GRID
+    ───────────────────────────────────────────── */
+    function renderGrid() {
+      const level  = state.level;
+      const size   = gridSize(level);
+      const total  = size * size;
+      const delta  = deltaForLevel(level);
+      const palIdx = (level - 1) % PALETTE.length;
+      const { h, s } = PALETTE[palIdx];
+      const baseL  = baseLightness(level);
+
+      // Randomly decide if target is brighter or darker
+      const sign   = Math.random() < 0.5 ? 1 : -1;
+      const targetL = baseL + sign * delta;
+
+      state.targetIndex = randomTarget(total);
+
+      // Build grid
+      const board = DOM.gameBoard;
+      board.innerHTML = '';
+      board.style.display = 'grid';
+      board.style.gridTemplateColumns = `repeat(${size}, 1fr)`;
+      board.style.gap = size <= 4 ? '8px' : size <= 6 ? '6px' : '4px';
+
+      for (let i = 0; i < total; i++) {
+        const isTarget = (i === state.targetIndex);
+        const tile = document.createElement('div');
+        tile.className = 'color-tile';
+        tile.style.backgroundColor = hslStr(h, s, isTarget ? targetL : baseL);
+        tile.setAttribute('data-index', i);
+        tile.setAttribute('role', 'button');
+        tile.setAttribute('aria-label', `Color tile ${i + 1}`);
+        tile.addEventListener('click', onTileClick);
+        board.appendChild(tile);
+      }
+    }
+
+    /* ─────────────────────────────────────────────
+       TILE CLICK HANDLER
+    ───────────────────────────────────────────── */
+    function onTileClick(e) {
+      if (state.gameOver) return;
+
+      const tile  = e.currentTarget;
+      const index = parseInt(tile.getAttribute('data-index'), 10);
+      state.totalPicks++;
+
+      if (index === state.targetIndex) {
+        // ✅ Correct
+        state.correctPicks++;
+        tile.classList.add('correct');
+        disableGrid();
+
+        setTimeout(() => {
+          if (state.level >= TOTAL_LEVELS) {
+            // Won all 30 levels
+            state.won = true;
+            endGame();
+          } else {
+            state.level++;
+            renderHUD();
+            renderGrid();
+          }
+        }, 420);
+
+      } else {
+        // ❌ Wrong tile
+        state.lives = Math.max(0, state.lives - 1);
+        tile.classList.add('wrong');
+        renderHUD();
+
+        setTimeout(() => {
+          tile.classList.remove('wrong');
+        }, 380);
+
+        if (state.lives === 0) {
+          state.gameOver = true;
+          setTimeout(endGame, 400);
+        }
+      }
+
+      saveState();
+    }
+
+    function disableGrid() {
+      const tiles = DOM.gameBoard.querySelectorAll('.color-tile');
+      tiles.forEach(t => t.style.pointerEvents = 'none');
+    }
+
+    /* ─────────────────────────────────────────────
+       RANK SYSTEM
+    ───────────────────────────────────────────── */
+    function getRank(level) {
+      if (level >= 25) return {
+        label: 'Tetrachromatic Master',
+        color: 'rank-tetrachromat',
+        desc:  'Near the biological limit of human trichromatic vision. Your color discrimination is extraordinary — you perceive differences that most people simply cannot see.'
+      };
+      if (level >= 17) return {
+        label: 'Lynx Vision',
+        color: 'rank-lynx',
+        desc:  'Exceptional perceptual acuity. You consistently detect subtle color differences well below the threshold of the average viewer — prime for professional design and retouching work.'
+      };
+      if (level >= 9) return {
+        label: 'Fine Arts Inspector',
+        color: 'rank-inspector',
+        desc:  'Above-average color discrimination. You notice nuances in color that escape the casual observer — a strong asset in graphic design, printing, and color grading.'
+      };
+      return {
+        label: 'Screen Calibrator Student',
+        color: 'rank-student',
+        desc:  'Good baseline vision. Your results may be affected by your display calibration or ambient lighting conditions. Try a calibrated IPS monitor in a dim room for a better score.'
+      };
+    }
+
+    /* ─────────────────────────────────────────────
+       END GAME — RESULTS PANEL
+    ───────────────────────────────────────────── */
+    function endGame() {
+      state.gameOver = true;
+      disableGrid();
+      DOM.gameBoard.style.opacity = '0.35';
+      DOM.instruction.textContent = state.won
+        ? '🏆 Flawless run! All 30 levels completed.'
+        : `💔 Game over — you ran out of lives on Level ${state.level}.`;
+
+      const reachedLevel = state.won ? TOTAL_LEVELS : Math.max(1, state.level - 1);
+      const minDelta     = deltaForLevel(Math.max(1, reachedLevel));
+      const accuracy     = state.totalPicks > 0
+        ? Math.round((state.correctPicks / state.totalPicks) * 100)
+        : 0;
+      const rank = getRank(reachedLevel);
+
+      // Fill results
+      DOM.resLevel.textContent    = reachedLevel;
+      DOM.resDelta.textContent    = `${minDelta.toFixed(1)}%`;
+      DOM.resAccuracy.textContent = `${accuracy}%`;
+      DOM.resultRank.textContent  = rank.label;
+      DOM.resultRank.className    = `rank-badge ${rank.color}`;
+      DOM.resDescription.textContent = rank.desc;
+
+      // Marker on delta scale: level 1 = 0%, level 30 = 100%
+      const markerPct = ((reachedLevel - 1) / (TOTAL_LEVELS - 1)) * 100;
+      DOM.resMarker.style.left = `${markerPct}%`;
+
+      DOM.resultPanel.classList.remove('hidden');
+
+      // Persist best result
+      try {
+        const prev = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+        if (!prev.bestLevel || reachedLevel > prev.bestLevel) {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify({
+            bestLevel: reachedLevel,
+            bestDelta: minDelta,
+            bestAccuracy: accuracy,
+            bestRank: rank.label
+          }));
+        }
+      } catch (e) {}
+    }
+
+    /* ─────────────────────────────────────────────
+       COPY RESULT TO CLIPBOARD
+    ───────────────────────────────────────────── */
+    function copyResult() {
+      const reachedLevel = state.won ? TOTAL_LEVELS : Math.max(1, state.level - 1);
+      const minDelta     = deltaForLevel(Math.max(1, reachedLevel));
+      const accuracy     = state.totalPicks > 0
+        ? Math.round((state.correctPicks / state.totalPicks) * 100)
+        : 0;
+      const rank = getRank(reachedLevel);
+
+      const text = [
+        '🎨 SpinFoundry — Color Vision & Acuity Test',
+        '─────────────────────────────────────',
+        `Level Reached   : ${reachedLevel} / 30`,
+        `Minimum Delta   : ΔL ${minDelta.toFixed(2)}%`,
+        `Accuracy        : ${accuracy}%`,
+        `Rank            : ${rank.label}`,
+        '─────────────────────────────────────',
+        'Test your color acuity: https://spinfoundry.pages.dev/color-acuity-test/'
+      ].join('\n');
+
+      navigator.clipboard.writeText(text).then(() => {
+        DOM.btnCopyResultText.textContent = 'Copied!';
+        setTimeout(() => { DOM.btnCopyResultText.textContent = 'Copy Result'; }, 2200);
+      }).catch(() => {
+        DOM.btnCopyResultText.textContent = 'Copy failed';
+        setTimeout(() => { DOM.btnCopyResultText.textContent = 'Copy Result'; }, 2200);
+      });
+    }
+
+    /* ─────────────────────────────────────────────
+       SAVE / PERSIST STATE (mid-game)
+    ───────────────────────────────────────────── */
+    function saveState() {
+      try {
+        localStorage.setItem(STORAGE_KEY + '_session', JSON.stringify({
+          level:        state.level,
+          lives:        state.lives,
+          correctPicks: state.correctPicks,
+          totalPicks:   state.totalPicks,
+          gameOver:     state.gameOver,
+          won:          state.won
+        }));
+      } catch (e) {}
+    }
+
+    /* ─────────────────────────────────────────────
+       RESET / START
+    ───────────────────────────────────────────── */
+    function resetGame() {
+      state = {
+        level:        1,
+        lives:        MAX_LIVES,
+        correctPicks: 0,
+        totalPicks:   0,
+        targetIndex:  0,
+        gameOver:     false,
+        won:          false
+      };
+      try { localStorage.removeItem(STORAGE_KEY + '_session'); } catch (e) {}
+
+      DOM.resultPanel.classList.add('hidden');
+      DOM.gameBoard.style.opacity = '1';
+      DOM.instruction.innerHTML = 'Tap the tile that looks <strong class="text-slate-700">slightly different</strong> from the others.';
+
+      renderHUD();
+      renderGrid();
+    }
+
+    /* ─────────────────────────────────────────────
+       INIT
+    ───────────────────────────────────────────── */
+    function init() {
+      // Restore mid-game session if present
+      try {
+        const session = JSON.parse(localStorage.getItem(STORAGE_KEY + '_session') || 'null');
+        if (session && !session.gameOver && session.level > 1) {
+          state.level        = session.level;
+          state.lives        = session.lives;
+          state.correctPicks = session.correctPicks;
+          state.totalPicks   = session.totalPicks;
+        }
+      } catch (e) {}
+
+      DOM.btnTryAgain.addEventListener('click', resetGame);
+      DOM.btnCopyResult.addEventListener('click', copyResult);
+
+      renderHUD();
+      renderGrid();
+    }
+
+    init();
+  })();
+  </script>
+</body>
+</html>

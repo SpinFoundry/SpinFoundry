@@ -17,6 +17,14 @@
       "category": "nutrition",
       "path": "/dough-hydration-calculator/",
       "dateAdded": "2026-09-08"
+    },
+    {
+      "id": "color-acuity-test",
+      "title": "Color Vision & Acuity Test",
+      "description": "30-level progressive color discrimination test — find the odd tile as the HSL delta shrinks to near-invisible thresholds. Measures your minimum perceptible color difference.",
+      "category": "simulations",
+      "path": "/color-acuity-test/",
+      "dateAdded": "2026-09-09"
     }
   ]
 }
