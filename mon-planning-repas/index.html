@@ -133,6 +133,9 @@
 
     /* Flexbox & Layout Utilities */
     .flex { display: flex !important; }
+    .inline-flex { display: inline-flex !important; }
+    .inline-block { display: inline-block !important; }
+    .block { display: block !important; }
     .flex-col { flex-direction: column !important; }
     .items-center { align-items: center !important; }
     .justify-between { justify-content: space-between !important; }
@@ -173,6 +176,8 @@
     /* Dimensions */
     .w-full { width: 100% !important; }
     .h-full { height: 100% !important; }
+    .w-3 { width: 0.75rem !important; }
+    .h-3 { height: 0.75rem !important; }
     .w-3\.5 { width: 0.875rem !important; }
     .h-3\.5 { height: 0.875rem !important; }
     .w-4 { width: 1rem !important; }
@@ -199,10 +204,52 @@
     .max-w-5xl { max-width: 64rem !important; }
     .mx-auto { margin-left: auto !important; margin-right: auto !important; }
 
-    /* Paddings */
+    /* Spacing & Paddings */
+    .p-1 { padding: 0.25rem !important; }
+    .p-1\.5 { padding: 0.375rem !important; }
+    .p-2 { padding: 0.5rem !important; }
+    .p-2\.5 { padding: 0.625rem !important; }
+    .p-3 { padding: 0.75rem !important; }
+    .p-3\.5 { padding: 0.875rem !important; }
+    .p-4 { padding: 1rem !important; }
+    .p-5 { padding: 1.25rem !important; }
+    .px-2 { padding-left: 0.5rem !important; padding-right: 0.5rem !important; }
+    .px-2\.5 { padding-left: 0.625rem !important; padding-right: 0.625rem !important; }
+    .px-3 { padding-left: 0.75rem !important; padding-right: 0.75rem !important; }
+    .px-3\.5 { padding-left: 0.875rem !important; padding-right: 0.875rem !important; }
+    .px-4 { padding-left: 1rem !important; padding-right: 1rem !important; }
+    .px-5 { padding-left: 1.25rem !important; padding-right: 1.25rem !important; }
+    .py-0\.5 { padding-top: 0.125rem !important; padding-bottom: 0.125rem !important; }
+    .py-1 { padding-top: 0.25rem !important; padding-bottom: 0.25rem !important; }
+    .py-1\.5 { padding-top: 0.375rem !important; padding-bottom: 0.375rem !important; }
+    .py-2 { padding-top: 0.5rem !important; padding-bottom: 0.5rem !important; }
+    .py-2\.5 { padding-top: 0.625rem !important; padding-bottom: 0.625rem !important; }
+    .py-3 { padding-top: 0.75rem !important; padding-bottom: 0.75rem !important; }
+    .py-6 { padding-top: 1.5rem !important; padding-bottom: 1.5rem !important; }
+    .pt-0\.5 { padding-top: 0.125rem !important; }
+    .pt-1 { padding-top: 0.25rem !important; }
+    .pt-2 { padding-top: 0.5rem !important; }
+    .pt-3 { padding-top: 0.75rem !important; }
+    .pb-1 { padding-bottom: 0.25rem !important; }
+    .pb-2 { padding-bottom: 0.5rem !important; }
+    .pb-3 { padding-bottom: 0.75rem !important; }
+    .pl-6 { padding-left: 1.5rem !important; }
     .pl-10 { padding-left: 2.5rem !important; }
-    .pr-10 { padding-right: 2.5rem !important; }
     .pr-4 { padding-right: 1rem !important; }
+    .pr-10 { padding-right: 2.5rem !important; }
+    .mt-0\.5 { margin-top: 0.125rem !important; }
+    .mt-1 { margin-top: 0.25rem !important; }
+    .mb-1 { margin-bottom: 0.25rem !important; }
+    .mb-2 { margin-bottom: 0.5rem !important; }
+    .mb-3 { margin-bottom: 0.75rem !important; }
+    .mb-4 { margin-bottom: 1rem !important; }
+    .space-y-1 > :not([hidden]) ~ :not([hidden]) { margin-top: 0.25rem !important; }
+    .space-y-1\.5 > :not([hidden]) ~ :not([hidden]) { margin-top: 0.375rem !important; }
+    .space-y-2 > :not([hidden]) ~ :not([hidden]) { margin-top: 0.5rem !important; }
+    .space-y-3 > :not([hidden]) ~ :not([hidden]) { margin-top: 0.75rem !important; }
+    .space-y-4 > :not([hidden]) ~ :not([hidden]) { margin-top: 1rem !important; }
+    .space-y-5 > :not([hidden]) ~ :not([hidden]) { margin-top: 1.25rem !important; }
+    .space-y-6 > :not([hidden]) ~ :not([hidden]) { margin-top: 1.5rem !important; }
 
     /* Text & Borders */
     .text-center { text-align: center !important; }
@@ -232,10 +279,12 @@
       bottom: 0 !important;
       left: 0 !important;
       right: 0 !important;
-      height: 3.75rem !important;
-      background-color: rgba(255, 255, 255, 0.98) !important;
-      border-top: 1px solid #e2e8f0 !important;
-      box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.05) !important;
+      height: 3.85rem !important;
+      background-color: rgba(255, 255, 255, 0.9) !important;
+      backdrop-filter: blur(12px) !important;
+      -webkit-backdrop-filter: blur(12px) !important;
+      border-top: 1px solid rgba(226, 232, 240, 0.8) !important;
+      box-shadow: 0 -4px 20px -2px rgba(0, 0, 0, 0.04) !important;
       z-index: 40 !important;
       display: flex !important;
       align-items: center !important;
@@ -248,7 +297,8 @@
       width: 100% !important;
       max-width: 28rem !important;
       height: 100% !important;
-      padding: 0 1rem !important;
+      padding: 0 1.25rem !important;
+      gap: 0.5rem !important;
     }
     .btn-nav {
       display: flex !important;
@@ -259,54 +309,61 @@
       border: none !important;
       cursor: pointer !important;
       flex: 1 !important;
-      padding: 0.35rem 0 !important;
+      padding: 0.35rem 0.5rem !important;
+      border-radius: 0.75rem !important;
       gap: 0.15rem !important;
       color: #94a3b8 !important;
-      transition: color 0.15s ease, transform 0.08s ease !important;
+      transition: all 0.15s ease !important;
     }
     .btn-nav.active {
       color: #0f172a !important;
+      background-color: #f1f5f9 !important;
     }
     .btn-nav.inactive:hover {
       color: #475569 !important;
+      background-color: rgba(248, 250, 252, 0.6) !important;
     }
     .btn-nav-icon {
-      font-size: 1.2rem !important;
+      font-size: 1.15rem !important;
       line-height: 1 !important;
     }
     .btn-nav-label {
       font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;
-      font-size: 10px !important;
+      font-size: 9.5px !important;
       font-weight: 700 !important;
       text-transform: uppercase !important;
-      letter-spacing: 0.05em !important;
+      letter-spacing: 0.04em !important;
     }
 
     /* Floating Action Button (+) */
     #fabAddMeal {
       position: fixed !important;
-      right: 1.5rem !important;
-      bottom: 4.75rem !important;
+      right: 1.25rem !important;
+      bottom: 4.85rem !important;
       z-index: 45 !important;
       width: 3.25rem !important;
       height: 3.25rem !important;
       border-radius: 9999px !important;
       background-color: #0f172a !important;
       color: #ffffff !important;
-      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3) !important;
+      box-shadow: 0 8px 20px -4px rgba(15, 23, 42, 0.35) !important;
       display: flex !important;
       align-items: center !important;
       justify-content: center !important;
-      font-size: 1.75rem !important;
-      font-weight: 700 !important;
+      font-size: 1.6rem !important;
+      font-weight: 600 !important;
       line-height: 1 !important;
-      border: none !important;
+      border: 1px solid rgba(255, 255, 255, 0.15) !important;
       cursor: pointer !important;
-      transition: transform 0.15s ease, background-color 0.15s ease !important;
+      transition: transform 0.15s ease, background-color 0.15s ease, box-shadow 0.15s ease !important;
     }
     #fabAddMeal:hover {
       background-color: #1e293b !important;
-      transform: scale(1.05) !important;
+      transform: scale(1.05) translateY(-2px) !important;
+      box-shadow: 0 12px 24px -4px rgba(15, 23, 42, 0.45) !important;
+    }
+    #fabAddMeal:active {
+      transform: scale(0.95) !important;
     }
     #fabAddMeal.hidden {
       display: none !important;
@@ -315,8 +372,8 @@
     /* Meal Card Media & Badges */
     .meal-card-media {
       width: 100% !important;
-      height: 7.5rem !important;
-      background-color: #f8fafc !important;
+      height: 8.5rem !important;
+      background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%) !important;
       border-bottom: 1px solid #f1f5f9 !important;
       position: relative !important;
       display: flex !important;
@@ -325,13 +382,14 @@
       user-select: none !important;
     }
     .meal-card-media .meal-emoji {
-      font-size: 2.75rem !important;
+      font-size: 3rem !important;
       line-height: 1 !important;
-      opacity: 0.85 !important;
+      filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.06)) !important;
+      transition: transform 0.2s ease !important;
     }
     .meal-card-photo {
       width: 100% !important;
-      height: 8.5rem !important;
+      height: 9.5rem !important;
       background-color: #f1f5f9 !important;
       position: relative !important;
       overflow: hidden !important;
@@ -340,26 +398,29 @@
       width: 100% !important;
       height: 100% !important;
       object-fit: cover !important;
-      transition: transform 0.3s ease !important;
+      transition: transform 0.35s ease !important;
     }
-    .meal-card-photo:hover img {
-      transform: scale(1.05) !important;
+    .meal-card-photo:hover img, .group:hover .meal-card-photo img {
+      transform: scale(1.04) !important;
     }
     .course-badge {
       position: absolute !important;
-      top: 0.5rem !important;
-      right: 0.5rem !important;
+      top: 0.6rem !important;
+      left: 0.6rem !important;
       padding: 0.2rem 0.6rem !important;
       border-radius: 9999px !important;
       font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;
-      font-size: 10px !important;
+      font-size: 9.5px !important;
       font-weight: 700 !important;
       text-transform: uppercase !important;
-      letter-spacing: 0.05em !important;
-      background-color: rgba(255, 255, 255, 0.95) !important;
+      letter-spacing: 0.04em !important;
+      background-color: rgba(255, 255, 255, 0.92) !important;
+      backdrop-filter: blur(6px) !important;
+      -webkit-backdrop-filter: blur(6px) !important;
       color: #334155 !important;
-      border: 1px solid #e2e8f0 !important;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08) !important;
+      border: 1px solid rgba(226, 232, 240, 0.8) !important;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06) !important;
+      z-index: 10 !important;
     }
 
     /* Modals */
@@ -439,6 +500,44 @@
       border-color: #14b8a6 !important;
       font-weight: 700 !important;
     }
+
+    /* Color, Border & Background Utilities */
+    .bg-white { background-color: #ffffff !important; }
+    .bg-slate-50 { background-color: #f8fafc !important; }
+    .bg-slate-50\/50 { background-color: rgba(248, 250, 252, 0.5) !important; }
+    .bg-slate-50\/60 { background-color: rgba(248, 250, 252, 0.6) !important; }
+    .bg-slate-50\/70 { background-color: rgba(248, 250, 252, 0.7) !important; }
+    .bg-slate-100 { background-color: #f1f5f9 !important; }
+    .bg-slate-200 { background-color: #e2e8f0 !important; }
+    .bg-slate-900 { background-color: #0f172a !important; }
+    .bg-amber-50\/20 { background-color: rgba(254, 243, 199, 0.2) !important; }
+    .bg-indigo-50\/20 { background-color: rgba(238, 242, 255, 0.2) !important; }
+    .border-slate-100 { border-color: #f1f5f9 !important; }
+    .border-slate-200 { border-color: #e2e8f0 !important; }
+    .border-slate-200\/60 { border-color: rgba(226, 232, 240, 0.6) !important; }
+    .border-slate-200\/80 { border-color: rgba(226, 232, 240, 0.8) !important; }
+    .border-slate-300 { border-color: #cbd5e1 !important; }
+    .border-amber-200\/50 { border-color: rgba(253, 230, 138, 0.5) !important; }
+    .border-indigo-200\/50 { border-color: rgba(199, 210, 254, 0.5) !important; }
+    .border-dashed { border-style: dashed !important; }
+    .border-transparent { border-color: transparent !important; }
+    .text-white { color: #ffffff !important; }
+    .text-slate-400 { color: #94a3b8 !important; }
+    .text-slate-500 { color: #64748b !important; }
+    .text-slate-600 { color: #475569 !important; }
+    .text-slate-700 { color: #334155 !important; }
+    .text-slate-800 { color: #1e293b !important; }
+    .text-slate-900 { color: #0f172a !important; }
+    .text-blue-600 { color: #2563eb !important; }
+    .text-amber-600 { color: #d97706 !important; }
+    .text-rose-500 { color: #f43f5e !important; }
+    .text-rose-600 { color: #e11d48 !important; }
+    .shadow-xs { box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05) !important; }
+    .shadow-sm { box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1) !important; }
+    .shadow-md { box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1) !important; }
+    .shadow-xl { box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1) !important; }
+    .transition-all { transition-property: all; transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1); transition-duration: 150ms; }
+    .transition-colors { transition-property: color, background-color, border-color, text-decoration-color, fill, stroke; transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1); transition-duration: 150ms; }
   </style>
 </head>
 <body class="bg-[#F8F9FA] text-slate-800 font-sans min-h-screen flex flex-col justify-between antialiased">
@@ -1887,15 +1986,24 @@
         const tagsArr = (m.tags || '').split(/[;,]+/).map(t => t.trim()).filter(Boolean);
         const tagsHtml = tagsArr.slice(0, 3).map(t => `<span class="recipe-hash-tag">#${t}</span>`).join(' ');
 
+        const recipeLink = m.recipeUrl || m.recipe_url;
+
         card.innerHTML = `
-          <div>
+          <div class="cursor-pointer">
             ${mediaHtml}
-            <div class="p-4 space-y-2">
+            <div class="p-3.5 sm:p-4 space-y-2">
               
-              <!-- Title First (Hero) -->
-              <h3 class="text-[15px] sm:text-base font-bold text-slate-900 leading-snug group-hover:text-slate-700 transition-colors">
-                ${m.name}
-              </h3>
+              <!-- Title & Discrete Recipe Indicator -->
+              <div class="flex items-start justify-between gap-2">
+                <h3 class="text-[15px] sm:text-base font-bold text-slate-900 leading-snug group-hover:text-blue-600 transition-colors">
+                  ${m.name}
+                </h3>
+                ${recipeLink ? `
+                  <a href="${recipeLink}" target="_blank" rel="noopener noreferrer" class="link-recipe-btn shrink-0 text-slate-400 hover:text-blue-600 p-1 rounded-lg hover:bg-slate-100 transition-colors" title="Consulter la recette en ligne">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                  </a>
+                ` : ''}
+              </div>
 
               <!-- Badges Row (Ultra-compact & Discrete) -->
               <div class="flex items-center gap-1 flex-wrap">
@@ -1919,23 +2027,15 @@
             </div>
           </div>
 
-          <!-- Bottom Action Buttons -->
-          <div class="px-4 py-2.5 bg-slate-50/70 border-t border-slate-100 flex items-center justify-between text-xs font-mono">
-            ${m.recipeUrl || m.recipe_url ? `
-              <a href="${m.recipeUrl || m.recipe_url}" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:text-blue-800 flex items-center gap-1 font-medium text-[11px]">
-                <span>Lien recette</span>
-                <span>↗</span>
-              </a>
-            ` : `<span class="text-slate-400 text-[11px]">Fait maison</span>`}
-
-            <div class="flex items-center gap-2">
-              <button type="button" class="btn-edit-meal text-slate-500 hover:text-slate-900 font-semibold p-1" data-id="${m.id}" title="Modifier la recette">
-                Éditer
-              </button>
-              <button type="button" class="btn-delete-meal text-rose-500 hover:text-rose-800 font-semibold p-1" data-id="${m.id}" title="Supprimer la recette">
-                &times;
-              </button>
-            </div>
+          <!-- Bottom Action Strip: Lean, Subtle, Uncluttered -->
+          <div class="px-3.5 sm:px-4 py-2 bg-slate-50/60 border-t border-slate-100 flex items-center justify-between text-xs">
+            <button type="button" class="btn-edit-meal text-slate-500 hover:text-slate-900 font-medium text-[11px] font-mono flex items-center gap-1 py-1 rounded transition-colors" data-id="${m.id}" title="Modifier la recette">
+              <svg class="w-3 h-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+              <span>Modifier</span>
+            </button>
+            <button type="button" class="btn-delete-meal text-slate-400 hover:text-rose-600 p-1 rounded-md hover:bg-rose-50 transition-colors" data-id="${m.id}" title="Supprimer la recette">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+            </button>
           </div>
         `;
 
@@ -1949,6 +2049,13 @@
           e.stopPropagation();
           confirmDeleteMeal(m.id, m.name);
         });
+
+        const linkRecipe = card.querySelector('.link-recipe-btn');
+        if (linkRecipe) {
+          linkRecipe.addEventListener('click', (e) => {
+            e.stopPropagation();
+          });
+        }
 
         card.addEventListener('click', () => {
           openMealEditor(m.id);
@@ -2130,28 +2237,29 @@
         const dinnerSlot = weeklyPlans.find(p => p.dayIndex === day && p.slot === 'dinner');
 
         const dayCard = document.createElement('div');
-        dayCard.className = 'bg-white border border-slate-200/80 rounded-2xl p-4 shadow-sm space-y-3';
+        dayCard.className = 'bg-white border border-slate-200/80 rounded-2xl p-3.5 sm:p-4 shadow-xs space-y-3';
 
         dayCard.innerHTML = `
           <div class="flex items-center justify-between pb-2 border-b border-slate-100">
-            <h2 class="text-sm font-bold font-mono text-slate-800 flex items-center gap-2">
-              <span class="w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center text-xs text-slate-600 font-bold">${day + 1}</span>
+            <h2 class="text-xs sm:text-sm font-bold font-mono text-slate-800 flex items-center gap-2">
+              <span class="w-5 h-5 sm:w-6 sm:h-6 rounded-lg bg-slate-100 flex items-center justify-center text-[11px] sm:text-xs text-slate-700 font-bold">${day + 1}</span>
               <span>${dayName}</span>
             </h2>
           </div>
 
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3">
             <!-- Déjeuner Slot -->
-            <div id="slotBox_${day}_lunch" class="p-3 rounded-xl border ${lunchSlot && lunchSlot.mealId ? 'bg-slate-50/60 border-slate-200' : 'border-dashed border-slate-200 bg-white'} space-y-2">
-              <div class="flex items-center justify-between text-xs font-mono text-slate-500">
-                <span class="font-bold flex items-center gap-1 text-slate-700">
-                  <span>☀️ Déjeuner</span>
+            <div id="slotBox_${day}_lunch" class="p-2.5 sm:p-3 rounded-xl border transition-all ${lunchSlot && lunchSlot.mealId ? 'bg-amber-50/20 border-amber-200/50' : 'border-dashed border-slate-200 bg-white hover:border-slate-300'} space-y-2">
+              <div class="flex items-center justify-between text-[11px] font-mono text-slate-500">
+                <span class="font-bold flex items-center gap-1.5 text-slate-700">
+                  <span class="text-xs">☀️</span>
+                  <span>Déjeuner</span>
                 </span>
                 <div class="flex items-center gap-1">
-                  <button type="button" class="btn-lock-slot p-1 rounded hover:bg-slate-200/60 transition-colors ${lunchSlot && lunchSlot.isLocked ? 'text-amber-600 font-bold' : 'text-slate-400'}" data-day="${day}" data-slot="lunch" title="${lunchSlot && lunchSlot.isLocked ? 'Déverrouiller' : 'Verrouiller ce créneau'}">
+                  <button type="button" class="btn-lock-slot p-1 rounded-md hover:bg-slate-100 transition-colors ${lunchSlot && lunchSlot.isLocked ? 'text-amber-600 font-bold' : 'text-slate-400'}" data-day="${day}" data-slot="lunch" title="${lunchSlot && lunchSlot.isLocked ? 'Déverrouiller ce repas' : 'Verrouiller ce repas pour la génération'}">
                     ${lunchSlot && lunchSlot.isLocked ? '🔒' : '🔓'}
                   </button>
-                  <button type="button" class="btn-reroll-slot p-1 rounded hover:bg-slate-200/60 text-slate-500 hover:text-slate-800 transition-colors" data-day="${day}" data-slot="lunch" title="Tirer un autre repas au sort">
+                  <button type="button" class="btn-reroll-slot p-1 rounded-md hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition-colors" data-day="${day}" data-slot="lunch" title="Tirer un autre repas au sort">
                     🔄
                   </button>
                 </div>
@@ -2162,16 +2270,17 @@
             </div>
 
             <!-- Dîner Slot -->
-            <div id="slotBox_${day}_dinner" class="p-3 rounded-xl border ${dinnerSlot && dinnerSlot.mealId ? 'bg-slate-50/60 border-slate-200' : 'border-dashed border-slate-200 bg-white'} space-y-2">
-              <div class="flex items-center justify-between text-xs font-mono text-slate-500">
-                <span class="font-bold flex items-center gap-1 text-slate-700">
-                  <span>🌙 Dîner</span>
+            <div id="slotBox_${day}_dinner" class="p-2.5 sm:p-3 rounded-xl border transition-all ${dinnerSlot && dinnerSlot.mealId ? 'bg-indigo-50/20 border-indigo-200/50' : 'border-dashed border-slate-200 bg-white hover:border-slate-300'} space-y-2">
+              <div class="flex items-center justify-between text-[11px] font-mono text-slate-500">
+                <span class="font-bold flex items-center gap-1.5 text-slate-700">
+                  <span class="text-xs">🌙</span>
+                  <span>Dîner</span>
                 </span>
                 <div class="flex items-center gap-1">
-                  <button type="button" class="btn-lock-slot p-1 rounded hover:bg-slate-200/60 transition-colors ${dinnerSlot && dinnerSlot.isLocked ? 'text-amber-600 font-bold' : 'text-slate-400'}" data-day="${day}" data-slot="dinner" title="${dinnerSlot && dinnerSlot.isLocked ? 'Déverrouiller' : 'Verrouiller ce créneau'}">
+                  <button type="button" class="btn-lock-slot p-1 rounded-md hover:bg-slate-100 transition-colors ${dinnerSlot && dinnerSlot.isLocked ? 'text-amber-600 font-bold' : 'text-slate-400'}" data-day="${day}" data-slot="dinner" title="${dinnerSlot && dinnerSlot.isLocked ? 'Déverrouiller ce repas' : 'Verrouiller ce repas pour la génération'}">
                     ${dinnerSlot && dinnerSlot.isLocked ? '🔒' : '🔓'}
                   </button>
-                  <button type="button" class="btn-reroll-slot p-1 rounded hover:bg-slate-200/60 text-slate-500 hover:text-slate-800 transition-colors" data-day="${day}" data-slot="dinner" title="Tirer un autre repas au sort">
+                  <button type="button" class="btn-reroll-slot p-1 rounded-md hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition-colors" data-day="${day}" data-slot="dinner" title="Tirer un autre repas au sort">
                     🔄
                   </button>
                 </div>
@@ -2217,8 +2326,11 @@
     function renderSlotInnerHtml(slotObj) {
       if (!slotObj || !slotObj.mealId) {
         return `
-          <div class="py-3 text-center cursor-pointer hover:bg-slate-50 rounded-lg transition-colors">
-            <span class="text-xs text-slate-400 font-mono">+ Choisir un repas</span>
+          <div class="py-2.5 text-center cursor-pointer hover:bg-slate-50 rounded-lg transition-colors border border-transparent hover:border-slate-200/60">
+            <span class="text-xs text-slate-400 font-mono flex items-center justify-center gap-1">
+              <span class="text-sm leading-none">+</span>
+              <span>Choisir un repas</span>
+            </span>
           </div>
         `;
       }
@@ -2226,8 +2338,11 @@
       const meal = meals.find(m => m.id === slotObj.mealId);
       if (!meal) {
         return `
-          <div class="py-3 text-center cursor-pointer hover:bg-slate-50 rounded-lg transition-colors">
-            <span class="text-xs text-slate-400 font-mono">+ Choisir un repas</span>
+          <div class="py-2.5 text-center cursor-pointer hover:bg-slate-50 rounded-lg transition-colors border border-transparent hover:border-slate-200/60">
+            <span class="text-xs text-slate-400 font-mono flex items-center justify-center gap-1">
+              <span class="text-sm leading-none">+</span>
+              <span>Choisir un repas</span>
+            </span>
           </div>
         `;
       }
@@ -2235,11 +2350,11 @@
       const diet = getDietInfo(meal.type);
       return `
         <div class="flex items-center gap-2.5 cursor-pointer group">
-          <div class="w-10 h-10 rounded-lg bg-slate-200 overflow-hidden shrink-0 flex items-center justify-center text-sm">
+          <div class="w-10 h-10 rounded-xl bg-slate-100 overflow-hidden shrink-0 flex items-center justify-center text-base border border-slate-200/60 shadow-2xs">
             ${meal.photo ? `<img src="${meal.photo}" class="w-full h-full object-cover">` : diet.icon}
           </div>
           <div class="min-w-0 flex-1">
-            <h4 class="text-[13px] sm:text-sm font-bold text-slate-900 truncate group-hover:text-blue-600 transition-colors">
+            <h4 class="text-xs sm:text-[13px] font-bold text-slate-900 truncate group-hover:text-blue-600 transition-colors">
               ${meal.name}
             </h4>
             <div class="flex items-center gap-1 mt-0.5">
