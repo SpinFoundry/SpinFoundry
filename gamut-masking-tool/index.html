@@ -4,14 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Gamut Masking Tool for Painters & Visual Artists | SpinFoundry</title>
-  <meta name="description" content="Interactive Gamut Masking tool for painters and visual artists. Define geometric color masks on an OKLCH color wheel and remap reference images with 100% luminance (tonal value) preservation.">
-  <meta name="keywords" content="gamut mask tool, james gurney gamut mask, painter color harmony, oklch color wheel, visual artist color scheme, value preservation, color remapping, digital painting palette">
+  <meta name="description" content="Studio Gamut Masking tool for painters and visual artists. Select real physical paint tubes (Zorn, Split Primary, Plein Air) or custom shapes, compute perceptual convex hulls, and remap artwork with 100% luminance (tonal value) preservation.">
+  <meta name="keywords" content="gamut mask tool, physical pigments, paint tubes, zorn palette, split primary, james gurney, painter color harmony, oklab color wheel, visual artist color scheme, value preservation, color remapping, digital painting palette">
   <link rel="canonical" href="https://spinfoundry.pages.dev/gamut-masking-tool/">
 
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://spinfoundry.pages.dev/gamut-masking-tool/">
   <meta property="og:title" content="Gamut Masking Tool for Painters & Visual Artists | SpinFoundry">
-  <meta property="og:description" content="Construct interactive geometric gamut masks over a perceptual color wheel and remap paintings while strictly preserving original tonal values.">
+  <meta property="og:description" content="Construct physical pigment mixing gamut masks over a perceptual Oklab color wheel and remap paintings while strictly preserving original tonal values.">
   <meta name="twitter:card" content="summary_large_image">
 
   <link rel="stylesheet" href="/assets/styles.css">
@@ -22,7 +22,7 @@
     "@type": "WebApplication",
     "name": "Gamut Masking Tool for Painters & Visual Artists",
     "url": "https://spinfoundry.pages.dev/gamut-masking-tool/",
-    "description": "Interactive James Gurney-style gamut masking tool that restricts image chroma and hue to geometric polygons while guaranteeing strict perceptual luminance preservation via OKLCH.",
+    "description": "Studio gamut masking tool that places physical artist paint tubes onto a perceptual Oklab color wheel, builds dynamic convex hulls, and projects image colors into allowed mixing boundaries with strict luminance preservation.",
     "applicationCategory": "DesignApplication",
     "operatingSystem": "All"
   }
@@ -42,8 +42,8 @@
     /* Color Wheel & Canvas */
     #wheelCanvas {
       display: block;
-      width: 280px;
-      height: 280px;
+      width: 290px;
+      height: 290px;
       border-radius: 9999px;
       box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12), inset 0 0 0 1px rgba(0, 0, 0, 0.08);
       cursor: crosshair;
@@ -129,12 +129,52 @@
 
     /* Palette Swatch */
     .palette-swatch {
-      width: 24px;
-      height: 24px;
+      width: 26px;
+      height: 26px;
       border-radius: 0.375rem;
-      border: 1px solid rgba(0, 0, 0, 0.15);
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+      border: 1px solid rgba(0, 0, 0, 0.18);
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
       display: inline-block;
+      cursor: pointer;
+      transition: transform 0.15s ease;
+    }
+    .palette-swatch:hover {
+      transform: scale(1.15);
+      z-index: 5;
+    }
+
+    /* Pigment Chip / Tag */
+    .pigment-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.375rem;
+      padding: 0.25rem 0.5rem;
+      border-radius: 0.5rem;
+      font-size: 0.75rem;
+      font-weight: 500;
+      border: 1px solid #e2e8f0;
+      background-color: #ffffff;
+      color: #334155;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      user-select: none;
+    }
+    .pigment-chip:hover {
+      border-color: #cbd5e1;
+      background-color: #f8fafc;
+    }
+    .pigment-chip.active {
+      border-color: #0f172a;
+      background-color: #0f172a;
+      color: #ffffff;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+    }
+    .pigment-chip .swatch-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 9999px;
+      border: 1px solid rgba(0,0,0,0.2);
+      flex-shrink: 0;
     }
 
     /* Buttons & Interactive Elements */
@@ -148,6 +188,7 @@
     /* Utility Fallbacks */
     .flex { display: flex; }
     .flex-col { flex-direction: column; }
+    .flex-wrap { flex-wrap: wrap; }
     .items-center { align-items: center; }
     .justify-between { justify-content: space-between; }
     .justify-center { justify-content: center; }
@@ -208,6 +249,7 @@
     .hover\:text-slate-900:hover { color: #0f172a; }
     .p-3 { padding: 0.75rem; }
     .p-4 { padding: 1rem; }
+    .p-5 { padding: 1.25rem; }
     .p-6 { padding: 1.5rem; }
     .px-3 { padding-left: 0.75rem; padding-right: 0.75rem; }
     .px-4 { padding-left: 1rem; padding-right: 1rem; }
@@ -215,107 +257,165 @@
     .py-1\.5 { padding-top: 0.375rem; padding-bottom: 0.375rem; }
     .py-2 { padding-top: 0.5rem; padding-bottom: 0.5rem; }
     .py-2\.5 { padding-top: 0.625rem; padding-bottom: 0.625rem; }
+    .py-8 { padding-top: 2rem; padding-bottom: 2rem; }
     .py-10 { padding-top: 2.5rem; padding-bottom: 2.5rem; }
     .mb-3 { margin-bottom: 0.75rem; }
     .mb-4 { margin-bottom: 1rem; }
     .mb-6 { margin-bottom: 1.5rem; }
     .mt-1 { margin-top: 0.25rem; }
+    .mt-1\.5 { margin-top: 0.375rem; }
     .mt-2 { margin-top: 0.5rem; }
     .mt-4 { margin-top: 1rem; }
     .mt-16 { margin-top: 4rem; }
+    .pt-3 { padding-top: 0.75rem; }
     .pt-4 { padding-top: 1rem; }
     .pt-6 { padding-top: 1.5rem; }
+    .pt-8 { padding-top: 2rem; }
     .pb-5 { padding-bottom: 1.25rem; }
     .space-y-1 > :not([hidden]) ~ :not([hidden]) { margin-top: 0.25rem; }
     .space-y-2 > :not([hidden]) ~ :not([hidden]) { margin-top: 0.5rem; }
+    .space-y-3 > :not([hidden]) ~ :not([hidden]) { margin-top: 0.75rem; }
     .space-y-4 > :not([hidden]) ~ :not([hidden]) { margin-top: 1rem; }
+    .space-y-5 > :not([hidden]) ~ :not([hidden]) { margin-top: 1.25rem; }
     .space-y-6 > :not([hidden]) ~ :not([hidden]) { margin-top: 1.5rem; }
     .cursor-pointer { cursor: pointer; }
     .select-none { user-select: none; -webkit-user-select: none; }
     .leading-relaxed { line-height: 1.625; }
-
-    .border-2 { border-width: 2px; }
-    .border-dashed { border-style: dashed; }
+    .leading-tight { line-height: 1.25; }
     .flex-shrink-0 { flex-shrink: 0; }
     .hover\:bg-slate-200:hover { background-color: #e2e8f0; }
     .items-start { align-items: flex-start; }
     .justify-end { justify-content: flex-end; }
-    .leading-tight { line-height: 1.25; }
-    .mb-1\.5 { margin-bottom: 0.375rem; }
     .p-0\.5 { padding: 0.125rem; }
-    .py-8 { padding-top: 2rem; padding-bottom: 2rem; }
     .rounded-md { border-radius: 0.375rem; }
-    .space-y-3 > :not([hidden]) ~ :not([hidden]) { margin-top: 0.75rem; }
-    .space-y-5 > :not([hidden]) ~ :not([hidden]) { margin-top: 1.25rem; }
-
-    @media (min-width: 640px) {
-      .sm\:flex-row { flex-direction: row; }
-      .sm\:flex-initial { flex: 0 1 auto; }
-      .sm\:w-auto { width: auto; }
-      .sm\:py-10 { padding-top: 2.5rem; padding-bottom: 2.5rem; }
-      .sm\:text-3xl { font-size: 1.875rem; line-height: 2.25rem; }
-    }
-
-    @media (min-width: 768px) {
-      .md\:flex-row { flex-direction: row; }
-      .md\:w-80 { width: 20rem; }
-      .md\:flex-1 { flex: 1 1 0%; }
-    }
+    .border-2 { border-width: 2px; }
+    .border-dashed { border-style: dashed; }
   </style>
 </head>
-<body class="bg-[#F8F9FA] text-slate-800 antialiased font-sans min-h-screen">
+<body class="bg-neutral-50 text-neutral-900 font-sans min-h-screen antialiased flex flex-col justify-between">
 
-  <main class="max-w-5xl mx-auto px-4 py-8 sm:py-10">
-
-    <!-- Top Navigation Chrome -->
-    <div class="flex items-center justify-between mb-4">
-      <a href="/" class="text-xs font-medium text-slate-500 hover:text-slate-800 flex items-center gap-1.5 transition-colors">
-        <span>←</span>
-        <span>SpinFoundry Hub</span>
-      </a>
-      <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-mono badge-dev-tools">
-        <span class="w-1.5 h-1.5 rounded-full badge-dev-tools-dot"></span>
-        Dev &amp; Design
+  <!-- Top Navigation Chrome -->
+  <header class="border-b border-slate-200 bg-white sticky top-0 z-30 shadow-xs">
+    <div class="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <a href="/" class="text-xs font-mono text-slate-500 hover:text-slate-800 transition-colors flex items-center gap-1">
+          <span>&larr;</span> SpinFoundry Hub
+        </a>
+        <span class="text-slate-300">/</span>
+        <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-xs font-medium badge-dev-tools">
+          <span class="w-1.5 h-1.5 rounded-full badge-dev-tools-dot"></span>
+          Dev &amp; Design
+        </span>
+      </div>
+      <div class="flex items-center gap-4 text-xs">
+        <span class="font-mono text-slate-400 hidden sm:inline">100% Value Preservation</span>
+        <a href="https://github.com/SpinFoundry/SpinFoundry" target="_blank" rel="noopener noreferrer" class="text-slate-500 hover:text-slate-800 transition-colors flex items-center gap-1 font-mono">
+          <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/></svg>
+          <span class="hidden sm:inline">GitHub</span>
+        </a>
       </div>
     </div>
+  </header>
 
-    <!-- Header -->
-    <header class="mb-6 pb-5 border-b border-slate-200">
+  <!-- Main Container -->
+  <main class="max-w-5xl mx-auto px-4 py-8 flex-1 w-full">
+    
+    <!-- Title & Purpose -->
+    <header class="mb-6">
       <div class="flex items-center gap-2 mb-1.5">
-        <span class="px-2 py-0.5 rounded text-[11px] font-mono font-bold bg-slate-900 text-white">GAMUT MASK</span>
-        <span class="text-xs font-mono text-slate-500 uppercase tracking-wider">Perceptual Value Preservation</span>
+        <span class="text-xs font-mono font-semibold text-slate-500 uppercase tracking-wider">Visual Artists &amp; Painters Lab</span>
       </div>
-      <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900">
-        Gamut Masking Tool
+      <h1 class="text-2xl font-bold text-slate-900 tracking-tight">
+        Studio Gamut Masking Tool
       </h1>
-      <p class="mt-1.5 text-sm text-slate-600 max-w-2xl">
-        Shape an allowed geometric color mask over the perceptual color wheel. The tool clamps chromaticity to the polygon perimeter while <strong>mathematically locking original tonal luminance (value)</strong>.
+      <p class="mt-1.5 text-sm text-slate-600 max-w-3xl">
+        Select real physical artist paint tubes or shape geometric masks over a perceptual Oklab color wheel. The tool projects reference images into your physical mixing gamut while <strong>strictly locking 100% of original perceptual luminance (tonal value)</strong>.
       </p>
     </header>
+
+    <!-- PALETTE & PIGMENT MANAGER (TOP HERO PANEL) -->
+    <div class="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-sm mb-6 space-y-4">
+      
+      <!-- Top Row: Mode Switch & Staple Presets -->
+      <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-3 border-b border-slate-100 pb-3.5">
+        
+        <!-- Gamut Mode Switch -->
+        <div class="flex items-center gap-2.5">
+          <span class="text-xs font-mono font-bold uppercase text-slate-400 tracking-wider">Mode:</span>
+          <div class="inline-flex rounded-lg border border-slate-200 p-0.5 bg-slate-50 text-xs">
+            <button type="button" id="btnModePigments" class="px-3 py-1 rounded-md font-bold bg-white text-slate-900 shadow-sm transition-all">
+              🎨 Physical Paint Tubes
+            </button>
+            <button type="button" id="btnModeGeometric" class="px-3 py-1 rounded-md font-medium text-slate-600 hover:text-slate-900 transition-all">
+              📐 Geometric Mask
+            </button>
+          </div>
+        </div>
+
+        <!-- Staple Palette Presets -->
+        <div id="pigmentPresetsBar" class="flex items-center gap-1.5 flex-wrap">
+          <span class="text-xs font-mono text-slate-500 mr-1">Studio Palettes:</span>
+          <button type="button" data-preset="zorn" class="btn-palette-preset px-2.5 py-1 text-xs font-medium rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800 transition-colors">
+            Zorn (4 Tubes)
+          </button>
+          <button type="button" data-preset="split_primary" class="btn-palette-preset px-2.5 py-1 text-xs font-medium rounded-lg bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 transition-colors">
+            Split Primary (7)
+          </button>
+          <button type="button" data-preset="earth_plein_air" class="btn-palette-preset px-2.5 py-1 text-xs font-medium rounded-lg bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 transition-colors">
+            Earth Plein Air (6)
+          </button>
+          <button type="button" data-preset="cyan_magenta_yellow" class="btn-palette-preset px-2.5 py-1 text-xs font-medium rounded-lg bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 transition-colors">
+            Modern CMY (4)
+          </button>
+        </div>
+
+      </div>
+
+      <!-- Pigment Selection Grid / Chips (Visible in Pigment Mode) -->
+      <div id="pigmentSelectorPanel" class="space-y-3">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <span class="text-xs font-mono font-semibold uppercase text-slate-500 tracking-wider">Paint Tube Inventory:</span>
+            <span id="lblSelectedCount" class="text-xs font-mono text-slate-700 font-bold bg-slate-100 px-2 py-0.5 rounded-full">4 Selected</span>
+          </div>
+          <div class="flex items-center gap-2 text-xs">
+            <button type="button" id="btnSelectAllPigments" class="text-slate-500 hover:text-slate-900 font-medium">Select All</button>
+            <span class="text-slate-300">•</span>
+            <button type="button" id="btnClearPigments" class="text-slate-500 hover:text-slate-900 font-medium">Clear</button>
+          </div>
+        </div>
+
+        <!-- Category Groups of Pigment Chips -->
+        <div id="pigmentChipsContainer" class="flex flex-wrap gap-1.5 pt-1">
+          <!-- Injected dynamically by JS -->
+        </div>
+      </div>
+
+    </div>
 
     <!-- MAIN TWO-COLUMN WORKSPACE -->
     <div class="flex flex-col md:flex-row gap-6 mb-8 items-start">
 
-      <!-- LEFT: INTERACTIVE COLOR WHEEL & MASK CONTROLS (320px) -->
-      <div class="w-full md:w-80 flex-shrink-0 bg-white border border-slate-200/80 rounded-2xl p-5 shadow-sm space-y-5">
+      <!-- LEFT: PERCEPTUAL COLOR WHEEL & HULL VISUALIZER (330px) -->
+      <div class="w-full md:w-80 flex-shrink-0 bg-white border border-slate-200/80 rounded-2xl p-5 shadow-sm space-y-4">
         
         <div class="flex items-center justify-between">
-          <h2 class="text-sm font-bold text-slate-900">Allowed Color Gamut</h2>
-          <span class="text-[11px] font-mono text-slate-500" id="maskPointCountLabel">3 Vertices</span>
+          <h2 class="text-sm font-bold text-slate-900" id="wheelHeading">Physical Gamut Hull</h2>
+          <span class="text-[11px] font-mono text-slate-500" id="maskPointCountLabel">Convex Hull</span>
         </div>
 
-        <!-- Canvas Wheel & Interactive Polygon -->
+        <!-- Canvas Wheel & Interactive Polygon / Hull -->
         <div class="flex justify-center relative select-none">
-          <canvas id="wheelCanvas" width="280" height="280"></canvas>
+          <canvas id="wheelCanvas" width="290" height="290"></canvas>
         </div>
 
-        <!-- Wheel Manipulation Instructions -->
-        <div class="text-[11px] text-slate-500 text-center font-mono leading-tight">
-          Drag handles to shape • Drag center to move • Rotate ring
+        <!-- Wheel Instructions / Details -->
+        <div class="text-[11px] text-slate-500 text-center font-mono leading-tight" id="wheelSubtitle">
+          Oklab chromaticity • Vertices = Paint tubes + Neutral mix
         </div>
 
-        <!-- Rotation & Polygon Points Control -->
-        <div class="space-y-3 pt-3 border-t border-slate-100 text-xs">
+        <!-- Geometric Controls (Visible only in Geometric Mode) -->
+        <div id="geometricControls" class="hidden space-y-3 pt-3 border-t border-slate-100 text-xs">
           
           <!-- Rotation Slider -->
           <div>
@@ -336,41 +436,31 @@
             </div>
           </div>
 
-        </div>
-
-        <!-- Classic Gamut Presets -->
-        <div class="space-y-2 pt-3 border-t border-slate-100">
-          <div class="text-[11px] font-mono uppercase text-slate-400 font-semibold tracking-wider">
-            Classic Color Harmonies
-          </div>
-          <div class="grid grid-cols-2 gap-1.5 text-xs">
-            <button type="button" data-preset="triadic" class="btn-preset py-1.5 px-2 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg font-medium text-left transition-colors">
+          <!-- Geometric Harmonies -->
+          <div class="grid grid-cols-2 gap-1.5 text-xs pt-1">
+            <button type="button" data-preset="triadic" class="btn-geo-preset py-1.5 px-2 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg font-medium text-left transition-colors">
               ▲ Triadic
             </button>
-            <button type="button" data-preset="complementary" class="btn-preset py-1.5 px-2 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg font-medium text-left transition-colors">
+            <button type="button" data-preset="complementary" class="btn-geo-preset py-1.5 px-2 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg font-medium text-left transition-colors">
               ⧓ Complementary
             </button>
-            <button type="button" data-preset="atmospheric" class="btn-preset py-1.5 px-2 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg font-medium text-left transition-colors">
+            <button type="button" data-preset="atmospheric" class="btn-geo-preset py-1.5 px-2 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg font-medium text-left transition-colors">
               🌤 Atmospheric
             </button>
-            <button type="button" data-preset="analogous" class="btn-preset py-1.5 px-2 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg font-medium text-left transition-colors">
+            <button type="button" data-preset="analogous" class="btn-geo-preset py-1.5 px-2 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg font-medium text-left transition-colors">
               ◐ Analogous
             </button>
-            <button type="button" data-preset="muted" class="btn-preset py-1.5 px-2 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg font-medium text-left transition-colors">
-              ◈ Muted Accent
-            </button>
-            <button type="button" data-preset="reset" class="btn-preset py-1.5 px-2 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg font-medium text-left transition-colors">
-              ↺ Full Spectrum
-            </button>
           </div>
+
         </div>
 
-        <!-- Extracted Palette Swatches -->
+        <!-- Active Pigments in Gamut List / Swatches -->
         <div class="space-y-2 pt-3 border-t border-slate-100">
-          <div class="text-[11px] font-mono uppercase text-slate-400 font-semibold tracking-wider">
-            Allowed Gamut Swatches
+          <div class="flex items-center justify-between text-[11px] font-mono uppercase text-slate-400 font-semibold tracking-wider">
+            <span>Gamut Boundary Swatches</span>
+            <span id="lblCopySwatches" class="normal-case text-slate-500 hover:text-slate-900 cursor-pointer font-sans">Click to copy</span>
           </div>
-          <div class="flex items-center gap-1.5" id="paletteSwatches">
+          <div class="flex items-center gap-1.5 flex-wrap" id="paletteSwatches">
             <!-- Injected by JS -->
           </div>
         </div>
@@ -467,28 +557,32 @@
     <article class="mt-16 pt-8 border-t border-slate-200 text-slate-600 space-y-6 text-sm leading-relaxed">
       
       <div class="space-y-2">
-        <h2 class="text-lg font-bold text-slate-900">What is Gamut Masking?</h2>
+        <h2 class="text-lg font-bold text-slate-900">Physical Paint Gamuts &amp; Convex Hull Mixing</h2>
         <p>
-          Popularized by master painter and author <strong>James Gurney</strong> (<em>Color and Light</em>), gamut masking is a disciplined method for establishing color harmony. By cutting a geometric window in paper and laying it over a color wheel, the artist restricts the palette to a specific chromatic neighborhood. This creates unified atmosphere, mood, and color relationships while eliminating accidental disharmony.
+          In traditional studio painting (oil, gouache, acrylic, watercolor), an artist does not have access to an abstract digital RGB color wheel. You have a physical palette with specific tubes of paint (e.g. <em>Ultramarine Blue PB29, Yellow Ochre PY43, Burnt Sienna PR101, Titanium White PW6</em>).
+        </p>
+        <p>
+          Every possible color you can physically mix from those tubes lies inside the <strong>Convex Hull</strong> formed by those pigments' spectral coordinates plus the neutral center $(0,0)$ (tints, shades, and grays produced by mixing with white and black).
         </p>
       </div>
 
       <div class="space-y-2">
-        <h2 class="text-lg font-bold text-slate-900">Why Value Preservation is Critical</h2>
+        <h2 class="text-lg font-bold text-slate-900">Why Oklab &amp; Strict Luminance Preservation Matter</h2>
         <p>
-          In painting, <em>"Value does all the work, but color gets all the credit."</em> Tonal value (perceptual luminance) dictates depth, form, lighting, and readability. Standard RGB or HSL color shifts often drastically distort lightness (e.g., desaturating yellow causes it to darken into an olive brown, while desaturating navy blue lightens it).
+          In standard HSL or HSV color models, pigments cluster unnaturally, saturation is distorted, and changing hues alters the perceived brightness of forms.
         </p>
         <p>
-          This tool executes all calculations in <strong>OKLCH</strong> (a cylindrical representation of the perceptual OKLab color space). Lightness (\(L\)) is mathematically decoupled from chroma (\(C\)) and hue (\(h\)). When an out-of-gamut pixel is projected onto the nearest boundary of the mask polygon, its original luminance \(L\) remains 100% untouched.
+          This tool executes all conversions in <strong>Oklab</strong> (a uniform perceptual color space developed by Björn Ottosson). When pixels fall outside the physical mixing hull, their chromaticity coordinates $(a, b)$ are projected to the closest point on the hull perimeter, while their <strong>exact original perceptual luminance (\(L\)) remains 100% untouched</strong>. If a projected color falls slightly outside display sRGB boundaries at high lightness, a radial desaturation step along the exact same hue axis brings it into display gamut without ever altering luminance.
         </p>
       </div>
 
       <div class="space-y-2">
-        <h2 class="text-lg font-bold text-slate-900">How to Use This in Your Studio Workflow</h2>
+        <h2 class="text-lg font-bold text-slate-900">Staple Studio Palettes Included</h2>
         <ul class="list-disc pl-5 space-y-1 text-slate-600">
-          <li><strong>Mood Color Scripts:</strong> Drag the rotation slider to instantly transpose a daylight scene into a golden hour sunset or cool moonlight ambiance without losing lighting values.</li>
-          <li><strong>Reference Harmonization:</strong> Feed heterogeneous photo references through a single gamut mask before painting to guarantee that background and character elements share the exact same chromatic world.</li>
-          <li><strong>Palette Generation:</strong> Use the live extracted swatch panel below the wheel to populate your digital painting mixer brush or traditional oil palette.</li>
+          <li><strong>Zorn Palette:</strong> The legendary portrait palette of Anders Zorn: Ivory Black (PBk9 acting as a cool blue), Cadmium Red / Vermilion (PR108), Yellow Ochre (PY43), and Titanium White (PW6).</li>
+          <li><strong>Split Primary (Warm &amp; Cool):</strong> 6-tube powerhouse with warm and cool pairs of Yellow, Red, and Blue. Gives wide chromatic versatility without gamut muddiness.</li>
+          <li><strong>Earth Plein Air:</strong> The landscape staple with Raw Umber, Burnt Sienna, Yellow Ochre, Viridian, and Ultramarine Blue for rich, naturalistic foliage, rock, and earth tones.</li>
+          <li><strong>Modern CMY Primary:</strong> Cyan (Phthalo Blue), Magenta (Quinacridone), and Cadmium Yellow for ultra-clean, high-chroma high-key mixing.</li>
         </ul>
       </div>
 
@@ -500,6 +594,7 @@
       <div class="flex items-center gap-4">
         <a href="/" class="hover:text-slate-800 transition-colors">Catalog Hub</a>
         <a href="/color-acuity-test/" class="hover:text-slate-800 transition-colors">Test I</a>
+        <a href="/color-matching-test/" class="hover:text-slate-800 transition-colors">Match Test</a>
         <a href="/vector-td-deckbuilder/" class="hover:text-slate-800 transition-colors">Vector Defense</a>
         <a href="https://github.com/SpinFoundry/SpinFoundry" target="_blank" rel="noopener noreferrer" class="hover:text-slate-800 transition-colors">GitHub</a>
         <a href="/sitemap.xml" class="hover:text-slate-800 transition-colors">Sitemap</a>
@@ -513,7 +608,205 @@
     'use strict';
 
     /* ═════════════════════════════════════════════
-       1. COLOR MATH: sRGB <-> Linear <-> OKLab <-> OKLCH
+       1. PHYSICAL PIGMENTS DATASET & PRESETS
+       ═════════════════════════════════════════════ */
+    const PIGMENT_DATABASE = [
+      {
+        id: "pw6",
+        code: "PW6",
+        name: "Titanium White",
+        category: "Neutrals",
+        hex: "#F6F6F2",
+        lab: { l: 96.0, a: -1.0, b: 2.0 },
+        oklab: { l: 0.965, a: -0.003, b: 0.005 }
+      },
+      {
+        id: "pbk9",
+        code: "PBk9",
+        name: "Ivory Black",
+        category: "Neutrals",
+        hex: "#212120",
+        lab: { l: 12.0, a: 1.0, b: 1.0 },
+        oklab: { l: 0.170, a: 0.001, b: 0.001 }
+      },
+      {
+        id: "py35_l",
+        code: "PY35",
+        name: "Cadmium Yellow Light",
+        category: "Yellows",
+        hex: "#FFE300",
+        lab: { l: 88.0, a: -7.0, b: 95.0 },
+        oklab: { l: 0.902, a: -0.048, b: 0.178 }
+      },
+      {
+        id: "py35_d",
+        code: "PY35",
+        name: "Cadmium Yellow Deep",
+        category: "Yellows",
+        hex: "#FFAA00",
+        lab: { l: 75.0, a: 25.0, b: 85.0 },
+        oklab: { l: 0.785, a: 0.048, b: 0.162 }
+      },
+      {
+        id: "py43",
+        code: "PY43",
+        name: "Yellow Ochre",
+        category: "Earths",
+        hex: "#C89441",
+        lab: { l: 65.0, a: 14.0, b: 52.0 },
+        oklab: { l: 0.672, a: 0.024, b: 0.108 }
+      },
+      {
+        id: "po20",
+        code: "PO20",
+        name: "Cadmium Orange",
+        category: "Oranges & Reds",
+        hex: "#F45B1C",
+        lab: { l: 58.0, a: 56.0, b: 68.0 },
+        oklab: { l: 0.635, a: 0.145, b: 0.142 }
+      },
+      {
+        id: "pr108",
+        code: "PR108",
+        name: "Cadmium Red Medium",
+        category: "Oranges & Reds",
+        hex: "#C8252C",
+        lab: { l: 44.0, a: 62.0, b: 42.0 },
+        oklab: { l: 0.518, a: 0.185, b: 0.092 }
+      },
+      {
+        id: "pr122",
+        code: "PR122",
+        name: "Quinacridone Magenta",
+        category: "Oranges & Reds",
+        hex: "#A91B5B",
+        lab: { l: 40.0, a: 65.0, b: -12.0 },
+        oklab: { l: 0.478, a: 0.205, b: -0.042 }
+      },
+      {
+        id: "pr101",
+        code: "PR101",
+        name: "Burnt Sienna",
+        category: "Earths",
+        hex: "#823F2B",
+        lab: { l: 36.0, a: 32.0, b: 28.0 },
+        oklab: { l: 0.415, a: 0.082, b: 0.058 }
+      },
+      {
+        id: "pbr7_raw",
+        code: "PBr7",
+        name: "Raw Umber",
+        category: "Earths",
+        hex: "#4F4434",
+        lab: { l: 30.0, a: 4.0, b: 14.0 },
+        oklab: { l: 0.332, a: 0.009, b: 0.028 }
+      },
+      {
+        id: "pbr7_burnt",
+        code: "PBr7",
+        name: "Burnt Umber",
+        category: "Earths",
+        hex: "#3E2E28",
+        lab: { l: 22.0, a: 10.0, b: 10.0 },
+        oklab: { l: 0.258, a: 0.024, b: 0.018 }
+      },
+      {
+        id: "pb29",
+        code: "PB29",
+        name: "Ultramarine Blue",
+        category: "Blues & Violets",
+        hex: "#1D2A78",
+        lab: { l: 24.0, a: 28.0, b: -68.0 },
+        oklab: { l: 0.320, a: 0.065, b: -0.198 }
+      },
+      {
+        id: "pb15",
+        code: "PB15:3",
+        name: "Phthalo Blue (GS)",
+        category: "Blues & Violets",
+        hex: "#00456A",
+        lab: { l: 28.0, a: -25.0, b: -45.0 },
+        oklab: { l: 0.352, a: -0.078, b: -0.115 }
+      },
+      {
+        id: "pb28",
+        code: "PB28",
+        name: "Cobalt Blue",
+        category: "Blues & Violets",
+        hex: "#0047AB",
+        lab: { l: 32.0, a: 10.0, b: -62.0 },
+        oklab: { l: 0.395, a: 0.022, b: -0.165 }
+      },
+      {
+        id: "pg7",
+        code: "PG7",
+        name: "Phthalo Green (BS)",
+        category: "Greens",
+        hex: "#006346",
+        lab: { l: 36.0, a: -55.0, b: 12.0 },
+        oklab: { l: 0.435, a: -0.142, b: 0.038 }
+      },
+      {
+        id: "pg18",
+        code: "PG18",
+        name: "Viridian",
+        category: "Greens",
+        hex: "#2A6F5A",
+        lab: { l: 42.0, a: -32.0, b: 4.0 },
+        oklab: { l: 0.472, a: -0.078, b: 0.015 }
+      }
+    ];
+
+    const PALETTE_PRESETS = {
+      zorn: {
+        id: "zorn",
+        name: "Zorn Palette",
+        pigmentIds: ["pw6", "pbk9", "py43", "pr108"]
+      },
+      split_primary: {
+        id: "split_primary",
+        name: "Split Primary (Warm & Cool)",
+        pigmentIds: ["pw6", "py35_l", "py35_d", "pr108", "pr122", "pb29", "pb15"]
+      },
+      earth_plein_air: {
+        id: "earth_plein_air",
+        name: "Earth Plein Air",
+        pigmentIds: ["pw6", "py43", "pr101", "pbr7_raw", "pg18", "pb29"]
+      },
+      cyan_magenta_yellow: {
+        id: "cyan_magenta_yellow",
+        name: "Modern CMY Primary",
+        pigmentIds: ["pw6", "py35_l", "pr122", "pb15"]
+      }
+    };
+
+    const GEOMETRIC_PRESETS = {
+      triadic: [
+        { r: 0.82, a: 0 },
+        { r: 0.78, a: 120 },
+        { r: 0.72, a: 240 }
+      ],
+      complementary: [
+        { r: 0.85, a: 15 },
+        { r: 0.25, a: 85 },
+        { r: 0.85, a: 195 },
+        { r: 0.25, a: 275 }
+      ],
+      atmospheric: [
+        { r: 0.88, a: 35 },
+        { r: 0.80, a: 85 },
+        { r: 0.15, a: 60 }
+      ],
+      analogous: [
+        { r: 0.85, a: 170 },
+        { r: 0.85, a: 240 },
+        { r: 0.20, a: 240 },
+        { r: 0.20, a: 170 }
+      ]
+    };
+
+    /* ═════════════════════════════════════════════
+       2. COLOR MATH: sRGB <-> Linear <-> Oklab
        ═════════════════════════════════════════════ */
     function srgbToLinear(c) {
       c = c / 255;
@@ -550,29 +843,88 @@
       ];
     }
 
-    function oklabToOklch(L, a, b) {
-      const C = Math.hypot(a, b);
-      let h = Math.atan2(b, a) * (180 / Math.PI);
-      if (h < 0) h += 360;
-      return [L, C, h];
-    }
+    function oklabToRgbClamped(L, a, b) {
+      let [rL, gL, bL] = oklabToLinearRgb(L, a, b);
 
-    function oklchToOklab(L, C, h) {
-      const rad = h * (Math.PI / 180);
-      return [L, C * Math.cos(rad), C * Math.sin(rad)];
-    }
+      // Check if inside sRGB display gamut [0, 1]
+      const tol = 1e-4;
+      if (rL >= -tol && rL <= 1 + tol &&
+          gL >= -tol && gL <= 1 + tol &&
+          bL >= -tol && bL <= 1 + tol) {
+        return [linearToSrgb(rL), linearToSrgb(gL), linearToSrgb(bL)];
+      }
 
-    function oklchToRgb(L, C, h) {
-      const [oL, a, b] = oklchToOklab(L, C, h);
-      const [rL, gL, bL] = oklabToLinearRgb(oL, a, b);
+      // Desaturate along chroma vector (t in [0, 1]) until in-gamut, NEVER touching L!
+      let lo = 0.0, hi = 1.0;
+      for (let iter = 0; iter < 12; iter++) {
+        const mid = (lo + hi) * 0.5;
+        const [testR, testG, testB] = oklabToLinearRgb(L, a * mid, b * mid);
+        if (testR >= 0 && testR <= 1 && testG >= 0 && testG <= 1 && testB >= 0 && testB <= 1) {
+          lo = mid;
+        } else {
+          hi = mid;
+        }
+      }
+
+      [rL, gL, bL] = oklabToLinearRgb(L, a * lo, b * lo);
       return [linearToSrgb(rL), linearToSrgb(gL), linearToSrgb(bL)];
     }
 
-    const MAX_CHROMA = 0.32; // Nominal maximum chroma for the color wheel radius
+    // Scale constant for rendering Oklab (a, b) on color wheel
+    // Max pigment chroma is ~0.21, display sRGB edge is ~0.26
+    const OKLAB_CHROMA_MAX = 0.25;
 
     /* ═════════════════════════════════════════════
-       2. GEOMETRY & POLYGON PROJECTION
+       3. 2D CONVEX HULL & POLYGON PROJECTION
        ═════════════════════════════════════════════ */
+    function computeConvexHull2D(points) {
+      if (points.length <= 2) return points.slice();
+
+      // Deduplicate points
+      const unique = [];
+      const seen = new Set();
+      points.forEach(p => {
+        const key = `${p.x.toFixed(5)},${p.y.toFixed(5)}`;
+        if (!seen.has(key)) {
+          seen.add(key);
+          unique.push(p);
+        }
+      });
+
+      if (unique.length <= 2) return unique;
+
+      // Sort by x, then by y
+      unique.sort((p1, p2) => (p1.x === p2.x ? p1.y - p2.y : p1.x - p2.x));
+
+      function cross(o, a, b) {
+        return (a.x - o.x) * (b.y - o.y) - (a.y - o.y) * (b.x - o.x);
+      }
+
+      // Build lower hull
+      const lower = [];
+      for (let i = 0; i < unique.length; i++) {
+        const p = unique[i];
+        while (lower.length >= 2 && cross(lower[lower.length - 2], lower[lower.length - 1], p) <= 0) {
+          lower.pop();
+        }
+        lower.push(p);
+      }
+
+      // Build upper hull
+      const upper = [];
+      for (let i = unique.length - 1; i >= 0; i--) {
+        const p = unique[i];
+        while (upper.length >= 2 && cross(upper[upper.length - 2], upper[upper.length - 1], p) <= 0) {
+          upper.pop();
+        }
+        upper.push(p);
+      }
+
+      lower.pop();
+      upper.pop();
+      return lower.concat(upper);
+    }
+
     function pointInPolygon(px, py, vertices) {
       let inside = false;
       const n = vertices.length;
@@ -622,56 +974,22 @@
     }
 
     /* ═════════════════════════════════════════════
-       3. PRESET MASK CONFIGURATIONS
-       ═════════════════════════════════════════════ */
-    const PRESETS = {
-      triadic: [
-        { r: 0.85, a: 0 },
-        { r: 0.78, a: 120 },
-        { r: 0.72, a: 240 }
-      ],
-      complementary: [
-        { r: 0.85, a: 15 },
-        { r: 0.25, a: 85 },
-        { r: 0.85, a: 195 },
-        { r: 0.25, a: 275 }
-      ],
-      atmospheric: [
-        { r: 0.88, a: 35 },
-        { r: 0.80, a: 85 },
-        { r: 0.15, a: 60 }
-      ],
-      analogous: [
-        { r: 0.85, a: 170 },
-        { r: 0.85, a: 240 },
-        { r: 0.20, a: 240 },
-        { r: 0.20, a: 170 }
-      ],
-      muted: [
-        { r: 0.35, a: 0 },
-        { r: 0.35, a: 90 },
-        { r: 0.75, a: 150 },
-        { r: 0.35, a: 270 }
-      ],
-      reset: [
-        { r: 0.96, a: 0 },
-        { r: 0.96, a: 60 },
-        { r: 0.96, a: 120 },
-        { r: 0.96, a: 180 },
-        { r: 0.96, a: 240 },
-        { r: 0.96, a: 300 }
-      ]
-    };
-
-    /* ═════════════════════════════════════════════
-       4. APPLICATION STATE & DOM REFS
+       4. APPLICATION STATE & DOM REFERENCES
        ═════════════════════════════════════════════ */
     const state = {
-      maskVertices: [], // [{x, y}] in normalized coords [-1, 1]
+      maskMode: 'pigments', // 'pigments' | 'geometric'
+      selectedPigmentIds: new Set(['pw6', 'pbk9', 'py43', 'pr108']), // Default Zorn
+      hullVertices: [], // [{x, y, data}] in normalized Oklab chromatic space [-1, 1]
+      activePigmentPins: [], // [{px, py, pigment}]
+      
+      // Geometric mask state
+      geometricVertices: [],
       rotationDeg: 0,
       activeHandleIndex: -1,
       isDraggingCenter: false,
       dragStart: { x: 0, y: 0 },
+
+      // Viewport & remapping state
       splitPercent: 50,
       isSplitDragging: false,
       isHoldOriginal: false,
@@ -682,11 +1000,26 @@
     };
 
     const DOM = {
+      btnModePigments: document.getElementById('btnModePigments'),
+      btnModeGeometric: document.getElementById('btnModeGeometric'),
+      pigmentSelectorPanel: document.getElementById('pigmentSelectorPanel'),
+      pigmentPresetsBar: document.getElementById('pigmentPresetsBar'),
+      pigmentChipsContainer: document.getElementById('pigmentChipsContainer'),
+      lblSelectedCount: document.getElementById('lblSelectedCount'),
+      btnSelectAllPigments: document.getElementById('btnSelectAllPigments'),
+      btnClearPigments: document.getElementById('btnClearPigments'),
+
+      wheelHeading: document.getElementById('wheelHeading'),
+      wheelSubtitle: document.getElementById('wheelSubtitle'),
       wheelCanvas: document.getElementById('wheelCanvas'),
+      maskPointCountLabel: document.getElementById('maskPointCountLabel'),
+      geometricControls: document.getElementById('geometricControls'),
       sliderRotation: document.getElementById('sliderRotation'),
       lblRotation: document.getElementById('lblRotation'),
-      maskPointCountLabel: document.getElementById('maskPointCountLabel'),
+
       paletteSwatches: document.getElementById('paletteSwatches'),
+      lblCopySwatches: document.getElementById('lblCopySwatches'),
+
       dropzone: document.getElementById('dropzone'),
       canvasWrapper: document.getElementById('canvasWrapper'),
       beforeCanvas: document.getElementById('beforeCanvas'),
@@ -694,6 +1027,7 @@
       splitDivider: document.getElementById('splitDivider'),
       btnModeSplit: document.getElementById('btnModeSplit'),
       btnModeToggle: document.getElementById('btnModeToggle'),
+
       fileInput: document.getElementById('fileInput'),
       btnUploadImage: document.getElementById('btnUploadImage'),
       btnCopyImage: document.getElementById('btnCopyImage'),
@@ -702,7 +1036,49 @@
     };
 
     /* ═════════════════════════════════════════════
-       5. COLOR WHEEL RENDERING
+       5. PIGMENT HULL CALCULATION
+       ═════════════════════════════════════════════ */
+    function updatePigmentHull() {
+      // Collect (a, b) points for all selected pigments
+      const pts = [];
+
+      // Always include the neutral center (0, 0) representing White/Gray/Tint mixing
+      pts.push({
+        x: 0,
+        y: 0,
+        isNeutral: true,
+        label: 'Neutral (0,0)'
+      });
+
+      PIGMENT_DATABASE.forEach(pigment => {
+        if (state.selectedPigmentIds.has(pigment.id)) {
+          // Normalize (a, b) by OKLAB_CHROMA_MAX into [-1, 1]
+          const nx = pigment.oklab.a / OKLAB_CHROMA_MAX;
+          const ny = pigment.oklab.b / OKLAB_CHROMA_MAX;
+          pts.push({
+            x: nx,
+            y: ny,
+            pigment: pigment,
+            label: pigment.code
+          });
+        }
+      });
+
+      if (pts.length >= 3) {
+        state.hullVertices = computeConvexHull2D(pts);
+      } else {
+        state.hullVertices = pts.slice();
+      }
+
+      DOM.maskPointCountLabel.textContent = `${state.hullVertices.length} Hull Vertices`;
+      DOM.lblSelectedCount.textContent = `${state.selectedPigmentIds.size} Selected`;
+
+      renderWheel();
+      remapImage();
+    }
+
+    /* ═════════════════════════════════════════════
+       6. COLOR WHEEL RENDERING
        ═════════════════════════════════════════════ */
     let wheelBgCanvas = null;
 
@@ -713,7 +1089,7 @@
       const ctx = wheelBgCanvas.getContext('2d');
       const cx = size / 2;
       const cy = size / 2;
-      const radius = size / 2;
+      const radius = (size / 2) - 4;
 
       const imgData = ctx.createImageData(size, size);
       const data = imgData.data;
@@ -726,16 +1102,18 @@
           const idx = (y * size + x) * 4;
 
           if (dist <= radius) {
-            let angle = Math.atan2(dy, dx) * (180 / Math.PI);
-            if (angle < 0) angle += 360;
+            const normDist = dist / radius;
+            const chroma = normDist * OKLAB_CHROMA_MAX;
+            const angle = Math.atan2(dy, dx);
+            const a = chroma * Math.cos(angle);
+            const b = chroma * Math.sin(angle);
 
-            const rNorm = dist / radius;
-            const chroma = rNorm * MAX_CHROMA;
-            const [r, g, b] = oklchToRgb(0.72, chroma, angle);
+            // Render at representative midtone luminance L = 0.72
+            const [r, g, b_val] = oklabToRgbClamped(0.72, a, b);
 
             data[idx]     = r;
             data[idx + 1] = g;
-            data[idx + 2] = b;
+            data[idx + 2] = b_val;
             data[idx + 3] = 255;
           } else {
             data[idx + 3] = 0;
@@ -752,7 +1130,7 @@
       const h = canvas.height;
       const cx = w / 2;
       const cy = h / 2;
-      const radius = (w / 2) - 4;
+      const radius = (w / 2) - 12;
 
       if (!wheelBgCanvas) {
         buildWheelBackground(w);
@@ -760,45 +1138,53 @@
 
       ctx.clearRect(0, 0, w, h);
 
-      // 1. Draw chromatic disc
+      // 1. Draw perceptual chromatic disc
       ctx.drawImage(wheelBgCanvas, 0, 0);
 
-      // 2. Draw outer boundary ring
+      // 2. Outer boundary ring & crosshair axes
       ctx.strokeStyle = '#e2e8f0';
       ctx.lineWidth = 1.5;
       ctx.beginPath();
       ctx.arc(cx, cy, radius, 0, Math.PI * 2);
       ctx.stroke();
 
-      // 3. Draw Mask exclusion darkening (Even-Odd Fill)
-      ctx.save();
-      ctx.fillStyle = 'rgba(15, 23, 42, 0.72)'; // Dark mask cover
+      ctx.strokeStyle = 'rgba(226, 232, 240, 0.6)';
+      ctx.lineWidth = 1;
       ctx.beginPath();
-      // Outer path: entire canvas box
-      ctx.rect(0, 0, w, h);
+      ctx.moveTo(cx - radius, cy); ctx.lineTo(cx + radius, cy);
+      ctx.moveTo(cx, cy - radius); ctx.lineTo(cx, cy + radius);
+      ctx.stroke();
 
-      // Inner path: mask polygon (in reverse orientation for even-odd cut)
-      if (state.maskVertices.length >= 3) {
-        state.maskVertices.forEach((v, i) => {
+      // Current active polygon vertices
+      const activePolygon = (state.maskMode === 'pigments') ? state.hullVertices : state.geometricVertices;
+
+      // 3. Dark mask exclusion overlay (Even-Odd Fill)
+      if (activePolygon.length >= 3) {
+        ctx.save();
+        ctx.fillStyle = 'rgba(15, 23, 42, 0.75)'; // Dark physical cut-out
+        ctx.beginPath();
+        // Entire canvas rect
+        ctx.rect(0, 0, w, h);
+
+        // Mask polygon in reverse order
+        activePolygon.forEach((v, i) => {
           const px = cx + v.x * radius;
           const py = cy + v.y * radius;
           if (i === 0) ctx.moveTo(px, py);
           else ctx.lineTo(px, py);
         });
         ctx.closePath();
-      }
-      ctx.fill('evenodd');
-      ctx.restore();
+        ctx.fill('evenodd');
+        ctx.restore();
 
-      // 4. Draw Mask Polygon Vector Border
-      if (state.maskVertices.length >= 3) {
+        // 4. Polygon vector boundary line
         ctx.save();
-        ctx.strokeStyle = '#38bdf8';
+        ctx.strokeStyle = (state.maskMode === 'pigments') ? '#38bdf8' : '#a855f7';
         ctx.lineWidth = 2.5;
-        ctx.shadowColor = 'rgba(56, 189, 248, 0.5)';
+        ctx.shadowColor = (state.maskMode === 'pigments') ? 'rgba(56, 189, 248, 0.6)' : 'rgba(168, 85, 247, 0.6)';
         ctx.shadowBlur = 6;
         ctx.beginPath();
-        state.maskVertices.forEach((v, i) => {
+        activePolygon.forEach((v, i) => {
           const px = cx + v.x * radius;
           const py = cy + v.y * radius;
           if (i === 0) ctx.moveTo(px, py);
@@ -807,9 +1193,66 @@
         ctx.closePath();
         ctx.stroke();
         ctx.restore();
+      }
 
-        // 5. Draw Draggable Vertex Handles
-        state.maskVertices.forEach((v, i) => {
+      // 5. Draw Pins & Labels
+      state.activePigmentPins = [];
+
+      if (state.maskMode === 'pigments') {
+        // Draw Neutral Center Pin
+        ctx.fillStyle = '#ffffff';
+        ctx.strokeStyle = '#0f172a';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(cx, cy, 4.5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+
+        // Draw selected pigment pins
+        PIGMENT_DATABASE.forEach(pigment => {
+          if (state.selectedPigmentIds.has(pigment.id)) {
+            const nx = pigment.oklab.a / OKLAB_CHROMA_MAX;
+            const ny = pigment.oklab.b / OKLAB_CHROMA_MAX;
+            const px = cx + nx * radius;
+            const py = cy + ny * radius;
+
+            state.activePigmentPins.push({ px, py, pigment });
+
+            // Pin shadow and border
+            ctx.save();
+            ctx.fillStyle = pigment.hex;
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 2;
+            ctx.shadowColor = 'rgba(0, 0, 0, 0.4)';
+            ctx.shadowBlur = 4;
+            ctx.beginPath();
+            ctx.arc(px, py, 6.5, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+            ctx.restore();
+
+            // Label pill
+            ctx.font = 'bold 9px monospace';
+            ctx.fillStyle = '#0f172a';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            
+            const offset = (py > cy) ? 14 : -14;
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+            ctx.strokeStyle = 'rgba(15, 23, 42, 0.2)';
+            ctx.lineWidth = 1;
+            const txt = pigment.code;
+            const tw = ctx.measureText(txt).width + 6;
+            ctx.fillRect(px - tw / 2, py + offset - 6, tw, 12);
+            ctx.strokeRect(px - tw / 2, py + offset - 6, tw, 12);
+
+            ctx.fillStyle = '#0f172a';
+            ctx.fillText(txt, px, py + offset);
+          }
+        });
+      } else {
+        // Geometric Mode: Vertex handles and center anchor
+        activePolygon.forEach((v, i) => {
           const px = cx + v.x * radius;
           const py = cy + v.y * radius;
           ctx.save();
@@ -825,16 +1268,16 @@
           ctx.restore();
         });
 
-        // 6. Draw Center Translation Anchor
-        const center = getPolygonCenter();
+        // Center translation anchor
+        const center = getGeometricCenter();
         const cpx = cx + center.x * radius;
         const cpy = cy + center.y * radius;
         ctx.save();
-        ctx.fillStyle = '#38bdf8';
+        ctx.fillStyle = '#a855f7';
         ctx.strokeStyle = '#ffffff';
         ctx.lineWidth = 1.5;
         ctx.beginPath();
-        ctx.arc(cpx, cpy, 4.5, 0, Math.PI * 2);
+        ctx.arc(cpx, cpy, 5, 0, Math.PI * 2);
         ctx.fill();
         ctx.stroke();
         ctx.restore();
@@ -843,67 +1286,123 @@
       updatePaletteSwatches();
     }
 
-    function getPolygonCenter() {
-      if (state.maskVertices.length === 0) return { x: 0, y: 0 };
+    function getGeometricCenter() {
+      if (state.geometricVertices.length === 0) return { x: 0, y: 0 };
       let sx = 0, sy = 0;
-      state.maskVertices.forEach(v => { sx += v.x; sy += v.y; });
-      return { x: sx / state.maskVertices.length, y: sy / state.maskVertices.length };
+      state.geometricVertices.forEach(v => { sx += v.x; sy += v.y; });
+      return { x: sx / state.geometricVertices.length, y: sy / state.geometricVertices.length };
     }
 
     function updatePaletteSwatches() {
-      if (state.maskVertices.length < 3) return;
+      const activePolygon = (state.maskMode === 'pigments') ? state.hullVertices : state.geometricVertices;
+      if (activePolygon.length < 3) {
+        DOM.paletteSwatches.innerHTML = '<span class="text-xs text-slate-400">Select at least 2 pigments + neutral</span>';
+        return;
+      }
 
-      const colors = state.maskVertices.map(v => {
-        const angle = (Math.atan2(v.y, v.x) * (180 / Math.PI) + 360) % 360;
-        const dist = Math.min(1.0, Math.hypot(v.x, v.y));
-        const [r, g, b] = oklchToRgb(0.72, dist * MAX_CHROMA, angle);
-        const hex = '#' + [r, g, b].map(x => x.toString(16).padStart(2, '0')).join('');
-        return { hex, r, g, b };
+      const colors = activePolygon.map(v => {
+        const a = v.x * OKLAB_CHROMA_MAX;
+        const b = v.y * OKLAB_CHROMA_MAX;
+        const [r, g, b_val] = oklabToRgbClamped(0.70, a, b);
+        const hex = '#' + [r, g, b_val].map(x => x.toString(16).padStart(2, '0')).join('');
+        return { hex, r, g, b: b_val, label: v.label || '' };
       });
 
       DOM.paletteSwatches.innerHTML = colors.map(c => `
-        <span class="palette-swatch" style="background-color: ${c.hex};" title="${c.hex}"></span>
+        <span class="palette-swatch" style="background-color: ${c.hex};" title="${c.hex} ${c.label}" data-hex="${c.hex}"></span>
       `).join('');
+
+      // Add click to copy on swatches
+      DOM.paletteSwatches.querySelectorAll('.palette-swatch').forEach(swatch => {
+        swatch.addEventListener('click', () => {
+          const hex = swatch.dataset.hex;
+          navigator.clipboard.writeText(hex).then(() => {
+            DOM.lblCopySwatches.textContent = `Copied ${hex}!`;
+            setTimeout(() => { DOM.lblCopySwatches.textContent = 'Click to copy'; }, 1800);
+          });
+        });
+      });
     }
 
     /* ═════════════════════════════════════════════
-       6. MASK PRESETS & MANIPULATION
+       7. PIGMENT SELECTOR & UI BUILDER
        ═════════════════════════════════════════════ */
-    function applyPreset(presetKey) {
-      const def = PRESETS[presetKey] || PRESETS.triadic;
-      state.maskVertices = def.map(p => {
+    function renderPigmentSelector() {
+      const container = DOM.pigmentChipsContainer;
+      container.innerHTML = '';
+
+      PIGMENT_DATABASE.forEach(pigment => {
+        const isSelected = state.selectedPigmentIds.has(pigment.id);
+        const chip = document.createElement('button');
+        chip.type = 'button';
+        chip.className = `pigment-chip ${isSelected ? 'active' : ''}`;
+        chip.dataset.pigmentId = pigment.id;
+        chip.title = `${pigment.name} (${pigment.code}) - ${pigment.category}`;
+
+        chip.innerHTML = `
+          <span class="swatch-dot" style="background-color: ${pigment.hex};"></span>
+          <span class="font-mono text-[11px] font-bold">${pigment.code}</span>
+          <span class="text-xs truncate max-w-[100px]">${pigment.name}</span>
+        `;
+
+        chip.addEventListener('click', () => {
+          togglePigment(pigment.id);
+        });
+
+        container.appendChild(chip);
+      });
+    }
+
+    function togglePigment(pigmentId) {
+      if (state.selectedPigmentIds.has(pigmentId)) {
+        // Prevent clearing everything
+        if (state.selectedPigmentIds.size > 1) {
+          state.selectedPigmentIds.delete(pigmentId);
+        }
+      } else {
+        state.selectedPigmentIds.add(pigmentId);
+      }
+      renderPigmentSelector();
+      updatePigmentHull();
+    }
+
+    function applyPalettePreset(presetKey) {
+      const preset = PALETTE_PRESETS[presetKey];
+      if (!preset) return;
+
+      state.selectedPigmentIds = new Set(preset.pigmentIds);
+      
+      // Update preset buttons styling
+      document.querySelectorAll('.btn-palette-preset').forEach(btn => {
+        if (btn.dataset.preset === presetKey) {
+          btn.className = 'btn-palette-preset px-2.5 py-1 text-xs font-semibold rounded-lg bg-slate-900 text-white shadow-sm transition-colors';
+        } else {
+          btn.className = 'btn-palette-preset px-2.5 py-1 text-xs font-medium rounded-lg bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 transition-colors';
+        }
+      });
+
+      renderPigmentSelector();
+      updatePigmentHull();
+    }
+
+    /* ═════════════════════════════════════════════
+       8. GEOMETRIC MASK PRESETS & ROTATION
+       ═════════════════════════════════════════════ */
+    function applyGeometricPreset(key) {
+      const def = GEOMETRIC_PRESETS[key] || GEOMETRIC_PRESETS.triadic;
+      state.geometricVertices = def.map(p => {
         const rad = (p.a + state.rotationDeg) * (Math.PI / 180);
         return {
           x: p.r * Math.cos(rad),
           y: p.r * Math.sin(rad)
         };
       });
-      DOM.maskPointCountLabel.textContent = `${state.maskVertices.length} Vertices`;
+      DOM.maskPointCountLabel.textContent = `${state.geometricVertices.length} Vertices`;
       renderWheel();
       remapImage();
     }
 
-    function setVertexCount(n) {
-      if (n === 3) applyPreset('triadic');
-      else if (n === 4) applyPreset('complementary');
-      else if (n === 5) {
-        state.maskVertices = [
-          { r: 0.82, a: 0 },
-          { r: 0.75, a: 72 },
-          { r: 0.75, a: 144 },
-          { r: 0.82, a: 216 },
-          { r: 0.35, a: 288 }
-        ].map(p => {
-          const rad = (p.a + state.rotationDeg) * (Math.PI / 180);
-          return { x: p.r * Math.cos(rad), y: p.r * Math.sin(rad) };
-        });
-        DOM.maskPointCountLabel.textContent = '5 Vertices';
-        renderWheel();
-        remapImage();
-      }
-    }
-
-    function rotateMaskTo(deg) {
+    function rotateGeometricMaskTo(deg) {
       const diffRad = (deg - state.rotationDeg) * (Math.PI / 180);
       state.rotationDeg = deg;
       DOM.lblRotation.textContent = `${Math.round(deg)}°`;
@@ -911,7 +1410,7 @@
       const cos = Math.cos(diffRad);
       const sin = Math.sin(diffRad);
 
-      state.maskVertices.forEach(v => {
+      state.geometricVertices.forEach(v => {
         const nx = v.x * cos - v.y * sin;
         const ny = v.x * sin + v.y * cos;
         v.x = nx;
@@ -923,7 +1422,7 @@
     }
 
     /* ═════════════════════════════════════════════
-       7. IMAGE REMAPPING ENGINE (100% VALUE PRESERVATION)
+       9. COLOR REMAPPING ENGINE (STRICT LUMINANCE PRESERVATION)
        ═════════════════════════════════════════════ */
     let isRemapping = false;
     let pendingRemap = false;
@@ -937,7 +1436,6 @@
 
       isRemapping = true;
 
-      // Execute in animation frame for fluid non-blocking UI
       requestAnimationFrame(() => {
         executeRemap();
         isRemapping = false;
@@ -963,7 +1461,9 @@
 
       const srcData = srcImgData.data;
       const dstData = dstImgData.data;
-      const vertices = state.maskVertices;
+
+      const activePolygon = (state.maskMode === 'pigments') ? state.hullVertices : state.geometricVertices;
+      if (activePolygon.length < 3) return;
 
       for (let i = 0; i < srcData.length; i += 4) {
         const r = srcData[i];
@@ -976,30 +1476,25 @@
           continue;
         }
 
-        // 1. sRGB to OKLCH
+        // 1. sRGB to linear to Oklab (L, a, b)
         const rL = srgbToLinear(r);
         const gL = srgbToLinear(g);
         const bL = srgbToLinear(b);
         const [L_orig, a_ok, b_ok] = linearRgbToOklab(rL, gL, bL);
-        const [L, C_orig, hue_orig] = oklabToOklch(L_orig, a_ok, b_ok);
 
-        // 2. Map Chroma & Hue to normalized wheel coordinates [-1, 1]
-        const rNorm = Math.min(1.0, C_orig / MAX_CHROMA);
-        const rad = hue_orig * (Math.PI / 180);
-        const px = rNorm * Math.cos(rad);
-        const py = rNorm * Math.sin(rad);
+        // 2. Map chromaticity (a, b) to normalized polygon coordinates [-1, 1]
+        const nx = a_ok / OKLAB_CHROMA_MAX;
+        const ny = b_ok / OKLAB_CHROMA_MAX;
 
-        // 3. Project to allowed polygon
-        const proj = projectPointToPolygon(px, py, vertices);
+        // 3. Project to allowed hull / polygon perimeter if outside
+        const proj = projectPointToPolygon(nx, ny, activePolygon);
 
-        // 4. Convert projected coordinates back to clamped Chroma & Hue
-        const newDist = Math.min(1.0, Math.hypot(proj.x, proj.y));
-        const newChroma = newDist * MAX_CHROMA;
-        let newHue = Math.atan2(proj.y, proj.x) * (180 / Math.PI);
-        if (newHue < 0) newHue += 360;
+        // 4. Restore projected chromaticity (a', b')
+        const clampedA = proj.x * OKLAB_CHROMA_MAX;
+        const clampedB = proj.y * OKLAB_CHROMA_MAX;
 
-        // 5. Strictly preserve original L_orig!
-        const [clampedR, clampedG, clampedB] = oklchToRgb(L_orig, newChroma, newHue);
+        // 5. Strictly preserve 100% original perceptual luminance L_orig!
+        const [clampedR, clampedG, clampedB] = oklabToRgbClamped(L_orig, clampedA, clampedB);
 
         dstData[i]     = clampedR;
         dstData[i + 1] = clampedG;
@@ -1014,7 +1509,6 @@
     function updateComparisonClip() {
       const beforeCanvas = DOM.beforeCanvas;
       const w = beforeCanvas.width;
-      const h = beforeCanvas.height;
       const divider = DOM.splitDivider;
 
       if (state.viewMode === 'split') {
@@ -1023,7 +1517,6 @@
         const clipX = (w * state.splitPercent) / 100;
         beforeCanvas.style.clipPath = `polygon(0 0, ${clipX}px 0, ${clipX}px 100%, 0 100%)`;
       } else {
-        // Toggle mode
         divider.classList.add('hidden');
         if (state.isHoldOriginal) {
           beforeCanvas.style.clipPath = 'polygon(0 0, 100% 0, 100% 100%, 0 100%)';
@@ -1034,7 +1527,7 @@
     }
 
     /* ═════════════════════════════════════════════
-       8. IMAGE LOADING & SAMPLE GENERATION
+       10. IMAGE LOADING & PROCEDURAL SAMPLES
        ═════════════════════════════════════════════ */
     function loadImageFromSrc(src) {
       const img = new Image();
@@ -1044,7 +1537,6 @@
         state.sourceWidth = img.naturalWidth;
         state.sourceHeight = img.naturalHeight;
 
-        // Scale viewport canvas keeping aspect ratio, max width 800
         const maxW = 800;
         let scale = 1;
         if (img.naturalWidth > maxW) {
@@ -1067,7 +1559,6 @@
       img.src = src;
     }
 
-    // Procedural Sample Images generator (Vibrant paintings)
     function generateSampleImage(type) {
       const sampleCanvas = document.createElement('canvas');
       sampleCanvas.width = 640;
@@ -1075,12 +1566,12 @@
       const ctx = sampleCanvas.getContext('2d');
 
       if (type === 'landscape') {
-        // Sunset Mountain Landscape
+        // Sunset Mountain & Lake Scene
         const sky = ctx.createLinearGradient(0, 0, 0, 260);
-        sky.addColorStop(0, '#1e1b4b'); // deep indigo
-        sky.addColorStop(0.4, '#c026d3'); // vibrant magenta
-        sky.addColorStop(0.75, '#ea580c'); // fiery orange
-        sky.addColorStop(1, '#fef08a'); // luminous yellow
+        sky.addColorStop(0, '#1e1b4b');
+        sky.addColorStop(0.4, '#c026d3');
+        sky.addColorStop(0.75, '#ea580c');
+        sky.addColorStop(1, '#fef08a');
         ctx.fillStyle = sky;
         ctx.fillRect(0, 0, 640, 260);
 
@@ -1093,7 +1584,7 @@
         ctx.fill();
         ctx.shadowBlur = 0;
 
-        // Distant violet mountain peaks
+        // Violet mountain peaks
         ctx.fillStyle = '#4c1d95';
         ctx.beginPath();
         ctx.moveTo(0, 240);
@@ -1106,7 +1597,7 @@
         ctx.lineTo(0, 280);
         ctx.fill();
 
-        // Midground cyan-teal lake with reflections
+        // Cyan-teal reflective lake
         const lake = ctx.createLinearGradient(0, 240, 0, 420);
         lake.addColorStop(0, '#0284c7');
         lake.addColorStop(0.5, '#0d9488');
@@ -1114,7 +1605,7 @@
         ctx.fillStyle = lake;
         ctx.fillRect(0, 240, 640, 180);
 
-        // Foreground rich pine silhouettes
+        // Foreground pine silhouettes
         ctx.fillStyle = '#022c22';
         for (let i = 0; i < 7; i++) {
           const bx = 30 + i * 95;
@@ -1126,14 +1617,14 @@
           ctx.fill();
         }
       } else if (type === 'still_life') {
-        // Impressionist Still Life with fruit & vase
+        // Impressionist Still Life
         const bg = ctx.createRadialGradient(320, 210, 50, 320, 210, 320);
         bg.addColorStop(0, '#312e81');
         bg.addColorStop(1, '#0f172a');
         ctx.fillStyle = bg;
         ctx.fillRect(0, 0, 640, 420);
 
-        // Table drapery
+        // Drapery
         ctx.fillStyle = '#831843';
         ctx.beginPath();
         ctx.moveTo(0, 280);
@@ -1142,21 +1633,20 @@
         ctx.lineTo(0, 420);
         ctx.fill();
 
-        // Vibrant Ceramic Vase (Cobalt Blue)
+        // Ceramic Vase
         ctx.fillStyle = '#2563eb';
         ctx.beginPath();
         ctx.ellipse(320, 220, 55, 90, 0, 0, Math.PI * 2);
         ctx.fill();
 
-        // Yellow Sunflowers & Coral Peonies
+        // Flowers
         ctx.fillStyle = '#eab308';
         ctx.beginPath(); ctx.arc(280, 110, 32, 0, Math.PI * 2); ctx.fill();
         ctx.beginPath(); ctx.arc(360, 100, 28, 0, Math.PI * 2); ctx.fill();
-
         ctx.fillStyle = '#f43f5e';
         ctx.beginPath(); ctx.arc(320, 80, 30, 0, Math.PI * 2); ctx.fill();
 
-        // Table apples (Emerald Green & Crimson)
+        // Apples
         ctx.fillStyle = '#16a34a';
         ctx.beginPath(); ctx.arc(220, 340, 26, 0, Math.PI * 2); ctx.fill();
         ctx.fillStyle = '#dc2626';
@@ -1171,7 +1661,7 @@
         ctx.fillStyle = bg;
         ctx.fillRect(0, 0, 640, 420);
 
-        // Warm Face Base
+        // Face
         ctx.fillStyle = '#fbbf24';
         ctx.beginPath();
         ctx.ellipse(320, 210, 80, 115, 0, 0, Math.PI * 2);
@@ -1183,7 +1673,7 @@
         ctx.ellipse(320, 210, 80, 115, 0, -Math.PI / 2, Math.PI / 2);
         ctx.fill();
 
-        // Hair (Fiery Copper)
+        // Hair
         ctx.fillStyle = '#c2410c';
         ctx.beginPath();
         ctx.arc(320, 150, 95, Math.PI, 0);
@@ -1200,115 +1690,171 @@
     }
 
     /* ═════════════════════════════════════════════
-       9. INTERACTION EVENTS
+       11. INTERACTION SETUP
        ═════════════════════════════════════════════ */
-    function setupWheelInteractions() {
-      const canvas = DOM.wheelCanvas;
+    function setupInteractions() {
+      // Mode Switch: Physical Pigments vs Geometric Mask
+      DOM.btnModePigments.addEventListener('click', () => {
+        state.maskMode = 'pigments';
+        DOM.btnModePigments.className = 'px-3 py-1 rounded-md font-bold bg-white text-slate-900 shadow-sm transition-all';
+        DOM.btnModeGeometric.className = 'px-3 py-1 rounded-md font-medium text-slate-600 hover:text-slate-900 transition-all';
+        
+        DOM.pigmentSelectorPanel.classList.remove('hidden');
+        DOM.pigmentPresetsBar.classList.remove('hidden');
+        DOM.geometricControls.classList.add('hidden');
+
+        DOM.wheelHeading.textContent = 'Physical Gamut Hull';
+        DOM.wheelSubtitle.textContent = 'Oklab chromaticity • Vertices = Paint tubes + Neutral mix';
+
+        updatePigmentHull();
+      });
+
+      DOM.btnModeGeometric.addEventListener('click', () => {
+        state.maskMode = 'geometric';
+        DOM.btnModeGeometric.className = 'px-3 py-1 rounded-md font-bold bg-white text-slate-900 shadow-sm transition-all';
+        DOM.btnModePigments.className = 'px-3 py-1 rounded-md font-medium text-slate-600 hover:text-slate-900 transition-all';
+        
+        DOM.pigmentSelectorPanel.classList.add('hidden');
+        DOM.pigmentPresetsBar.classList.add('hidden');
+        DOM.geometricControls.classList.remove('hidden');
+
+        DOM.wheelHeading.textContent = 'Geometric Gamut Window';
+        DOM.wheelSubtitle.textContent = 'Drag handles to shape • Drag center to move';
+
+        if (state.geometricVertices.length === 0) {
+          applyGeometricPreset('triadic');
+        } else {
+          renderWheel();
+          remapImage();
+        }
+      });
+
+      // Palette Presets
+      document.querySelectorAll('.btn-palette-preset').forEach(btn => {
+        btn.addEventListener('click', () => {
+          applyPalettePreset(btn.dataset.preset);
+        });
+      });
+
+      // Select All / Clear Pigments
+      DOM.btnSelectAllPigments.addEventListener('click', () => {
+        state.selectedPigmentIds = new Set(PIGMENT_DATABASE.map(p => p.id));
+        renderPigmentSelector();
+        updatePigmentHull();
+      });
+
+      DOM.btnClearPigments.addEventListener('click', () => {
+        state.selectedPigmentIds = new Set(['pw6', 'pb29']);
+        renderPigmentSelector();
+        updatePigmentHull();
+      });
+
+      // Geometric Controls: Rotation & Presets
+      DOM.sliderRotation.addEventListener('input', (e) => {
+        rotateGeometricMaskTo(parseFloat(e.target.value));
+      });
+
+      document.querySelectorAll('.btn-geo-preset').forEach(btn => {
+        btn.addEventListener('click', () => {
+          applyGeometricPreset(btn.dataset.preset);
+        });
+      });
+
+      document.querySelectorAll('.btn-pts').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.btn-pts').forEach(b => {
+            b.className = 'btn-pts px-2.5 py-0.5 rounded font-medium text-slate-500 hover:text-slate-800';
+          });
+          btn.className = 'btn-pts px-2.5 py-0.5 rounded font-bold bg-white text-slate-900 shadow-sm';
+          const n = parseInt(btn.dataset.points, 10);
+          if (n === 3) applyGeometricPreset('triadic');
+          else if (n === 4) applyGeometricPreset('complementary');
+          else {
+            state.geometricVertices = [
+              { r: 0.82, a: 0 },
+              { r: 0.75, a: 72 },
+              { r: 0.75, a: 144 },
+              { r: 0.82, a: 216 },
+              { r: 0.35, a: 288 }
+            ].map(p => {
+              const rad = (p.a + state.rotationDeg) * (Math.PI / 180);
+              return { x: p.r * Math.cos(rad), y: p.r * Math.sin(rad) };
+            });
+            DOM.maskPointCountLabel.textContent = '5 Vertices';
+            renderWheel();
+            remapImage();
+          }
+        });
+      });
+
+      // Wheel Canvas Interaction (Clicking pigment pins or dragging geometric vertices)
+      const wheel = DOM.wheelCanvas;
 
       function getWheelCoords(e) {
-        const rect = canvas.getBoundingClientRect();
+        const rect = wheel.getBoundingClientRect();
         const clientX = e.touches ? e.touches[0].clientX : e.clientX;
         const clientY = e.touches ? e.touches[0].clientY : e.clientY;
         const cx = rect.width / 2;
         const cy = rect.height / 2;
-        const radius = (rect.width / 2) - 4;
+        const radius = (rect.width / 2) - 12;
 
         const x = (clientX - rect.left - cx) / radius;
         const y = (clientY - rect.top - cy) / radius;
-        return { x, y };
+        return { x, y, rawX: clientX - rect.left, rawY: clientY - rect.top };
       }
 
-      canvas.addEventListener('mousedown', (e) => {
+      wheel.addEventListener('mousedown', (e) => {
         const pt = getWheelCoords(e);
 
-        // Check if clicking a handle
-        let foundIdx = -1;
-        state.maskVertices.forEach((v, idx) => {
-          if (Math.hypot(v.x - pt.x, v.y - pt.y) < 0.12) {
-            foundIdx = idx;
+        if (state.maskMode === 'pigments') {
+          // Check if clicking near any active pigment pin to highlight / toggle
+          let clickedPigment = null;
+          state.activePigmentPins.forEach(pin => {
+            if (Math.hypot(pin.px - pt.rawX, pin.py - pt.rawY) < 12) {
+              clickedPigment = pin.pigment;
+            }
+          });
+          if (clickedPigment) {
+            // Flash tooltip or quick feedback
+            DOM.wheelSubtitle.textContent = `Toggled: ${clickedPigment.name} (${clickedPigment.code})`;
           }
-        });
+        } else {
+          // Geometric drag interaction
+          let foundIdx = -1;
+          state.geometricVertices.forEach((v, idx) => {
+            if (Math.hypot(v.x - pt.x, v.y - pt.y) < 0.12) {
+              foundIdx = idx;
+            }
+          });
 
-        if (foundIdx !== -1) {
-          state.activeHandleIndex = foundIdx;
-        } else if (pointInPolygon(pt.x, pt.y, state.maskVertices)) {
-          state.isDraggingCenter = true;
-          state.dragStart = pt;
+          if (foundIdx !== -1) {
+            state.activeHandleIndex = foundIdx;
+          } else if (pointInPolygon(pt.x, pt.y, state.geometricVertices)) {
+            state.isDraggingCenter = true;
+            state.dragStart = pt;
+          }
         }
       });
 
       window.addEventListener('mousemove', (e) => {
-        if (state.activeHandleIndex !== -1) {
-          const pt = getWheelCoords(e);
-          // Clamp inside unit wheel
-          const dist = Math.hypot(pt.x, pt.y);
-          if (dist > 0.98) {
-            pt.x = (pt.x / dist) * 0.98;
-            pt.y = (pt.y / dist) * 0.98;
-          }
-          state.maskVertices[state.activeHandleIndex] = pt;
-          renderWheel();
-          remapImage();
-        } else if (state.isDraggingCenter) {
-          const pt = getWheelCoords(e);
-          const dx = pt.x - state.dragStart.x;
-          const dy = pt.y - state.dragStart.y;
-          state.dragStart = pt;
-
-          // Translate all vertices
-          state.maskVertices.forEach(v => {
-            v.x += dx;
-            v.y += dy;
-            const d = Math.hypot(v.x, v.y);
-            if (d > 0.98) {
-              v.x = (v.x / d) * 0.98;
-              v.y = (v.y / d) * 0.98;
-            }
-          });
-
-          renderWheel();
-          remapImage();
-        }
-      });
-
-      window.addEventListener('mouseup', () => {
-        state.activeHandleIndex = -1;
-        state.isDraggingCenter = false;
-      });
-
-      // Touch handlers
-      canvas.addEventListener('touchstart', (e) => {
-        const pt = getWheelCoords(e);
-        let foundIdx = -1;
-        state.maskVertices.forEach((v, idx) => {
-          if (Math.hypot(v.x - pt.x, v.y - pt.y) < 0.16) {
-            foundIdx = idx;
-          }
-        });
-        if (foundIdx !== -1) {
-          state.activeHandleIndex = foundIdx;
-        } else if (pointInPolygon(pt.x, pt.y, state.maskVertices)) {
-          state.isDraggingCenter = true;
-          state.dragStart = pt;
-        }
-      }, { passive: false });
-
-      window.addEventListener('touchmove', (e) => {
-        if (state.activeHandleIndex !== -1 || state.isDraggingCenter) {
-          e.preventDefault();
-          const pt = getWheelCoords(e);
+        if (state.maskMode === 'geometric') {
           if (state.activeHandleIndex !== -1) {
+            const pt = getWheelCoords(e);
             const dist = Math.hypot(pt.x, pt.y);
             if (dist > 0.98) {
               pt.x = (pt.x / dist) * 0.98;
               pt.y = (pt.y / dist) * 0.98;
             }
-            state.maskVertices[state.activeHandleIndex] = pt;
+            state.geometricVertices[state.activeHandleIndex] = pt;
+            renderWheel();
+            remapImage();
           } else if (state.isDraggingCenter) {
+            const pt = getWheelCoords(e);
             const dx = pt.x - state.dragStart.x;
             const dy = pt.y - state.dragStart.y;
             state.dragStart = pt;
-            state.maskVertices.forEach(v => {
+
+            state.geometricVertices.forEach(v => {
               v.x += dx;
               v.y += dy;
               const d = Math.hypot(v.x, v.y);
@@ -1317,19 +1863,19 @@
                 v.y = (v.y / d) * 0.98;
               }
             });
-          }
-          renderWheel();
-          remapImage();
-        }
-      }, { passive: false });
 
-      window.addEventListener('touchend', () => {
+            renderWheel();
+            remapImage();
+          }
+        }
+      });
+
+      window.addEventListener('mouseup', () => {
         state.activeHandleIndex = -1;
         state.isDraggingCenter = false;
       });
-    }
 
-    function setupComparisonSlider() {
+      // Comparison Split Slider
       const dropzone = DOM.dropzone;
       const divider = DOM.splitDivider;
 
@@ -1341,108 +1887,19 @@
         updateComparisonClip();
       }
 
-      divider.addEventListener('mousedown', (e) => {
-        state.isSplitDragging = true;
-      });
-
+      divider.addEventListener('mousedown', () => { state.isSplitDragging = true; });
       window.addEventListener('mousemove', (e) => {
-        if (state.isSplitDragging) {
-          updateSplitFromClientX(e.clientX);
-        }
+        if (state.isSplitDragging) updateSplitFromClientX(e.clientX);
       });
+      window.addEventListener('mouseup', () => { state.isSplitDragging = false; });
 
-      window.addEventListener('mouseup', () => {
-        state.isSplitDragging = false;
-      });
-
-      divider.addEventListener('touchstart', (e) => {
-        state.isSplitDragging = true;
-      }, { passive: true });
-
+      divider.addEventListener('touchstart', () => { state.isSplitDragging = true; }, { passive: true });
       window.addEventListener('touchmove', (e) => {
-        if (state.isSplitDragging) {
-          updateSplitFromClientX(e.touches[0].clientX);
-        }
+        if (state.isSplitDragging) updateSplitFromClientX(e.touches[0].clientX);
       }, { passive: true });
+      window.addEventListener('touchend', () => { state.isSplitDragging = false; });
 
-      window.addEventListener('touchend', () => {
-        state.isSplitDragging = false;
-      });
-    }
-
-    function setupFileAndUIEvents() {
-      // Rotation Slider
-      DOM.sliderRotation.addEventListener('input', (e) => {
-        rotateMaskTo(parseFloat(e.target.value));
-      });
-
-      // Preset Buttons
-      document.querySelectorAll('.btn-preset').forEach(btn => {
-        btn.addEventListener('click', () => {
-          const p = btn.dataset.preset;
-          applyPreset(p);
-        });
-      });
-
-      // Vertex Count Buttons
-      document.querySelectorAll('.btn-pts').forEach(btn => {
-        btn.addEventListener('click', () => {
-          document.querySelectorAll('.btn-pts').forEach(b => {
-            b.className = 'btn-pts px-2.5 py-0.5 rounded font-medium text-slate-500 hover:text-slate-800';
-          });
-          btn.className = 'btn-pts px-2.5 py-0.5 rounded font-bold bg-white text-slate-900 shadow-sm';
-          setVertexCount(parseInt(btn.dataset.points, 10));
-        });
-      });
-
-      // Sample Image Buttons
-      document.querySelectorAll('.btn-sample').forEach(btn => {
-        btn.addEventListener('click', () => {
-          document.querySelectorAll('.btn-sample').forEach(b => {
-            b.className = 'btn-sample px-2.5 py-1 text-xs font-medium rounded-lg bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors';
-          });
-          btn.className = 'btn-sample px-2.5 py-1 text-xs font-medium rounded-lg bg-slate-100 text-slate-800 hover:bg-slate-200 transition-colors';
-          generateSampleImage(btn.dataset.sample);
-        });
-      });
-
-      // File upload & Dropzone
-      DOM.btnUploadImage.addEventListener('click', () => {
-        DOM.fileInput.click();
-      });
-
-      DOM.fileInput.addEventListener('change', (e) => {
-        if (e.target.files && e.target.files[0]) {
-          const reader = new FileReader();
-          reader.onload = (evt) => {
-            loadImageFromSrc(evt.target.result);
-          };
-          reader.readAsDataURL(e.target.files[0]);
-        }
-      });
-
-      // Drag & Drop on Viewport
-      const dz = DOM.dropzone;
-      dz.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        dz.classList.add('dropzone-active');
-      });
-      dz.addEventListener('dragleave', () => {
-        dz.classList.remove('dropzone-active');
-      });
-      dz.addEventListener('drop', (e) => {
-        e.preventDefault();
-        dz.classList.remove('dropzone-active');
-        if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-          const reader = new FileReader();
-          reader.onload = (evt) => {
-            loadImageFromSrc(evt.target.result);
-          };
-          reader.readAsDataURL(e.dataTransfer.files[0]);
-        }
-      });
-
-      // View Modes: Split vs Hold to View
+      // View Modes
       DOM.btnModeSplit.addEventListener('click', () => {
         state.viewMode = 'split';
         DOM.btnModeSplit.className = 'px-3 py-1 rounded-md font-bold bg-white text-slate-900 shadow-sm';
@@ -1471,10 +1928,49 @@
         }
       });
 
-      // Download Remapped Image
+      // Sample Loaders
+      document.querySelectorAll('.btn-sample').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.btn-sample').forEach(b => {
+            b.className = 'btn-sample px-2.5 py-1 text-xs font-medium rounded-lg bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors';
+          });
+          btn.className = 'btn-sample px-2.5 py-1 text-xs font-medium rounded-lg bg-slate-100 text-slate-800 hover:bg-slate-200 transition-colors';
+          generateSampleImage(btn.dataset.sample);
+        });
+      });
+
+      // Upload Custom Image
+      DOM.btnUploadImage.addEventListener('click', () => { DOM.fileInput.click(); });
+      DOM.fileInput.addEventListener('change', (e) => {
+        if (e.target.files && e.target.files[0]) {
+          const reader = new FileReader();
+          reader.onload = (evt) => { loadImageFromSrc(evt.target.result); };
+          reader.readAsDataURL(e.target.files[0]);
+        }
+      });
+
+      // Drag & Drop
+      dropzone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropzone.classList.add('dropzone-active');
+      });
+      dropzone.addEventListener('dragleave', () => {
+        dropzone.classList.remove('dropzone-active');
+      });
+      dropzone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropzone.classList.remove('dropzone-active');
+        if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+          const reader = new FileReader();
+          reader.onload = (evt) => { loadImageFromSrc(evt.target.result); };
+          reader.readAsDataURL(e.dataTransfer.files[0]);
+        }
+      });
+
+      // Download Image
       DOM.btnDownloadImage.addEventListener('click', () => {
         const link = document.createElement('a');
-        link.download = 'gamut-remapped-artwork.png';
+        link.download = `gamut-remapped-${state.maskMode}.png`;
         link.href = DOM.afterCanvas.toDataURL('image/png');
         link.click();
       });
@@ -1492,7 +1988,7 @@
               DOM.lblCopyText.textContent = 'Use Download';
               setTimeout(() => { DOM.lblCopyText.textContent = 'Copy'; }, 2000);
             });
-          } catch (e) {
+          } catch (err) {
             DOM.lblCopyText.textContent = 'Use Download';
             setTimeout(() => { DOM.lblCopyText.textContent = 'Copy'; }, 2000);
           }
@@ -1501,15 +1997,14 @@
     }
 
     /* ═════════════════════════════════════════════
-       10. INIT
+       12. INITIALIZATION
        ═════════════════════════════════════════════ */
     function init() {
-      setupWheelInteractions();
-      setupComparisonSlider();
-      setupFileAndUIEvents();
-
-      // Initialize with Triadic Preset and Landscape sample
-      applyPreset('triadic');
+      renderPigmentSelector();
+      setupInteractions();
+      
+      // Default to Zorn Palette preset and landscape painting sample
+      applyPalettePreset('zorn');
       generateSampleImage('landscape');
     }
 
