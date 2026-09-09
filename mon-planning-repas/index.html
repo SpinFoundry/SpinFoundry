@@ -1,0 +1,2465 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MonPlanningRepas | Organisation & Planificateur de Menus Hebdomadaire</title>
+  <meta name="description" content="Organisez vos recettes favorites, planifiez automatiquement vos menus hebdomadaires équilibrés et sauvegardez vos données en base SQL Cloudflare Pages.">
+  <meta name="keywords" content="planning repas, menu de la semaine, meal planner, planificateur de repas, organisation culinaire, recettes, batch cooking, courses, cloudflare d1">
+  <link rel="canonical" href="https://spinfoundry.pages.dev/mon-planning-repas/">
+
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://spinfoundry.pages.dev/mon-planning-repas/">
+  <meta property="og:title" content="MonPlanningRepas | Planificateur de Menus Hebdomadaire">
+  <meta property="og:description" content="Organisez vos recettes et planifiez automatiquement vos 14 repas de la semaine avec verrouillage de créneaux et règles nutritionnelles personnalisées.">
+  <meta name="twitter:card" content="summary">
+
+  <link rel="stylesheet" href="/assets/styles.css">
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "MonPlanningRepas",
+    "url": "https://spinfoundry.pages.dev/mon-planning-repas/",
+    "description": "Application personnelle d'organisation de recettes et de planification automatique de menus hebdomadaires avec synchronisation SQL Cloudflare Pages D1.",
+    "applicationCategory": "LifestyleApplication",
+    "operatingSystem": "All"
+  }
+  </script>
+
+  <style>
+    /* Category Badge: Nutrition & Kitchen */
+    .badge-nutrition {
+      background-color: #f0fdf4;
+      color: #166534;
+      border: 1px solid rgba(187, 247, 208, 0.8);
+    }
+    .badge-nutrition-dot {
+      background-color: #22c55e;
+    }
+
+    /* Diet Badges */
+    .diet-veggie { background-color: #ecfdf5 !important; color: #065f46 !important; border-color: #a7f3d0 !important; }
+    .diet-meat { background-color: #fff1f2 !important; color: #9f1239 !important; border-color: #fecdd3 !important; }
+    .diet-fish { background-color: #f0f9ff !important; color: #075985 !important; border-color: #bae6fd !important; }
+    .diet-seafood { background-color: #f0fdfa !important; color: #115e59 !important; border-color: #99f6e4 !important; }
+
+    /* Tap feedback */
+    .btn-tap {
+      touch-action: manipulation;
+      transition: transform 0.08s ease, background-color 0.15s ease, border-color 0.15s ease;
+    }
+    .btn-tap:active {
+      transform: scale(0.97);
+    }
+
+    /* Bottom navigation padding offset */
+    .pb-safe-nav {
+      padding-bottom: 6rem !important;
+    }
+
+    /* Custom scrollbars */
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+
+    /* Grid & Responsive Grid */
+    .grid { display: grid !important; }
+    .grid-cols-1 { grid-template-columns: repeat(1, minmax(0, 1fr)) !important; }
+    .grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+    .grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
+    .grid-cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; }
+
+    @media (min-width: 640px) {
+      .sm\:grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+      .sm\:grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
+      .sm\:grid-cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; }
+      .sm\:flex-row { flex-direction: row !important; }
+      .sm\:items-center { align-items: center !important; }
+      .sm\:inline { display: inline !important; }
+    }
+
+    @media (min-width: 1024px) {
+      .lg\:grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
+      .lg\:grid-cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; }
+    }
+
+    /* Flexbox & Layout Utilities */
+    .flex { display: flex !important; }
+    .flex-col { flex-direction: column !important; }
+    .items-center { align-items: center !important; }
+    .justify-between { justify-content: space-between !important; }
+    .justify-center { justify-content: center !important; }
+    .justify-around { justify-content: space-around !important; }
+    .justify-end { justify-content: flex-end !important; }
+    .flex-1 { flex: 1 1 0% !important; }
+    .shrink-0 { flex-shrink: 0 !important; }
+    .flex-wrap { flex-wrap: wrap !important; }
+
+    /* Gap Utilities */
+    .gap-1 { gap: 0.25rem !important; }
+    .gap-1\.5 { gap: 0.375rem !important; }
+    .gap-2 { gap: 0.5rem !important; }
+    .gap-2\.5 { gap: 0.625rem !important; }
+    .gap-3 { gap: 0.75rem !important; }
+    .gap-4 { gap: 1rem !important; }
+
+    /* Positioning */
+    .relative { position: relative !important; }
+    .absolute { position: absolute !important; }
+    .fixed { position: fixed !important; }
+    .top-0 { top: 0 !important; }
+    .bottom-0 { bottom: 0 !important; }
+    .left-0 { left: 0 !important; }
+    .right-0 { right: 0 !important; }
+    .top-2 { top: 0.5rem !important; }
+    .right-2 { right: 0.5rem !important; }
+    .left-3 { left: 0.75rem !important; }
+    .left-3\.5 { left: 0.875rem !important; }
+    .top-1\/2 { top: 50% !important; }
+    .-translate-y-1\/2 { transform: translateY(-50%) !important; }
+    .inset-0 { top: 0 !important; right: 0 !important; bottom: 0 !important; left: 0 !important; }
+    .z-30 { z-index: 30 !important; }
+    .z-40 { z-index: 40 !important; }
+    .z-50 { z-index: 50 !important; }
+
+    /* Dimensions */
+    .w-full { width: 100% !important; }
+    .h-full { height: 100% !important; }
+    .w-3\.5 { width: 0.875rem !important; }
+    .h-3\.5 { height: 0.875rem !important; }
+    .w-4 { width: 1rem !important; }
+    .h-4 { height: 1rem !important; }
+    .w-6 { width: 1.5rem !important; }
+    .h-6 { height: 1.5rem !important; }
+    .w-8 { width: 2rem !important; }
+    .h-8 { height: 2rem !important; }
+    .w-10 { width: 2.5rem !important; }
+    .h-10 { height: 2.5rem !important; }
+    .w-12 { width: 3rem !important; }
+    .h-12 { height: 3rem !important; }
+    .h-13 { height: 3.25rem !important; }
+    .h-16 { height: 4rem !important; }
+    .min-w-0 { min-width: 0 !important; }
+
+    /* Max Widths & Centering */
+    .max-w-sm { max-width: 24rem !important; }
+    .max-w-md { max-width: 28rem !important; }
+    .max-w-lg { max-width: 32rem !important; }
+    .max-w-xl { max-width: 36rem !important; }
+    .max-w-2xl { max-width: 42rem !important; }
+    .max-w-4xl { max-width: 56rem !important; }
+    .max-w-5xl { max-width: 64rem !important; }
+    .mx-auto { margin-left: auto !important; margin-right: auto !important; }
+
+    /* Paddings */
+    .pl-10 { padding-left: 2.5rem !important; }
+    .pr-10 { padding-right: 2.5rem !important; }
+    .pr-4 { padding-right: 1rem !important; }
+
+    /* Text & Borders */
+    .text-center { text-align: center !important; }
+    .font-mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important; }
+    .font-sans { font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important; }
+    .font-bold { font-weight: 700 !important; }
+    .font-extrabold { font-weight: 800 !important; }
+    .font-semibold { font-weight: 600 !important; }
+    .font-medium { font-weight: 500 !important; }
+    .uppercase { text-transform: uppercase !important; }
+    .tracking-wider { letter-spacing: 0.05em !important; }
+    .tracking-tight { letter-spacing: -0.025em !important; }
+    .rounded-lg { border-radius: 0.5rem !important; }
+    .rounded-xl { border-radius: 0.75rem !important; }
+    .rounded-2xl { border-radius: 1rem !important; }
+    .rounded-full { border-radius: 9999px !important; }
+    .border { border-width: 1px !important; }
+    .border-b { border-bottom-width: 1px !important; }
+    .border-t { border-top-width: 1px !important; }
+    .truncate { overflow: hidden !important; text-overflow: ellipsis !important; white-space: nowrap !important; }
+    .hidden { display: none !important; }
+    .select-none { user-select: none !important; -webkit-user-select: none !important; }
+
+    /* Persistent Bottom Navigation Bar */
+    .nav-bottom-bar {
+      position: fixed !important;
+      bottom: 0 !important;
+      left: 0 !important;
+      right: 0 !important;
+      height: 3.75rem !important;
+      background-color: rgba(255, 255, 255, 0.98) !important;
+      border-top: 1px solid #e2e8f0 !important;
+      box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.05) !important;
+      z-index: 40 !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+    }
+    .nav-bottom-content {
+      display: flex !important;
+      align-items: center !important;
+      justify-content: space-around !important;
+      width: 100% !important;
+      max-width: 28rem !important;
+      height: 100% !important;
+      padding: 0 1rem !important;
+    }
+    .btn-nav {
+      display: flex !important;
+      flex-direction: column !important;
+      align-items: center !important;
+      justify-content: center !important;
+      background: transparent !important;
+      border: none !important;
+      cursor: pointer !important;
+      flex: 1 !important;
+      padding: 0.35rem 0 !important;
+      gap: 0.15rem !important;
+      color: #94a3b8 !important;
+      transition: color 0.15s ease, transform 0.08s ease !important;
+    }
+    .btn-nav.active {
+      color: #0f172a !important;
+    }
+    .btn-nav.inactive:hover {
+      color: #475569 !important;
+    }
+    .btn-nav-icon {
+      font-size: 1.2rem !important;
+      line-height: 1 !important;
+    }
+    .btn-nav-label {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;
+      font-size: 10px !important;
+      font-weight: 700 !important;
+      text-transform: uppercase !important;
+      letter-spacing: 0.05em !important;
+    }
+
+    /* Floating Action Button (+) */
+    #fabAddMeal {
+      position: fixed !important;
+      right: 1.5rem !important;
+      bottom: 4.75rem !important;
+      z-index: 45 !important;
+      width: 3.25rem !important;
+      height: 3.25rem !important;
+      border-radius: 9999px !important;
+      background-color: #0f172a !important;
+      color: #ffffff !important;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3) !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      font-size: 1.75rem !important;
+      font-weight: 700 !important;
+      line-height: 1 !important;
+      border: none !important;
+      cursor: pointer !important;
+      transition: transform 0.15s ease, background-color 0.15s ease !important;
+    }
+    #fabAddMeal:hover {
+      background-color: #1e293b !important;
+      transform: scale(1.05) !important;
+    }
+    #fabAddMeal.hidden {
+      display: none !important;
+    }
+
+    /* Meal Card Media & Badges */
+    .meal-card-media {
+      width: 100% !important;
+      height: 7.5rem !important;
+      background-color: #f8fafc !important;
+      border-bottom: 1px solid #f1f5f9 !important;
+      position: relative !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      user-select: none !important;
+    }
+    .meal-card-media .meal-emoji {
+      font-size: 2.75rem !important;
+      line-height: 1 !important;
+      opacity: 0.85 !important;
+    }
+    .meal-card-photo {
+      width: 100% !important;
+      height: 8.5rem !important;
+      background-color: #f1f5f9 !important;
+      position: relative !important;
+      overflow: hidden !important;
+    }
+    .meal-card-photo img {
+      width: 100% !important;
+      height: 100% !important;
+      object-fit: cover !important;
+      transition: transform 0.3s ease !important;
+    }
+    .meal-card-photo:hover img {
+      transform: scale(1.05) !important;
+    }
+    .course-badge {
+      position: absolute !important;
+      top: 0.5rem !important;
+      right: 0.5rem !important;
+      padding: 0.2rem 0.6rem !important;
+      border-radius: 9999px !important;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;
+      font-size: 10px !important;
+      font-weight: 700 !important;
+      text-transform: uppercase !important;
+      letter-spacing: 0.05em !important;
+      background-color: rgba(255, 255, 255, 0.95) !important;
+      color: #334155 !important;
+      border: 1px solid #e2e8f0 !important;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08) !important;
+    }
+
+    /* Modals */
+    .modal-overlay {
+      position: fixed !important;
+      top: 0 !important;
+      left: 0 !important;
+      right: 0 !important;
+      bottom: 0 !important;
+      background-color: rgba(15, 23, 42, 0.6) !important;
+      backdrop-filter: blur(4px) !important;
+      z-index: 100 !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      padding: 1rem !important;
+    }
+    .modal-overlay.hidden, .hidden {
+      display: none !important;
+    }
+    .modal-box {
+      background-color: #ffffff !important;
+      border-radius: 1rem !important;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25) !important;
+      border: 1px solid #e2e8f0 !important;
+      width: 100% !important;
+      max-width: 32rem !important;
+      max-height: 90vh !important;
+      overflow-y: auto !important;
+      padding: 1.5rem !important;
+    }
+  </style>
+</head>
+<body class="bg-[#F8F9FA] text-slate-800 font-sans min-h-screen flex flex-col justify-between antialiased">
+
+  <!-- Top Navigation Chrome -->
+  <header class="border-b border-slate-200/80 bg-white/95 backdrop-blur-sm sticky top-0 z-30 select-none">
+    <div class="max-w-5xl mx-auto px-4 h-13 py-2.5 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <a href="/" class="text-xs font-medium text-slate-500 hover:text-slate-900 transition-colors flex items-center gap-1">
+          <span>&larr;</span> SpinFoundry Hub
+        </a>
+        <span class="text-slate-300">/</span>
+        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-mono badge-nutrition">
+          <span class="w-1.5 h-1.5 rounded-full badge-nutrition-dot"></span>
+          Nutrition &amp; Cuisine
+        </span>
+      </div>
+
+      <!-- Cloudflare D1 SQL Status Badge & CSV Action -->
+      <div class="flex items-center gap-2">
+        <div id="d1StatusBadge" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-mono border border-slate-200 bg-slate-50 text-slate-600" title="Statut de la base SQL Cloudflare D1">
+          <span id="d1StatusDot" class="w-2 h-2 rounded-full bg-slate-400"></span>
+          <span id="d1StatusText" class="hidden sm:inline text-[11px]">Vérification D1...</span>
+        </div>
+
+        <button type="button" id="btnQuickImportCsv" class="btn-tap inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-mono text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 transition-colors" title="Importer un fichier CSV de recettes">
+          <svg class="w-3.5 h-3.5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+          <span class="hidden sm:inline">CSV</span>
+        </button>
+        <input type="file" id="fileInputCsv" accept=".csv" class="hidden">
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Viewport Workspace -->
+  <main class="max-w-5xl mx-auto px-4 py-6 flex-1 w-full pb-safe-nav">
+
+    <!-- ═════════════════════════════════════════════
+         SCREEN 1: MES REPAS (MEALS CATALOG)
+         ═════════════════════════════════════════════ -->
+    <section id="screenMeals" class="space-y-5">
+      
+      <!-- Screen Header -->
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div>
+          <h1 class="text-xl sm:text-2xl font-extrabold tracking-tight text-slate-900 flex items-center gap-2">
+            <span>🍽️ Mes Repas</span>
+            <span id="badgeTotalMeals" class="text-xs font-mono font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200">0</span>
+          </h1>
+          <p class="text-xs text-slate-500 mt-0.5">
+            Votre carnet de recettes et bibliothèque culinaire personnelle.
+          </p>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <button type="button" id="btnOpenNewMealModal" class="btn-tap px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-mono font-semibold text-xs tracking-wider uppercase transition-all flex items-center gap-1.5 shadow-sm">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+            <span>Ajouter un repas</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Search & Filters Strip -->
+      <div class="bg-white border border-slate-200/80 rounded-2xl p-4 shadow-sm space-y-3">
+        
+        <!-- Search input -->
+        <div class="relative">
+          <svg class="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+          <input type="text" id="inputSearchMeals" placeholder="Rechercher par nom ou ingrédient (ex: pâtes, rapide, saumon)..." class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 focus:border-slate-900 focus:outline-none text-xs sm:text-sm bg-slate-50/50">
+        </div>
+
+        <!-- Filter Chips (Horizontal scrollable) -->
+        <div class="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1 text-xs select-none">
+          <span class="text-[11px] font-mono text-slate-400 uppercase tracking-wider shrink-0 mr-1">Filtres:</span>
+          
+          <button type="button" data-filter="all" class="chip-filter btn-tap px-2.5 py-1 rounded-lg border border-slate-900 bg-slate-900 text-white shrink-0 font-medium">
+            Tous
+          </button>
+          <button type="button" data-filter="veggie" class="chip-filter btn-tap px-2.5 py-1 rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 shrink-0 font-medium flex items-center gap-1">
+            <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+            Végétarien
+          </button>
+          <button type="button" data-filter="meat" class="chip-filter btn-tap px-2.5 py-1 rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 shrink-0 font-medium flex items-center gap-1">
+            <span class="w-2 h-2 rounded-full bg-rose-500"></span>
+            Viande
+          </button>
+          <button type="button" data-filter="fish" class="chip-filter btn-tap px-2.5 py-1 rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 shrink-0 font-medium flex items-center gap-1">
+            <span class="w-2 h-2 rounded-full bg-sky-500"></span>
+            Poisson
+          </button>
+          <button type="button" data-filter="seafood" class="chip-filter btn-tap px-2.5 py-1 rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 shrink-0 font-medium flex items-center gap-1">
+            <span class="w-2 h-2 rounded-full bg-teal-500"></span>
+            Fruits de mer
+          </button>
+          <span class="text-slate-200 shrink-0">|</span>
+          <button type="button" data-filter-season="summer" class="chip-season btn-tap px-2.5 py-1 rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 shrink-0 font-medium">
+            ☀️ Été
+          </button>
+          <button type="button" data-filter-season="winter" class="chip-season btn-tap px-2.5 py-1 rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 shrink-0 font-medium">
+            ❄️ Hiver
+          </button>
+          <button type="button" data-filter-season="spring" class="chip-season btn-tap px-2.5 py-1 rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 shrink-0 font-medium">
+            🌸 Printemps
+          </button>
+          <button type="button" data-filter-season="autumn" class="chip-season btn-tap px-2.5 py-1 rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 shrink-0 font-medium">
+            🍂 Automne
+          </button>
+        </div>
+
+      </div>
+
+      <!-- Meals Grid -->
+      <div id="mealsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <!-- Generated dynamically via JS -->
+      </div>
+
+      <!-- Empty State -->
+      <div id="emptyMealsState" class="hidden text-center py-16 px-4 bg-white border border-slate-200/80 rounded-2xl">
+        <div class="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-3 text-xl">
+          🍲
+        </div>
+        <h3 class="text-base font-bold text-slate-800">Aucun repas trouvé</h3>
+        <p class="text-xs text-slate-500 max-w-sm mx-auto mt-1 mb-4">
+          Ajoutez votre première recette ou importez votre fichier CSV pour peupler votre carnet.
+        </p>
+        <button type="button" id="btnEmptyAddMeal" class="btn-tap inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-slate-900 text-white font-mono text-xs uppercase font-bold">
+          <span>+ Ajouter une recette</span>
+        </button>
+      </div>
+
+    </section>
+
+    <!-- ═════════════════════════════════════════════
+         SCREEN 2: PLANNING (WEEKLY SCHEDULE)
+         ═════════════════════════════════════════════ -->
+    <section id="screenPlanning" class="hidden space-y-5">
+      
+      <!-- Planning Header -->
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div>
+          <h1 class="text-xl sm:text-2xl font-extrabold tracking-tight text-slate-900 flex items-center gap-2">
+            <span>📅 Planning de la Semaine</span>
+          </h1>
+          <p class="text-xs text-slate-500 mt-0.5">
+            14 repas équilibrés (déjeuners &amp; dîners). Verrouillez vos favoris avec le cadenas 📌.
+          </p>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <button type="button" id="btnToggleAdvancedOptions" class="btn-tap px-3 py-2 rounded-xl bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-mono font-medium text-xs transition-colors flex items-center gap-1.5">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
+            <span>Options avancées</span>
+          </button>
+          
+          <button type="button" id="btnGenerateWeek" class="btn-tap px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-mono font-bold text-xs tracking-wider uppercase transition-all flex items-center gap-1.5 shadow-sm">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+            <span>Générer la semaine</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Advanced Options Expandable Drawer -->
+      <div id="drawerAdvancedOptions" class="hidden bg-white border border-slate-200/80 rounded-2xl p-5 shadow-sm space-y-4">
+        <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+          <h3 class="text-xs font-mono font-bold uppercase tracking-wider text-slate-700">
+            Règles &amp; Proportions Nutritionnelles
+          </h3>
+          <span class="text-[11px] font-mono text-slate-400">Respectées lors de la génération</span>
+        </div>
+
+        <!-- Sliders Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <!-- Veggie -->
+          <div class="p-3 bg-emerald-50/50 rounded-xl border border-emerald-100">
+            <div class="flex items-center justify-between text-xs font-semibold text-emerald-900 mb-1">
+              <span>🌱 Végétarien</span>
+              <span id="lblPropVeggie" class="font-mono">40%</span>
+            </div>
+            <input type="range" id="sliderPropVeggie" min="0" max="100" value="40" step="5" class="w-full accent-emerald-600">
+          </div>
+
+          <!-- Meat -->
+          <div class="p-3 bg-rose-50/50 rounded-xl border border-rose-100">
+            <div class="flex items-center justify-between text-xs font-semibold text-rose-900 mb-1">
+              <span>🥩 Viande</span>
+              <span id="lblPropMeat" class="font-mono">30%</span>
+            </div>
+            <input type="range" id="sliderPropMeat" min="0" max="100" value="30" step="5" class="w-full accent-rose-600">
+          </div>
+
+          <!-- Fish -->
+          <div class="p-3 bg-sky-50/50 rounded-xl border border-sky-100">
+            <div class="flex items-center justify-between text-xs font-semibold text-sky-900 mb-1">
+              <span>🐟 Poisson</span>
+              <span id="lblPropFish" class="font-mono">20%</span>
+            </div>
+            <input type="range" id="sliderPropFish" min="0" max="100" value="20" step="5" class="w-full accent-sky-600">
+          </div>
+
+          <!-- Seafood -->
+          <div class="p-3 bg-teal-50/50 rounded-xl border border-teal-100">
+            <div class="flex items-center justify-between text-xs font-semibold text-teal-900 mb-1">
+              <span>🦐 Fruits de mer</span>
+              <span id="lblPropSeafood" class="font-mono">10%</span>
+            </div>
+            <input type="range" id="sliderPropSeafood" min="0" max="100" value="10" step="5" class="w-full accent-teal-600">
+          </div>
+        </div>
+
+        <!-- Tag Exclusion Blacklist -->
+        <div class="pt-2 border-t border-slate-100">
+          <span class="block text-[11px] font-mono uppercase tracking-wider text-slate-500 mb-2">
+            Exclure des ingrédients ou tags (Blacklist) :
+          </span>
+          <div class="flex items-center gap-2 flex-wrap mb-2" id="excludedTagsContainer">
+            <!-- Rendered chips -->
+          </div>
+          <div class="flex items-center gap-2 max-w-sm">
+            <input type="text" id="inputNewExcludedTag" placeholder="Ex: porc, friture, piment..." class="px-3 py-1.5 rounded-lg border border-slate-200 text-xs flex-1 focus:outline-none focus:border-slate-800">
+            <button type="button" id="btnAddExcludedTag" class="btn-tap px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-medium">
+              Ajouter
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- 7 Days Grid -->
+      <div id="weeklyPlanningContainer" class="space-y-4">
+        <!-- 7 Days cards rendered via JS -->
+      </div>
+
+    </section>
+
+    <!-- ═════════════════════════════════════════════
+         SCREEN 3: PARAMETRES (SETTINGS & BACKUP)
+         ═════════════════════════════════════════════ -->
+    <section id="screenSettings" class="hidden space-y-6">
+      
+      <!-- Settings Header -->
+      <div>
+        <h1 class="text-xl sm:text-2xl font-extrabold tracking-tight text-slate-900 flex items-center gap-2">
+          <span>⚙️ Paramètres &amp; Sauvegardes</span>
+        </h1>
+        <p class="text-xs text-slate-500 mt-0.5">
+          Gestion de vos données, base SQL Cloudflare D1 et exportations sécurisées.
+        </p>
+      </div>
+
+      <!-- Cloudflare D1 SQL Serverless Card -->
+      <div class="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-sm space-y-3">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <div class="w-8 h-8 rounded-lg bg-orange-50 border border-orange-200 flex items-center justify-center text-orange-600 font-bold text-sm">
+              ☁️
+            </div>
+            <div>
+              <h2 class="text-sm font-bold text-slate-900">Base de données SQL Cloudflare Pages (D1)</h2>
+              <p class="text-xs text-slate-500">Rétention permanente des données par utilisateur dans le cloud.</p>
+            </div>
+          </div>
+          <span id="badgeD1Connectivity" class="text-xs font-mono font-medium px-2.5 py-1 rounded-full bg-slate-100 text-slate-700">
+            Initialisation...
+          </span>
+        </div>
+
+        <div class="p-3 bg-slate-50 rounded-xl border border-slate-200/60 text-xs font-mono flex items-center justify-between flex-wrap gap-2">
+          <div>
+            <span class="text-slate-400">Identifiant Utilisateur (X-User-Id) : </span>
+            <span id="lblUserIdDisplay" class="font-bold text-slate-800">usr_...</span>
+          </div>
+          <button type="button" id="btnCopyUserId" class="btn-tap text-[11px] text-blue-600 hover:text-blue-800 font-semibold">
+            Copier l'ID
+          </button>
+        </div>
+
+        <p class="text-[11px] text-slate-500 leading-relaxed">
+          Lorsque Cloudflare D1 est actif sur votre projet Pages (liaison <code>DB</code>), toutes vos recettes et plannings sont conservés dans une base SQL SQLite sécurisée. En mode local ou hors-ligne, vos données restent enregistrées dans le navigateur.
+        </p>
+      </div>
+
+      <!-- CSV & ZIP Tools Grid -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        
+        <!-- CSV Export & Import -->
+        <div class="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-sm space-y-3">
+          <h2 class="text-xs font-mono font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
+            <span>📄 Format Tableur CSV</span>
+          </h2>
+          <p class="text-xs text-slate-500">
+            Exportez et importez toutes vos recettes au format standard CSV (compatible Excel, Numbers et Google Sheets).
+          </p>
+
+          <div class="flex items-center gap-2 pt-2">
+            <button type="button" id="btnExportCsv" class="btn-tap flex-1 py-2.5 px-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-mono font-semibold transition-colors flex items-center justify-center gap-1.5 shadow-sm">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+              <span>Exporter CSV</span>
+            </button>
+
+            <button type="button" id="btnTriggerImportCsv" class="btn-tap flex-1 py-2.5 px-3 rounded-xl bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-mono font-semibold transition-colors flex items-center justify-center gap-1.5">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+              <span>Importer CSV</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Full ZIP Archive -->
+        <div class="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-sm space-y-3">
+          <h2 class="text-xs font-mono font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
+            <span>📦 Sauvegarde Complète (ZIP)</span>
+          </h2>
+          <p class="text-xs text-slate-500">
+            Archive complète contenant l'ensemble de vos recettes, photos de plats et plannings pour changer d'appareil sans perte.
+          </p>
+
+          <div class="flex items-center gap-2 pt-2">
+            <button type="button" id="btnExportZip" class="btn-tap flex-1 py-2.5 px-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-mono font-semibold transition-colors flex items-center justify-center gap-1.5 shadow-sm">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+              <span>Sauvegarder ZIP</span>
+            </button>
+
+            <button type="button" id="btnTriggerRestoreZip" class="btn-tap flex-1 py-2.5 px-3 rounded-xl bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-mono font-semibold transition-colors flex items-center justify-center gap-1.5">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+              <span>Restaurer ZIP</span>
+            </button>
+            <input type="file" id="fileInputZip" accept=".zip" class="hidden">
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Seed & Danger Zone -->
+      <div class="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-sm space-y-4">
+        <div class="flex items-center justify-between flex-wrap gap-3">
+          <div>
+            <h2 class="text-xs font-mono font-bold uppercase tracking-wider text-slate-700">Recettes d'exemple</h2>
+            <p class="text-xs text-slate-500">Rechargez les 6 recettes types fournies avec l'application.</p>
+          </div>
+          <button type="button" id="btnReloadSeedData" class="btn-tap px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-mono text-slate-700 hover:bg-slate-50">
+            Recharger les exemples
+          </button>
+        </div>
+
+        <div class="pt-3 border-t border-slate-100 flex items-center justify-between flex-wrap gap-3">
+          <div>
+            <h2 class="text-xs font-mono font-bold uppercase tracking-wider text-rose-700">Zone de danger</h2>
+            <p class="text-xs text-slate-500">Effacez toutes les données stockées pour repartir de zéro.</p>
+          </div>
+          <button type="button" id="btnResetAllData" class="btn-tap px-3 py-1.5 rounded-lg border border-rose-200 bg-rose-50 text-xs font-mono text-rose-700 hover:bg-rose-100">
+            Réinitialiser toutes les données
+          </button>
+        </div>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- ═════════════════════════════════════════════
+       PERSISTENT BOTTOM NAVIGATION BAR
+       ═════════════════════════════════════════════ -->
+  <nav class="nav-bottom-bar select-none">
+    <div class="nav-bottom-content">
+      
+      <!-- Tab 1: Repas -->
+      <button type="button" id="navTabMeals" class="btn-nav active">
+        <span class="btn-nav-icon">🍽️</span>
+        <span class="btn-nav-label">Repas</span>
+      </button>
+
+      <!-- Tab 2: Planning -->
+      <button type="button" id="navTabPlanning" class="btn-nav inactive">
+        <span class="btn-nav-icon">📅</span>
+        <span class="btn-nav-label">Planning</span>
+      </button>
+
+      <!-- Tab 3: Paramètres -->
+      <button type="button" id="navTabSettings" class="btn-nav inactive">
+        <span class="btn-nav-icon">⚙️</span>
+        <span class="btn-nav-label">Paramètres</span>
+      </button>
+
+    </div>
+  </nav>
+
+  <!-- ═════════════════════════════════════════════
+       FLOATING ACTION BUTTON (+)
+       ═════════════════════════════════════════════ -->
+  <button type="button" id="fabAddMeal" class="btn-tap" title="Ajouter une nouvelle recette">
+    +
+  </button>
+
+  <!-- ═════════════════════════════════════════════
+       MEAL EDITOR MODAL
+       ═════════════════════════════════════════════ -->
+  <div id="modalMealEditor" class="hidden modal-overlay">
+    <div class="modal-box space-y-4">
+      
+      <!-- Modal Header -->
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+        <h3 id="modalEditorTitle" class="text-base font-extrabold text-slate-900 font-mono">
+          Nouveau repas
+        </h3>
+        <div class="flex items-center gap-2">
+          <button type="button" id="btnModalDeleteMeal" class="text-rose-600 hover:text-rose-800 p-1 text-xs font-mono hidden" title="Supprimer cette recette">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+          </button>
+          <button type="button" id="btnModalClose" class="text-slate-400 hover:text-slate-700 p-1 text-base leading-none">
+            &times;
+          </button>
+        </div>
+      </div>
+
+      <!-- Photo Picker Box -->
+      <div class="space-y-1.5">
+        <label class="block text-xs font-mono font-semibold uppercase text-slate-700">Photo du plat</label>
+        <div id="photoPreviewBox" class="relative w-full h-36 bg-slate-100 rounded-xl border-2 border-dashed border-slate-300 hover:border-slate-400 flex flex-col items-center justify-center cursor-pointer overflow-hidden group transition-colors">
+          <img id="imgPhotoPreview" src="" class="hidden w-full h-full object-cover">
+          <div id="photoPlaceholderContent" class="text-center p-3 text-slate-500">
+            <span class="text-2xl block mb-1">📸</span>
+            <span class="text-xs font-medium text-slate-700">Ajouter une photo</span>
+            <span class="text-[10px] text-slate-400 block">Galerie ou appareil photo</span>
+          </div>
+          <button type="button" id="btnRemovePhoto" class="hidden absolute top-2 right-2 p-1 rounded-full bg-slate-900/80 text-white hover:bg-slate-900 text-xs">
+            &times;
+          </button>
+        </div>
+        <input type="file" id="fileInputPhoto" accept="image/*" class="hidden">
+      </div>
+
+      <!-- Dish Name -->
+      <div class="space-y-1">
+        <label for="inputMealName" class="block text-xs font-mono font-semibold uppercase text-slate-700">Nom de la recette *</label>
+        <input type="text" id="inputMealName" required placeholder="Ex: Spaghetti Bolognaise" class="w-full px-3 py-2 rounded-xl border border-slate-200 focus:border-slate-900 focus:outline-none text-sm">
+      </div>
+
+      <!-- Protein Type -->
+      <div class="space-y-1">
+        <label class="block text-xs font-mono font-semibold uppercase text-slate-700">Type de plat *</label>
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-1.5 text-xs font-medium">
+          <label class="flex items-center gap-1.5 p-2 rounded-lg border border-slate-200 cursor-pointer has-[:checked]:border-emerald-600 has-[:checked]:bg-emerald-50">
+            <input type="radio" name="mealType" value="veggie" checked class="accent-emerald-600">
+            <span>🌱 Végé</span>
+          </label>
+          <label class="flex items-center gap-1.5 p-2 rounded-lg border border-slate-200 cursor-pointer has-[:checked]:border-rose-600 has-[:checked]:bg-rose-50">
+            <input type="radio" name="mealType" value="meat" class="accent-rose-600">
+            <span>🥩 Viande</span>
+          </label>
+          <label class="flex items-center gap-1.5 p-2 rounded-lg border border-slate-200 cursor-pointer has-[:checked]:border-sky-600 has-[:checked]:bg-sky-50">
+            <input type="radio" name="mealType" value="fish" class="accent-sky-600">
+            <span>🐟 Poisson</span>
+          </label>
+          <label class="flex items-center gap-1.5 p-2 rounded-lg border border-slate-200 cursor-pointer has-[:checked]:border-teal-600 has-[:checked]:bg-teal-50">
+            <input type="radio" name="mealType" value="seafood" class="accent-teal-600">
+            <span>🦐 Fruits de m.</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Season, Calorie & Prep Time (3 Columns) -->
+      <div class="grid grid-cols-3 gap-2 text-xs">
+        
+        <!-- Season -->
+        <div>
+          <label for="selectMealSeason" class="block font-mono font-semibold uppercase text-slate-700 mb-1">Saison</label>
+          <select id="selectMealSeason" class="w-full px-2 py-1.5 rounded-lg border border-slate-200 bg-white text-xs">
+            <option value="all">🌍 Toutes</option>
+            <option value="spring">🌸 Printemps</option>
+            <option value="summer">☀️ Été</option>
+            <option value="autumn">🍂 Automne</option>
+            <option value="winter">❄️ Hiver</option>
+          </select>
+        </div>
+
+        <!-- Calorie -->
+        <div>
+          <label for="selectMealCalorie" class="block font-mono font-semibold uppercase text-slate-700 mb-1">Calories</label>
+          <select id="selectMealCalorie" class="w-full px-2 py-1.5 rounded-lg border border-slate-200 bg-white text-xs">
+            <option value="low">🥗 Léger (L)</option>
+            <option value="medium" selected>🍲 Moyen (M)</option>
+            <option value="high">🧀 Riche (H)</option>
+          </select>
+        </div>
+
+        <!-- Prep Time -->
+        <div>
+          <label for="selectMealPrepTime" class="block font-mono font-semibold uppercase text-slate-700 mb-1">Durée</label>
+          <select id="selectMealPrepTime" class="w-full px-2 py-1.5 rounded-lg border border-slate-200 bg-white text-xs">
+            <option value="quick">⚡ Rapide</option>
+            <option value="medium" selected>⏱️ Moyen</option>
+            <option value="long">⏳ Long</option>
+          </select>
+        </div>
+
+      </div>
+
+      <!-- Course Category -->
+      <div class="space-y-1">
+        <label class="block text-xs font-mono font-semibold uppercase text-slate-700">Catégorie de service</label>
+        <div class="flex items-center gap-2 text-xs">
+          <label class="flex-1 text-center p-2 rounded-lg border border-slate-200 cursor-pointer has-[:checked]:border-slate-900 has-[:checked]:bg-slate-900 has-[:checked]:text-white">
+            <input type="radio" name="mealCategory" value="main" checked class="hidden">
+            <span>Plat principal</span>
+          </label>
+          <label class="flex-1 text-center p-2 rounded-lg border border-slate-200 cursor-pointer has-[:checked]:border-slate-900 has-[:checked]:bg-slate-900 has-[:checked]:text-white">
+            <input type="radio" name="mealCategory" value="starter" class="hidden">
+            <span>Entrée</span>
+          </label>
+          <label class="flex-1 text-center p-2 rounded-lg border border-slate-200 cursor-pointer has-[:checked]:border-slate-900 has-[:checked]:bg-slate-900 has-[:checked]:text-white">
+            <input type="radio" name="mealCategory" value="dessert" class="hidden">
+            <span>Dessert</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Tags & Recipe URL -->
+      <div class="space-y-2 text-xs">
+        <div>
+          <label for="inputMealTags" class="block font-mono font-semibold uppercase text-slate-700 mb-0.5">Tags &amp; Mots-clés (séparés par des virgules)</label>
+          <input type="text" id="inputMealTags" placeholder="Ex: pâtes, italien, familial, four" class="w-full px-3 py-1.5 rounded-lg border border-slate-200">
+        </div>
+        <div>
+          <label for="inputMealUrl" class="block font-mono font-semibold uppercase text-slate-700 mb-0.5">Lien vers la recette en ligne</label>
+          <input type="url" id="inputMealUrl" placeholder="https://..." class="w-full px-3 py-1.5 rounded-lg border border-slate-200">
+        </div>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="pt-3 border-t border-slate-100 flex items-center justify-end gap-2">
+        <button type="button" id="btnModalCancel" class="btn-tap px-4 py-2 rounded-xl border border-slate-200 text-xs font-mono text-slate-600 hover:bg-slate-50">
+          Annuler
+        </button>
+        <button type="button" id="btnModalSaveMeal" class="btn-tap px-5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-mono font-bold tracking-wider uppercase shadow-sm">
+          Enregistrer
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ═════════════════════════════════════════════
+       SELECT MEAL PICKER MODAL (FOR PLANNING SLOT)
+       ═════════════════════════════════════════════ -->
+  <div id="modalSlotPicker" class="hidden modal-overlay">
+    <div class="modal-box space-y-3 flex flex-col">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-2">
+        <h3 id="slotPickerTitle" class="text-sm font-bold font-mono text-slate-900">
+          Choisir un plat pour ce créneau
+        </h3>
+        <button type="button" id="btnCloseSlotPicker" class="text-slate-400 hover:text-slate-700 text-lg leading-none">&times;</button>
+      </div>
+      <input type="text" id="inputSlotPickerSearch" placeholder="Rechercher un plat..." class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs">
+      <div id="slotPickerList" class="overflow-y-auto space-y-1.5 flex-1 pr-1">
+        <!-- List of selectable meals -->
+      </div>
+      <div class="pt-2 border-t border-slate-100 flex justify-between">
+        <button type="button" id="btnSlotPickerClear" class="btn-tap px-3 py-1.5 rounded-lg text-xs font-mono text-rose-600 hover:bg-rose-50">
+          Vider ce créneau
+        </button>
+        <button type="button" id="btnSlotPickerCancel" class="btn-tap px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-mono text-slate-600">
+          Fermer
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCRIPT: MONPLANNINGREPAS ENGINE -->
+  <script>
+  (function() {
+    'use strict';
+
+    /* ═════════════════════════════════════════════
+       1. INITIAL SEED RECIPES (USER CSV SPEC)
+       ═════════════════════════════════════════════ */
+    const SEED_MEALS = [
+      {
+        id: "meal_seed_1",
+        name: "Spaghetti Bolognaise",
+        type: "meat",
+        season: "all",
+        calorieLevel: "medium",
+        prepTime: "medium",
+        category: "main",
+        tags: "pâtes;italien;familial",
+        recipeUrl: "https://example.com/recette-bolognaise",
+        photo: ""
+      },
+      {
+        id: "meal_seed_2",
+        name: "Salade Grecque",
+        type: "veggie",
+        season: "summer",
+        calorieLevel: "low",
+        prepTime: "quick",
+        category: "starter",
+        tags: "frais;été;tomates;feta",
+        recipeUrl: "",
+        photo: ""
+      },
+      {
+        id: "meal_seed_3",
+        name: "Saumon rôti et légumes",
+        type: "fish",
+        season: "all",
+        calorieLevel: "medium",
+        prepTime: "quick",
+        category: "main",
+        tags: "poisson;four;sain",
+        recipeUrl: "https://example.com/saumon-roti",
+        photo: ""
+      },
+      {
+        id: "meal_seed_4",
+        name: "Risotto aux fruits de mer",
+        type: "seafood",
+        season: "winter",
+        calorieLevel: "high",
+        prepTime: "long",
+        category: "main",
+        tags: "italien;fruits de mer",
+        recipeUrl: "",
+        photo: ""
+      },
+      {
+        id: "meal_seed_5",
+        name: "Tarte aux pommes",
+        type: "veggie",
+        season: "autumn",
+        calorieLevel: "medium",
+        prepTime: "long",
+        category: "dessert",
+        tags: "sucré;dessert;four",
+        recipeUrl: "",
+        photo: ""
+      },
+      {
+        id: "meal_seed_6",
+        name: "Ratatouille",
+        type: "veggie",
+        season: "summer",
+        calorieLevel: "low",
+        prepTime: "medium",
+        category: "main",
+        tags: "légumes;été;provence",
+        recipeUrl: "",
+        photo: ""
+      },
+      {
+        id: "meal_seed_7",
+        name: "Poulet rôti aux herbes et pommes de terre",
+        type: "meat",
+        season: "all",
+        calorieLevel: "medium",
+        prepTime: "long",
+        category: "main",
+        tags: "poulet;four;dimanche",
+        recipeUrl: "",
+        photo: ""
+      },
+      {
+        id: "meal_seed_8",
+        name: "Dahl de lentilles corail au lait de coco",
+        type: "veggie",
+        season: "winter",
+        calorieLevel: "medium",
+        prepTime: "quick",
+        category: "main",
+        tags: "indien;épices;rapide",
+        recipeUrl: "",
+        photo: ""
+      }
+    ];
+
+    const DAYS_FR = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"];
+
+    /* ═════════════════════════════════════════════
+       2. USER ID & LOCAL STORAGE KEYS
+       ═════════════════════════════════════════════ */
+    const KEY_USER_ID = 'spinfoundry_mpr_userid_v1';
+    const KEY_LOCAL_MEALS = 'spinfoundry_mpr_meals_v1';
+    const KEY_LOCAL_PLANS = 'spinfoundry_mpr_plans_v1';
+    const KEY_LOCAL_SETTINGS = 'spinfoundry_mpr_settings_v1';
+
+    function getOrCreateUserId() {
+      let uid = localStorage.getItem(KEY_USER_ID);
+      if (!uid) {
+        uid = 'usr_' + Math.random().toString(36).substring(2, 11) + Date.now().toString(36);
+        localStorage.setItem(KEY_USER_ID, uid);
+      }
+      return uid;
+    }
+
+    const currentUserId = getOrCreateUserId();
+
+    /* App Global State */
+    let meals = [];
+    let weeklyPlans = []; // 14 slots: { dayIndex: 0..6, slot: 'lunch'|'dinner', mealId: string|null, isLocked: boolean }
+    let settings = {
+      dietProportions: { veggie: 40, meat: 30, fish: 20, seafood: 10 },
+      excludedTags: []
+    };
+    let activeFilter = 'all';
+    let activeFilterSeason = 'all';
+    let searchQuery = '';
+    let currentEditingMealId = null;
+    let currentSlotPicking = null; // { dayIndex, slot }
+    let d1Connected = false;
+
+    /* ═════════════════════════════════════════════
+       3. CLOUDFLARE D1 SQL SYNC ENGINE
+       ═════════════════════════════════════════════ */
+    async function checkD1Status() {
+      try {
+        const res = await fetch('/api/status', {
+          headers: { 'X-User-Id': currentUserId }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          d1Connected = !!data.d1Bound && !!data.d1Connected;
+          updateD1Badge(d1Connected);
+          if (d1Connected) {
+            syncWithCloudflareD1();
+          }
+        } else {
+          updateD1Badge(false);
+        }
+      } catch (err) {
+        updateD1Badge(false);
+      }
+    }
+
+    function updateD1Badge(connected) {
+      const dot = document.getElementById('d1StatusDot');
+      const txt = document.getElementById('d1StatusText');
+      const badgeConn = document.getElementById('badgeD1Connectivity');
+
+      if (connected) {
+        dot.className = 'w-2 h-2 rounded-full bg-emerald-500 animate-pulse';
+        txt.textContent = 'Cloudflare D1 Actif';
+        badgeConn.className = 'text-xs font-mono font-medium px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200';
+        badgeConn.textContent = '● Connecté (D1 SQL)';
+      } else {
+        dot.className = 'w-2 h-2 rounded-full bg-slate-400';
+        txt.textContent = 'Stockage Local';
+        badgeConn.className = 'text-xs font-mono font-medium px-2.5 py-1 rounded-full bg-slate-100 text-slate-600 border border-slate-200';
+        badgeConn.textContent = '○ Mode Local (Prêt D1)';
+      }
+    }
+
+    async function syncWithCloudflareD1() {
+      if (!d1Connected) return;
+      try {
+        // Fetch meals from D1
+        const res = await fetch('/api/meals', {
+          headers: { 'X-User-Id': currentUserId }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.meals && data.meals.length > 0) {
+            meals = data.meals;
+            saveLocalState();
+            renderMeals();
+          } else if (meals.length > 0) {
+            // Push local meals to D1
+            await fetch('/api/meals', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', 'X-User-Id': currentUserId },
+              body: JSON.stringify({ meals })
+            });
+          }
+        }
+      } catch (e) {}
+    }
+
+    async function persistMealRemote(meal) {
+      if (!d1Connected) return;
+      try {
+        await fetch('/api/meals', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'X-User-Id': currentUserId },
+          body: JSON.stringify({ meal })
+        });
+      } catch (e) {}
+    }
+
+    async function deleteMealRemote(id) {
+      if (!d1Connected) return;
+      try {
+        await fetch(`/api/meals?id=${encodeURIComponent(id)}`, {
+          method: 'DELETE',
+          headers: { 'X-User-Id': currentUserId }
+        });
+      } catch (e) {}
+    }
+
+    async function persistPlannerRemote() {
+      if (!d1Connected) return;
+      try {
+        await fetch('/api/planner', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'X-User-Id': currentUserId },
+          body: JSON.stringify({ plans: weeklyPlans })
+        });
+      } catch (e) {}
+    }
+
+    /* ═════════════════════════════════════════════
+       4. LOCAL STATE PERSISTENCE
+       ═════════════════════════════════════════════ */
+    function loadLocalState() {
+      try {
+        const rawMeals = localStorage.getItem(KEY_LOCAL_MEALS);
+        meals = rawMeals ? JSON.parse(rawMeals) : [...SEED_MEALS];
+
+        const rawPlans = localStorage.getItem(KEY_LOCAL_PLANS);
+        if (rawPlans) {
+          weeklyPlans = JSON.parse(rawPlans);
+        } else {
+          initEmptyWeeklyPlans();
+        }
+
+        const rawSettings = localStorage.getItem(KEY_LOCAL_SETTINGS);
+        if (rawSettings) {
+          settings = Object.assign(settings, JSON.parse(rawSettings));
+        }
+      } catch (e) {
+        meals = [...SEED_MEALS];
+        initEmptyWeeklyPlans();
+      }
+    }
+
+    function initEmptyWeeklyPlans() {
+      weeklyPlans = [];
+      for (let day = 0; day < 7; day++) {
+        weeklyPlans.push({ dayIndex: day, slot: 'lunch', mealId: null, isLocked: false });
+        weeklyPlans.push({ dayIndex: day, slot: 'dinner', mealId: null, isLocked: false });
+      }
+    }
+
+    function saveLocalState() {
+      try {
+        localStorage.setItem(KEY_LOCAL_MEALS, JSON.stringify(meals));
+        localStorage.setItem(KEY_LOCAL_PLANS, JSON.stringify(weeklyPlans));
+        localStorage.setItem(KEY_LOCAL_SETTINGS, JSON.stringify(settings));
+      } catch (e) {}
+    }
+
+    /* ═════════════════════════════════════════════
+       5. FORMATTERS & HELPERS
+       ═════════════════════════════════════════════ */
+    function getDietInfo(type) {
+      switch (type) {
+        case 'veggie': return { label: 'Végétarien', class: 'diet-veggie', icon: '🌱' };
+        case 'meat': return { label: 'Viande', class: 'diet-meat', icon: '🥩' };
+        case 'fish': return { label: 'Poisson', class: 'diet-fish', icon: '🐟' };
+        case 'seafood': return { label: 'Fruits de mer', class: 'diet-seafood', icon: '🦐' };
+        default: return { label: type, class: 'bg-slate-100 text-slate-700', icon: '🍽️' };
+      }
+    }
+
+    function getSeasonInfo(season) {
+      switch (season) {
+        case 'spring': return { label: 'Printemps', icon: '🌸' };
+        case 'summer': return { label: 'Été', icon: '☀️' };
+        case 'autumn': return { label: 'Automne', icon: '🍂' };
+        case 'winter': return { label: 'Hiver', icon: '❄️' };
+        default: return { label: 'Toutes', icon: '🌍' };
+      }
+    }
+
+    function getCalorieInfo(cal) {
+      switch (cal) {
+        case 'low': return { label: 'Léger (L)', tag: 'L' };
+        case 'high': return { label: 'Riche (H)', tag: 'H' };
+        default: return { label: 'Moyen (M)', tag: 'M' };
+      }
+    }
+
+    function getPrepTimeInfo(time) {
+      switch (time) {
+        case 'quick': return { label: 'Rapide', icon: '⚡' };
+        case 'long': return { label: 'Long', icon: '⏳' };
+        default: return { label: 'Moyen', icon: '⏱️' };
+      }
+    }
+
+    function getCategoryInfo(cat) {
+      switch (cat) {
+        case 'starter': return 'Entrée';
+        case 'dessert': return 'Dessert';
+        default: return 'Plat';
+      }
+    }
+
+    /* ═════════════════════════════════════════════
+       6. MEALS CATALOG RENDERING & ACTIONS
+       ═════════════════════════════════════════════ */
+    function renderMeals() {
+      const container = document.getElementById('mealsGrid');
+      const emptyState = document.getElementById('emptyMealsState');
+      const badgeTotal = document.getElementById('badgeTotalMeals');
+
+      const filtered = meals.filter(m => {
+        // Text search
+        if (searchQuery) {
+          const q = searchQuery.toLowerCase();
+          const matchName = (m.name || '').toLowerCase().includes(q);
+          const matchTags = (m.tags || '').toLowerCase().includes(q);
+          if (!matchName && !matchTags) return false;
+        }
+
+        // Protein filter
+        if (activeFilter !== 'all' && m.type !== activeFilter) return false;
+
+        // Season filter
+        if (activeFilterSeason !== 'all' && m.season !== 'all' && m.season !== activeFilterSeason) return false;
+
+        return true;
+      });
+
+      badgeTotal.textContent = filtered.length;
+
+      if (filtered.length === 0) {
+        container.innerHTML = '';
+        emptyState.classList.remove('hidden');
+        return;
+      }
+
+      emptyState.classList.add('hidden');
+      container.innerHTML = '';
+
+      filtered.forEach(m => {
+        const diet = getDietInfo(m.type);
+        const season = getSeasonInfo(m.season);
+        const cal = getCalorieInfo(m.calorieLevel || m.calorie_level);
+        const prep = getPrepTimeInfo(m.prepTime || m.prep_time);
+        const course = getCategoryInfo(m.category);
+
+        const card = document.createElement('div');
+        card.className = 'bg-white border border-slate-200/80 rounded-2xl overflow-hidden shadow-sm hover:shadow-md hover:border-slate-300 transition-all flex flex-col justify-between group';
+
+        // Photo / Placeholder
+        let mediaHtml = '';
+        if (m.photo) {
+          mediaHtml = `<div class="meal-card-photo">
+            <img src="${m.photo}" alt="${m.name}">
+            <span class="course-badge">${course}</span>
+          </div>`;
+        } else {
+          mediaHtml = `<div class="meal-card-media">
+            <span class="meal-emoji">${diet.icon}</span>
+            <span class="course-badge">${course}</span>
+          </div>`;
+        }
+
+        // Tag Pills
+        const tagsArr = (m.tags || '').split(/[;,]+/).map(t => t.trim()).filter(Boolean);
+        const tagsHtml = tagsArr.slice(0, 3).map(t => `<span class="text-[10px] text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded">#${t}</span>`).join(' ');
+
+        card.innerHTML = `
+          <div>
+            ${mediaHtml}
+            <div class="p-4 space-y-2.5">
+              
+              <!-- Badges Row -->
+              <div class="flex items-center gap-1.5 flex-wrap text-xs">
+                <span class="px-2 py-0.5 rounded-full font-mono text-[11px] font-semibold border ${diet.class}">
+                  ${diet.icon} ${diet.label}
+                </span>
+                <span class="px-2 py-0.5 rounded-full font-mono text-[11px] bg-slate-100 text-slate-600" title="Saison">
+                  ${season.icon} ${season.label}
+                </span>
+                <span class="px-1.5 py-0.5 rounded font-mono text-[11px] bg-slate-100 text-slate-600 font-bold" title="Calories: ${cal.label}">
+                  ${cal.tag}
+                </span>
+                <span class="px-1.5 py-0.5 rounded font-mono text-[11px] bg-slate-100 text-slate-600" title="Temps: ${prep.label}">
+                  ${prep.icon}
+                </span>
+              </div>
+
+              <!-- Title -->
+              <h3 class="text-sm font-bold text-slate-900 leading-snug group-hover:text-slate-700 transition-colors">
+                ${m.name}
+              </h3>
+
+              <!-- Tags -->
+              ${tagsHtml ? `<div class="flex items-center gap-1 flex-wrap pt-0.5">${tagsHtml}</div>` : ''}
+
+            </div>
+          </div>
+
+          <!-- Bottom Action Buttons -->
+          <div class="px-4 py-2.5 bg-slate-50/70 border-t border-slate-100 flex items-center justify-between text-xs font-mono">
+            ${m.recipeUrl || m.recipe_url ? `
+              <a href="${m.recipeUrl || m.recipe_url}" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:text-blue-800 flex items-center gap-1 font-medium text-[11px]">
+                <span>Lien recette</span>
+                <span>↗</span>
+              </a>
+            ` : `<span class="text-slate-400 text-[11px]">Fait maison</span>`}
+
+            <div class="flex items-center gap-2">
+              <button type="button" class="btn-edit-meal text-slate-500 hover:text-slate-900 font-semibold p-1" data-id="${m.id}" title="Modifier la recette">
+                Éditer
+              </button>
+              <button type="button" class="btn-delete-meal text-rose-500 hover:text-rose-800 font-semibold p-1" data-id="${m.id}" title="Supprimer la recette">
+                &times;
+              </button>
+            </div>
+          </div>
+        `;
+
+        // Card Click opens edit
+        card.querySelector('.btn-edit-meal').addEventListener('click', (e) => {
+          e.stopPropagation();
+          openMealEditor(m.id);
+        });
+
+        card.querySelector('.btn-delete-meal').addEventListener('click', (e) => {
+          e.stopPropagation();
+          confirmDeleteMeal(m.id, m.name);
+        });
+
+        card.addEventListener('click', () => {
+          openMealEditor(m.id);
+        });
+
+        container.appendChild(card);
+      });
+    }
+
+    function confirmDeleteMeal(id, name) {
+      if (confirm(`Voulez-vous vraiment supprimer "${name}" de votre carnet ?`)) {
+        meals = meals.filter(m => m.id !== id);
+        // Clear from any weekly plan slots
+        weeklyPlans.forEach(p => {
+          if (p.mealId === id) p.mealId = null;
+        });
+        saveLocalState();
+        deleteMealRemote(id);
+        renderMeals();
+        renderPlanning();
+      }
+    }
+
+    /* ═════════════════════════════════════════════
+       7. MEAL EDITOR MODAL CONTROLLER
+       ═════════════════════════════════════════════ */
+    let currentEditorPhotoBase64 = '';
+
+    function openMealEditor(mealId = null) {
+      currentEditingMealId = mealId;
+      const modal = document.getElementById('modalMealEditor');
+      const title = document.getElementById('modalEditorTitle');
+      const btnDelete = document.getElementById('btnModalDeleteMeal');
+      const preview = document.getElementById('imgPhotoPreview');
+      const placeholder = document.getElementById('photoPlaceholderContent');
+      const btnRemovePhoto = document.getElementById('btnRemovePhoto');
+
+      if (mealId) {
+        title.textContent = 'Modifier le repas';
+        btnDelete.classList.remove('hidden');
+        const meal = meals.find(m => m.id === mealId);
+        if (meal) {
+          document.getElementById('inputMealName').value = meal.name || '';
+          setRadioValue('mealType', meal.type || 'veggie');
+          document.getElementById('selectMealSeason').value = meal.season || 'all';
+          document.getElementById('selectMealCalorie').value = meal.calorieLevel || meal.calorie_level || 'medium';
+          document.getElementById('selectMealPrepTime').value = meal.prepTime || meal.prep_time || 'medium';
+          setRadioValue('mealCategory', meal.category || 'main');
+          document.getElementById('inputMealTags').value = (meal.tags || '').replace(/;/g, ', ');
+          document.getElementById('inputMealUrl').value = meal.recipeUrl || meal.recipe_url || '';
+
+          currentEditorPhotoBase64 = meal.photo || '';
+          if (currentEditorPhotoBase64) {
+            preview.src = currentEditorPhotoBase64;
+            preview.classList.remove('hidden');
+            placeholder.classList.add('hidden');
+            btnRemovePhoto.classList.remove('hidden');
+          } else {
+            preview.classList.add('hidden');
+            placeholder.classList.remove('hidden');
+            btnRemovePhoto.classList.add('hidden');
+          }
+        }
+      } else {
+        title.textContent = 'Nouveau repas';
+        btnDelete.classList.add('hidden');
+        document.getElementById('inputMealName').value = '';
+        setRadioValue('mealType', 'veggie');
+        document.getElementById('selectMealSeason').value = 'all';
+        document.getElementById('selectMealCalorie').value = 'medium';
+        document.getElementById('selectMealPrepTime').value = 'medium';
+        setRadioValue('mealCategory', 'main');
+        document.getElementById('inputMealTags').value = '';
+        document.getElementById('inputMealUrl').value = '';
+
+        currentEditorPhotoBase64 = '';
+        preview.classList.add('hidden');
+        placeholder.classList.remove('hidden');
+        btnRemovePhoto.classList.add('hidden');
+      }
+
+      modal.classList.remove('hidden');
+      document.getElementById('inputMealName').focus();
+    }
+
+    function closeMealEditor() {
+      document.getElementById('modalMealEditor').classList.add('hidden');
+      currentEditingMealId = null;
+    }
+
+    function saveMealFromEditor() {
+      const name = document.getElementById('inputMealName').value.trim();
+      if (!name) {
+        alert('Veuillez renseigner le nom de la recette.');
+        document.getElementById('inputMealName').focus();
+        return;
+      }
+
+      const type = getRadioValue('mealType') || 'veggie';
+      const season = document.getElementById('selectMealSeason').value;
+      const calorieLevel = document.getElementById('selectMealCalorie').value;
+      const prepTime = document.getElementById('selectMealPrepTime').value;
+      const category = getRadioValue('mealCategory') || 'main';
+      const rawTags = document.getElementById('inputMealTags').value.trim();
+      // Normalize tags to semicolon for CSV compatibility
+      const tags = rawTags.split(/[;,]+/).map(t => t.trim()).filter(Boolean).join(';');
+      const recipeUrl = document.getElementById('inputMealUrl').value.trim();
+
+      let savedMeal = null;
+      if (currentEditingMealId) {
+        const idx = meals.findIndex(m => m.id === currentEditingMealId);
+        if (idx !== -1) {
+          meals[idx] = {
+            ...meals[idx],
+            name,
+            type,
+            season,
+            calorieLevel,
+            prepTime,
+            category,
+            tags,
+            recipeUrl,
+            photo: currentEditorPhotoBase64
+          };
+          savedMeal = meals[idx];
+        }
+      } else {
+        savedMeal = {
+          id: 'meal_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7),
+          name,
+          type,
+          season,
+          calorieLevel,
+          prepTime,
+          category,
+          tags,
+          recipeUrl,
+          photo: currentEditorPhotoBase64
+        };
+        meals.unshift(savedMeal);
+      }
+
+      saveLocalState();
+      if (savedMeal) persistMealRemote(savedMeal);
+
+      closeMealEditor();
+      renderMeals();
+      renderPlanning();
+    }
+
+    function setRadioValue(name, val) {
+      const el = document.querySelector(`input[name="${name}"][value="${val}"]`);
+      if (el) el.checked = true;
+    }
+
+    function getRadioValue(name) {
+      const el = document.querySelector(`input[name="${name}"]:checked`);
+      return el ? el.value : null;
+    }
+
+    /* ═════════════════════════════════════════════
+       8. WEEKLY PLANNER GENERATOR & UI
+       ═════════════════════════════════════════════ */
+    function renderPlanning() {
+      const container = document.getElementById('weeklyPlanningContainer');
+      container.innerHTML = '';
+
+      for (let day = 0; day < 7; day++) {
+        const dayName = DAYS_FR[day];
+        const lunchSlot = weeklyPlans.find(p => p.dayIndex === day && p.slot === 'lunch');
+        const dinnerSlot = weeklyPlans.find(p => p.dayIndex === day && p.slot === 'dinner');
+
+        const dayCard = document.createElement('div');
+        dayCard.className = 'bg-white border border-slate-200/80 rounded-2xl p-4 shadow-sm space-y-3';
+
+        dayCard.innerHTML = `
+          <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+            <h2 class="text-sm font-bold font-mono text-slate-800 flex items-center gap-2">
+              <span class="w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center text-xs text-slate-600 font-bold">${day + 1}</span>
+              <span>${dayName}</span>
+            </h2>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <!-- Déjeuner Slot -->
+            <div id="slotBox_${day}_lunch" class="p-3 rounded-xl border ${lunchSlot && lunchSlot.mealId ? 'bg-slate-50/60 border-slate-200' : 'border-dashed border-slate-200 bg-white'} space-y-2">
+              <div class="flex items-center justify-between text-xs font-mono text-slate-500">
+                <span class="font-bold flex items-center gap-1 text-slate-700">
+                  <span>☀️ Déjeuner</span>
+                </span>
+                <div class="flex items-center gap-1">
+                  <button type="button" class="btn-lock-slot p-1 rounded hover:bg-slate-200/60 transition-colors ${lunchSlot && lunchSlot.isLocked ? 'text-amber-600 font-bold' : 'text-slate-400'}" data-day="${day}" data-slot="lunch" title="${lunchSlot && lunchSlot.isLocked ? 'Déverrouiller' : 'Verrouiller ce créneau'}">
+                    ${lunchSlot && lunchSlot.isLocked ? '🔒' : '🔓'}
+                  </button>
+                  <button type="button" class="btn-reroll-slot p-1 rounded hover:bg-slate-200/60 text-slate-500 hover:text-slate-800 transition-colors" data-day="${day}" data-slot="lunch" title="Tirer un autre repas au sort">
+                    🔄
+                  </button>
+                </div>
+              </div>
+              <div class="slot-content" data-day="${day}" data-slot="lunch">
+                ${renderSlotInnerHtml(lunchSlot)}
+              </div>
+            </div>
+
+            <!-- Dîner Slot -->
+            <div id="slotBox_${day}_dinner" class="p-3 rounded-xl border ${dinnerSlot && dinnerSlot.mealId ? 'bg-slate-50/60 border-slate-200' : 'border-dashed border-slate-200 bg-white'} space-y-2">
+              <div class="flex items-center justify-between text-xs font-mono text-slate-500">
+                <span class="font-bold flex items-center gap-1 text-slate-700">
+                  <span>🌙 Dîner</span>
+                </span>
+                <div class="flex items-center gap-1">
+                  <button type="button" class="btn-lock-slot p-1 rounded hover:bg-slate-200/60 transition-colors ${dinnerSlot && dinnerSlot.isLocked ? 'text-amber-600 font-bold' : 'text-slate-400'}" data-day="${day}" data-slot="dinner" title="${dinnerSlot && dinnerSlot.isLocked ? 'Déverrouiller' : 'Verrouiller ce créneau'}">
+                    ${dinnerSlot && dinnerSlot.isLocked ? '🔒' : '🔓'}
+                  </button>
+                  <button type="button" class="btn-reroll-slot p-1 rounded hover:bg-slate-200/60 text-slate-500 hover:text-slate-800 transition-colors" data-day="${day}" data-slot="dinner" title="Tirer un autre repas au sort">
+                    🔄
+                  </button>
+                </div>
+              </div>
+              <div class="slot-content" data-day="${day}" data-slot="dinner">
+                ${renderSlotInnerHtml(dinnerSlot)}
+              </div>
+            </div>
+          </div>
+        `;
+
+        container.appendChild(dayCard);
+      }
+
+      // Bind slot click events
+      container.querySelectorAll('.btn-lock-slot').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const day = parseInt(btn.dataset.day, 10);
+          const slot = btn.dataset.slot;
+          toggleSlotLock(day, slot);
+        });
+      });
+
+      container.querySelectorAll('.btn-reroll-slot').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const day = parseInt(btn.dataset.day, 10);
+          const slot = btn.dataset.slot;
+          rerollSingleSlot(day, slot);
+        });
+      });
+
+      container.querySelectorAll('.slot-content').forEach(box => {
+        box.addEventListener('click', () => {
+          const day = parseInt(box.dataset.day, 10);
+          const slot = box.dataset.slot;
+          openSlotMealPicker(day, slot);
+        });
+      });
+    }
+
+    function renderSlotInnerHtml(slotObj) {
+      if (!slotObj || !slotObj.mealId) {
+        return `
+          <div class="py-3 text-center cursor-pointer hover:bg-slate-50 rounded-lg transition-colors">
+            <span class="text-xs text-slate-400 font-mono">+ Choisir un repas</span>
+          </div>
+        `;
+      }
+
+      const meal = meals.find(m => m.id === slotObj.mealId);
+      if (!meal) {
+        return `
+          <div class="py-3 text-center cursor-pointer hover:bg-slate-50 rounded-lg transition-colors">
+            <span class="text-xs text-slate-400 font-mono">+ Choisir un repas</span>
+          </div>
+        `;
+      }
+
+      const diet = getDietInfo(meal.type);
+      return `
+        <div class="flex items-center gap-2.5 cursor-pointer group">
+          <div class="w-10 h-10 rounded-lg bg-slate-200 overflow-hidden shrink-0 flex items-center justify-center text-sm">
+            ${meal.photo ? `<img src="${meal.photo}" class="w-full h-full object-cover">` : diet.icon}
+          </div>
+          <div class="min-w-0 flex-1">
+            <h4 class="text-xs font-bold text-slate-800 truncate group-hover:text-blue-600 transition-colors">
+              ${meal.name}
+            </h4>
+            <div class="flex items-center gap-1.5 mt-0.5">
+              <span class="text-[10px] font-mono font-medium px-1.5 py-0.2 rounded border ${diet.class}">
+                ${diet.label}
+              </span>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function toggleSlotLock(day, slot) {
+      const p = weeklyPlans.find(item => item.dayIndex === day && item.slot === slot);
+      if (p) {
+        p.isLocked = !p.isLocked;
+        saveLocalState();
+        persistPlannerRemote();
+        renderPlanning();
+      }
+    }
+
+    /* ═════════════════════════════════════════════
+       9. WEEKLY MENU GENERATION ALGORITHM
+       ═════════════════════════════════════════════ */
+    function generateFullWeek() {
+      if (meals.length === 0) {
+        alert('Votre carnet de repas est vide ! Ajoutez au moins quelques plats avant de générer la semaine.');
+        return;
+      }
+
+      // Filter eligible meals (respect blacklisted tags)
+      const eligibleMeals = meals.filter(m => {
+        if (!settings.excludedTags || settings.excludedTags.length === 0) return true;
+        const tags = (m.tags || '').toLowerCase();
+        for (const ex of settings.excludedTags) {
+          if (tags.includes(ex.toLowerCase())) return false;
+        }
+        return true;
+      });
+
+      if (eligibleMeals.length === 0) {
+        alert('Aucune recette n\'est disponible après application de vos filtres d\'exclusion.');
+        return;
+      }
+
+      // Count unlocked slots to fill
+      const unlockedSlots = weeklyPlans.filter(p => !p.isLocked);
+      const totalToFill = unlockedSlots.length;
+
+      if (totalToFill === 0) {
+        alert('Tous vos créneaux sont verrouillés (🔒). Déverrouillez au moins un créneau pour régénérer.');
+        return;
+      }
+
+      // Calculate target counts based on diet proportion sliders
+      const props = settings.dietProportions;
+      const sumProps = Math.max(1, (props.veggie || 0) + (props.meat || 0) + (props.fish || 0) + (props.seafood || 0));
+
+      const veggieMeals = eligibleMeals.filter(m => m.type === 'veggie');
+      const meatMeals = eligibleMeals.filter(m => m.type === 'meat');
+      const fishMeals = eligibleMeals.filter(m => m.type === 'fish');
+      const seafoodMeals = eligibleMeals.filter(m => m.type === 'seafood');
+
+      // Shuffle pool
+      const pickRandom = (arr) => arr.length > 0 ? arr[Math.floor(Math.random() * arr.length)] : null;
+
+      unlockedSlots.forEach((slotItem, index) => {
+        // Pick target diet category based on probability
+        const rand = Math.random() * sumProps;
+        let chosenType = 'veggie';
+        let acc = props.veggie || 0;
+
+        if (rand < acc) {
+          chosenType = 'veggie';
+        } else if (rand < (acc += props.meat || 0)) {
+          chosenType = 'meat';
+        } else if (rand < (acc += props.fish || 0)) {
+          chosenType = 'fish';
+        } else {
+          chosenType = 'seafood';
+        }
+
+        // Find candidate for chosen type
+        let candidate = null;
+        if (chosenType === 'veggie' && veggieMeals.length > 0) candidate = pickRandom(veggieMeals);
+        else if (chosenType === 'meat' && meatMeals.length > 0) candidate = pickRandom(meatMeals);
+        else if (chosenType === 'fish' && fishMeals.length > 0) candidate = pickRandom(fishMeals);
+        else if (chosenType === 'seafood' && seafoodMeals.length > 0) candidate = pickRandom(seafoodMeals);
+
+        // Fallback to any eligible meal
+        if (!candidate) candidate = pickRandom(eligibleMeals);
+
+        if (candidate) {
+          slotItem.mealId = candidate.id;
+        }
+      });
+
+      saveLocalState();
+      persistPlannerRemote();
+      renderPlanning();
+    }
+
+    function rerollSingleSlot(day, slot) {
+      if (meals.length === 0) return;
+
+      const slotObj = weeklyPlans.find(p => p.dayIndex === day && p.slot === slot);
+      if (!slotObj) return;
+
+      // Eligible meals excluding current meal
+      const eligible = meals.filter(m => m.id !== slotObj.mealId);
+      const pool = eligible.length > 0 ? eligible : meals;
+
+      const randomChoice = pool[Math.floor(Math.random() * pool.length)];
+      if (randomChoice) {
+        slotObj.mealId = randomChoice.id;
+        saveLocalState();
+        persistPlannerRemote();
+        renderPlanning();
+      }
+    }
+
+    /* ═════════════════════════════════════════════
+       10. SLOT MEAL PICKER MODAL
+       ═════════════════════════════════════════════ */
+    function openSlotMealPicker(day, slot) {
+      currentSlotPicking = { dayIndex: day, slot };
+      const modal = document.getElementById('modalSlotPicker');
+      const title = document.getElementById('slotPickerTitle');
+      const dayName = DAYS_FR[day];
+      const slotName = slot === 'lunch' ? 'Déjeuner' : 'Dîner';
+
+      title.textContent = `${dayName} - ${slotName}`;
+      renderSlotPickerList('');
+      modal.classList.remove('hidden');
+    }
+
+    function renderSlotPickerList(filterText) {
+      const container = document.getElementById('slotPickerList');
+      container.innerHTML = '';
+
+      const query = (filterText || '').toLowerCase();
+      const filtered = meals.filter(m => (m.name || '').toLowerCase().includes(query) || (m.tags || '').toLowerCase().includes(query));
+
+      if (filtered.length === 0) {
+        container.innerHTML = `<p class="text-xs text-slate-400 text-center py-4">Aucune recette trouvée.</p>`;
+        return;
+      }
+
+      filtered.forEach(m => {
+        const diet = getDietInfo(m.type);
+        const item = document.createElement('div');
+        item.className = 'flex items-center justify-between p-2.5 rounded-xl border border-slate-200/80 hover:bg-slate-50 cursor-pointer transition-colors';
+        item.innerHTML = `
+          <div class="flex items-center gap-2 min-w-0">
+            <span class="text-base">${diet.icon}</span>
+            <div class="min-w-0">
+              <h4 class="text-xs font-bold text-slate-800 truncate">${m.name}</h4>
+              <span class="text-[10px] text-slate-400 font-mono">${diet.label}</span>
+            </div>
+          </div>
+          <span class="text-xs font-mono font-semibold text-slate-400 hover:text-slate-900">Choisir &rarr;</span>
+        `;
+
+        item.addEventListener('click', () => {
+          if (currentSlotPicking) {
+            const p = weeklyPlans.find(item => item.dayIndex === currentSlotPicking.dayIndex && item.slot === currentSlotPicking.slot);
+            if (p) {
+              p.mealId = m.id;
+              saveLocalState();
+              persistPlannerRemote();
+              renderPlanning();
+            }
+          }
+          document.getElementById('modalSlotPicker').classList.add('hidden');
+        });
+
+        container.appendChild(item);
+      });
+    }
+
+    /* ═════════════════════════════════════════════
+       11. CSV IMPORT & EXPORT (EXACT SPEC COMPLIANCE)
+       ═════════════════════════════════════════════ */
+    function exportToCsv() {
+      // Columns: name,type,season,calorieLevel,prepTime,category,tags,recipeUrl
+      const headers = ['name', 'type', 'season', 'calorieLevel', 'prepTime', 'category', 'tags', 'recipeUrl'];
+      const rows = meals.map(m => {
+        return [
+          escapeCsvField(m.name || ''),
+          escapeCsvField(m.type || 'veggie'),
+          escapeCsvField(m.season || 'all'),
+          escapeCsvField(m.calorieLevel || m.calorie_level || 'medium'),
+          escapeCsvField(m.prepTime || m.prep_time || 'medium'),
+          escapeCsvField(m.category || 'main'),
+          escapeCsvField(m.tags || ''),
+          escapeCsvField(m.recipeUrl || m.recipe_url || '')
+        ].join(',');
+      });
+
+      const csvContent = '\uFEFF' + [headers.join(','), ...rows].join('\r\n');
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `mes_repas_${new Date().toISOString().slice(0, 10)}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    function escapeCsvField(val) {
+      const str = String(val);
+      if (str.includes(',') || str.includes('"') || str.includes('\n') || str.includes('\r')) {
+        return `"${str.replace(/"/g, '""')}"`;
+      }
+      return str;
+    }
+
+    function importFromCsv(csvText) {
+      const lines = csvText.split(/\r?\n/).filter(line => line.trim().length > 0);
+      if (lines.length <= 1) {
+        alert('Le fichier CSV est vide ou ne contient pas de données.');
+        return;
+      }
+
+      // Parse header row
+      const headers = parseCsvRow(lines[0]).map(h => h.trim().toLowerCase());
+      const nameIdx = headers.indexOf('name');
+      const typeIdx = headers.indexOf('type');
+      const seasonIdx = headers.indexOf('season');
+      const calIdx = headers.indexOf('calorielevel') !== -1 ? headers.indexOf('calorielevel') : headers.indexOf('calorie_level');
+      const prepIdx = headers.indexOf('preptime') !== -1 ? headers.indexOf('preptime') : headers.indexOf('prep_time');
+      const catIdx = headers.indexOf('category');
+      const tagsIdx = headers.indexOf('tags');
+      const urlIdx = headers.indexOf('recipeurl') !== -1 ? headers.indexOf('recipeurl') : headers.indexOf('recipe_url');
+
+      if (nameIdx === -1 || typeIdx === -1) {
+        alert('Format CSV invalide : les colonnes obligatoires "name" et "type" sont introuvables.');
+        return;
+      }
+
+      let importedCount = 0;
+      for (let i = 1; i < lines.length; i++) {
+        const row = parseCsvRow(lines[i]);
+        if (!row || row.length === 0) continue;
+
+        const name = (row[nameIdx] || '').trim();
+        if (!name) continue;
+
+        const type = ((row[typeIdx] || 'veggie').trim().toLowerCase());
+        const season = seasonIdx !== -1 ? ((row[seasonIdx] || 'all').trim().toLowerCase()) : 'all';
+        const calorieLevel = calIdx !== -1 ? ((row[calIdx] || 'medium').trim().toLowerCase()) : 'medium';
+        const prepTime = prepIdx !== -1 ? ((row[prepIdx] || 'medium').trim().toLowerCase()) : 'medium';
+        const category = catIdx !== -1 ? ((row[catIdx] || 'main').trim().toLowerCase()) : 'main';
+        const tags = tagsIdx !== -1 ? (row[tagsIdx] || '').trim() : '';
+        const recipeUrl = urlIdx !== -1 ? (row[urlIdx] || '').trim() : '';
+
+        // Check if meal with exact name already exists
+        const existing = meals.find(m => m.name.toLowerCase() === name.toLowerCase());
+        if (existing) {
+          existing.type = type;
+          existing.season = season;
+          existing.calorieLevel = calorieLevel;
+          existing.prepTime = prepTime;
+          existing.category = category;
+          existing.tags = tags;
+          existing.recipeUrl = recipeUrl;
+        } else {
+          meals.push({
+            id: 'meal_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7),
+            name,
+            type,
+            season,
+            calorieLevel,
+            prepTime,
+            category,
+            tags,
+            recipeUrl,
+            photo: ''
+          });
+        }
+        importedCount++;
+      }
+
+      saveLocalState();
+      syncWithCloudflareD1();
+      renderMeals();
+      alert(`Importation réussie : ${importedCount} recette(s) importée(s) ou mise(s) à jour !`);
+    }
+
+    function parseCsvRow(rowStr) {
+      const res = [];
+      let insideQuotes = false;
+      let curr = '';
+
+      for (let i = 0; i < rowStr.length; i++) {
+        const char = rowStr[i];
+        if (char === '"') {
+          if (insideQuotes && rowStr[i + 1] === '"') {
+            curr += '"';
+            i++; // skip escaped quote
+          } else {
+            insideQuotes = !insideQuotes;
+          }
+        } else if (char === ',' && !insideQuotes) {
+          res.push(curr);
+          curr = '';
+        } else {
+          curr += char;
+        }
+      }
+      res.push(curr);
+      return res;
+    }
+
+    /* ═════════════════════════════════════════════
+       12. CLIENT-SIDE ZIP BACKUP & RESTORE ENGINE
+       ═════════════════════════════════════════════ */
+    // Zero-dependency pure JS ZIP format writer (STORE / uncompressed method)
+    function exportToZip() {
+      const backupData = {
+        version: 1,
+        exportedAt: new Date().toISOString(),
+        userId: currentUserId,
+        meals,
+        weeklyPlans,
+        settings
+      };
+
+      const jsonStr = JSON.stringify(backupData, null, 2);
+      const jsonUtf8 = new TextEncoder().encode(jsonStr);
+
+      // Construct ZIP binary structure
+      const zipUint8 = buildSimpleZip([
+        { filename: "mon_planning_repas_backup.json", data: jsonUtf8 }
+      ]);
+
+      const blob = new Blob([zipUint8], { type: 'application/zip' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `mon_planning_repas_backup_${new Date().toISOString().slice(0, 10)}.zip`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    function buildSimpleZip(files) {
+      // Minimalist standard ZIP specification (Store method, no compression)
+      const localHeaders = [];
+      let offset = 0;
+
+      files.forEach(f => {
+        const nameBytes = new TextEncoder().encode(f.filename);
+        const crc = crc32(f.data);
+        const header = new Uint8Array(30 + nameBytes.length);
+        const view = new DataView(header.buffer);
+
+        view.setUint32(0, 0x04034b50, true); // Local file header signature
+        view.setUint16(4, 20, true);         // Version needed
+        view.setUint16(6, 0x0800, true);     // General purpose bit flag (UTF-8)
+        view.setUint16(8, 0, true);          // Compression method: 0 (Store)
+        view.setUint16(10, 0, true);         // Last mod file time
+        view.setUint16(12, 0, true);         // Last mod file date
+        view.setUint32(14, crc, true);       // CRC-32
+        view.setUint32(18, f.data.length, true); // Compressed size
+        view.setUint32(22, f.data.length, true); // Uncompressed size
+        view.setUint16(26, nameBytes.length, true); // File name length
+        view.setUint16(28, 0, true);         // Extra field length
+        header.set(nameBytes, 30);
+
+        f.header = header;
+        f.offset = offset;
+        f.crc = crc;
+        f.nameBytes = nameBytes;
+        offset += header.length + f.data.length;
+      });
+
+      // Central Directory
+      const cdStart = offset;
+      const cdHeaders = [];
+      files.forEach(f => {
+        const cdHeader = new Uint8Array(46 + f.nameBytes.length);
+        const view = new DataView(cdHeader.buffer);
+
+        view.setUint32(0, 0x02014b50, true); // Central directory header signature
+        view.setUint16(4, 20, true);         // Version made by
+        view.setUint16(6, 20, true);         // Version needed
+        view.setUint16(8, 0x0800, true);     // Flags (UTF-8)
+        view.setUint16(10, 0, true);         // Compression: Store
+        view.setUint16(12, 0, true);
+        view.setUint16(14, 0, true);
+        view.setUint32(16, f.crc, true);
+        view.setUint32(20, f.data.length, true);
+        view.setUint32(24, f.data.length, true);
+        view.setUint16(28, f.nameBytes.length, true);
+        view.setUint16(30, 0, true);
+        view.setUint16(32, 0, true);
+        view.setUint16(34, 0, true);
+        view.setUint16(36, 0, true);
+        view.setUint32(38, 0, true);
+        view.setUint32(42, f.offset, true);  // Offset of local header
+        cdHeader.set(f.nameBytes, 46);
+
+        cdHeaders.push(cdHeader);
+        offset += cdHeader.length;
+      });
+
+      const cdSize = offset - cdStart;
+
+      // End of Central Directory Record
+      const eocd = new Uint8Array(22);
+      const eocdView = new DataView(eocd.buffer);
+      eocdView.setUint32(0, 0x06054b50, true);
+      eocdView.setUint16(4, 0, true);
+      eocdView.setUint16(6, 0, true);
+      eocdView.setUint16(8, files.length, true);
+      eocdView.setUint16(10, files.length, true);
+      eocdView.setUint32(12, cdSize, true);
+      eocdView.setUint32(16, cdStart, true);
+      eocdView.setUint16(20, 0, true);
+
+      // Concatenate
+      const totalSize = offset + eocd.length;
+      const result = new Uint8Array(totalSize);
+      let pos = 0;
+
+      files.forEach(f => {
+        result.set(f.header, pos);
+        pos += f.header.length;
+        result.set(f.data, pos);
+        pos += f.data.length;
+      });
+
+      cdHeaders.forEach(cd => {
+        result.set(cd, pos);
+        pos += cd.length;
+      });
+
+      result.set(eocd, pos);
+      return result;
+    }
+
+    function crc32(buf) {
+      let c = 0 ^ (-1);
+      for (let i = 0; i < buf.length; i++) {
+        c = (c >>> 8) ^ crcTable[(c ^ buf[i]) & 0xFF];
+      }
+      return (c ^ (-1)) >>> 0;
+    }
+
+    const crcTable = (function() {
+      const table = new Uint32Array(256);
+      for (let i = 0; i < 256; i++) {
+        let c = i;
+        for (let k = 0; k < 8; k++) {
+          c = ((c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1));
+        }
+        table[i] = c;
+      }
+      return table;
+    })();
+
+    async function restoreFromZip(file) {
+      try {
+        const buffer = await file.arrayBuffer();
+        const bytes = new Uint8Array(buffer);
+        const jsonContent = extractJsonFromZip(bytes);
+
+        if (!jsonContent) {
+          alert('Le fichier ZIP ne semble pas contenir de sauvegarde MonPlanningRepas valide.');
+          return;
+        }
+
+        const parsed = JSON.parse(jsonContent);
+        if (parsed.meals && Array.isArray(parsed.meals)) {
+          meals = parsed.meals;
+        }
+        if (parsed.weeklyPlans && Array.isArray(parsed.weeklyPlans)) {
+          weeklyPlans = parsed.weeklyPlans;
+        }
+        if (parsed.settings) {
+          settings = Object.assign(settings, parsed.settings);
+        }
+
+        saveLocalState();
+        syncWithCloudflareD1();
+        renderMeals();
+        renderPlanning();
+        alert('Restauration réussie depuis l\'archive ZIP !');
+      } catch (err) {
+        alert('Erreur lors de la lecture du fichier ZIP : ' + err.message);
+      }
+    }
+
+    function extractJsonFromZip(bytes) {
+      // Find local file header
+      const view = new DataView(bytes.buffer);
+      let pos = 0;
+      while (pos < bytes.length - 30) {
+        if (view.getUint32(pos, true) === 0x04034b50) {
+          const compMethod = view.getUint16(pos + 8, true);
+          const compSize = view.getUint32(pos + 18, true);
+          const nameLen = view.getUint16(pos + 26, true);
+          const extraLen = view.getUint16(pos + 28, true);
+          const name = new TextDecoder().decode(bytes.subarray(pos + 30, pos + 30 + nameLen));
+
+          if (name.endsWith('.json') && compMethod === 0) {
+            const dataStart = pos + 30 + nameLen + extraLen;
+            return new TextDecoder().decode(bytes.subarray(dataStart, dataStart + compSize));
+          }
+        }
+        pos++;
+      }
+      return null;
+    }
+
+    /* ═════════════════════════════════════════════
+       13. EVENTS & INITIALIZATION
+       ═════════════════════════════════════════════ */
+    function setupEvents() {
+      // Navigation Tabs
+      const tabs = [
+        { btn: document.getElementById('navTabMeals'), screen: 'screenMeals', hash: 'meals' },
+        { btn: document.getElementById('navTabPlanning'), screen: 'screenPlanning', hash: 'planning' },
+        { btn: document.getElementById('navTabSettings'), screen: 'screenSettings', hash: 'settings' }
+      ];
+
+      function switchScreen(screenId) {
+        tabs.forEach(item => {
+          const isTarget = item.screen === screenId;
+          const el = document.getElementById(item.screen);
+          if (el) el.classList.toggle('hidden', !isTarget);
+          if (item.btn) {
+            item.btn.classList.toggle('active', isTarget);
+            item.btn.classList.toggle('inactive', !isTarget);
+          }
+        });
+
+        const fab = document.getElementById('fabAddMeal');
+        if (fab) fab.classList.toggle('hidden', screenId !== 'screenMeals');
+        window.scrollTo({ top: 0, behavior: 'instant' });
+      }
+
+      tabs.forEach(t => {
+        t.btn.addEventListener('click', () => {
+          if (t.hash === 'meals') {
+            if (window.location.hash) {
+              history.pushState(null, null, window.location.pathname);
+            }
+            switchScreen('screenMeals');
+          } else {
+            window.location.hash = t.hash;
+          }
+        });
+      });
+
+      function handleHashChange() {
+        const h = (window.location.hash || '').replace('#', '').toLowerCase();
+        if (h === 'planning') switchScreen('screenPlanning');
+        else if (h === 'settings') switchScreen('screenSettings');
+        else switchScreen('screenMeals');
+      }
+
+      window.addEventListener('hashchange', handleHashChange);
+      handleHashChange();
+
+      // Search & Filters
+      const searchInput = document.getElementById('inputSearchMeals');
+      searchInput.addEventListener('input', (e) => {
+        searchQuery = e.target.value;
+        renderMeals();
+      });
+
+      document.querySelectorAll('.chip-filter').forEach(btn => {
+        btn.addEventListener('click', () => {
+          activeFilter = btn.dataset.filter;
+          document.querySelectorAll('.chip-filter').forEach(b => {
+            b.className = b.dataset.filter === activeFilter
+              ? 'chip-filter btn-tap px-2.5 py-1 rounded-lg border border-slate-900 bg-slate-900 text-white shrink-0 font-medium'
+              : 'chip-filter btn-tap px-2.5 py-1 rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 shrink-0 font-medium';
+          });
+          renderMeals();
+        });
+      });
+
+      document.querySelectorAll('.chip-season').forEach(btn => {
+        btn.addEventListener('click', () => {
+          activeFilterSeason = activeFilterSeason === btn.dataset.filterSeason ? 'all' : btn.dataset.filterSeason;
+          document.querySelectorAll('.chip-season').forEach(b => {
+            const isMatch = b.dataset.filterSeason === activeFilterSeason;
+            b.className = isMatch
+              ? 'chip-season btn-tap px-2.5 py-1 rounded-lg border border-slate-900 bg-slate-900 text-white shrink-0 font-medium'
+              : 'chip-season btn-tap px-2.5 py-1 rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 shrink-0 font-medium';
+          });
+          renderMeals();
+        });
+      });
+
+      // Modals
+      document.getElementById('btnOpenNewMealModal').addEventListener('click', () => openMealEditor());
+      document.getElementById('fabAddMeal').addEventListener('click', () => openMealEditor());
+      document.getElementById('btnEmptyAddMeal').addEventListener('click', () => openMealEditor());
+      document.getElementById('btnModalClose').addEventListener('click', closeMealEditor);
+      document.getElementById('btnModalCancel').addEventListener('click', closeMealEditor);
+      document.getElementById('btnModalSaveMeal').addEventListener('click', saveMealFromEditor);
+
+      document.getElementById('btnModalDeleteMeal').addEventListener('click', () => {
+        if (currentEditingMealId) {
+          const meal = meals.find(m => m.id === currentEditingMealId);
+          confirmDeleteMeal(currentEditingMealId, meal ? meal.name : 'cette recette');
+          closeMealEditor();
+        }
+      });
+
+      // Photo upload
+      const photoBox = document.getElementById('photoPreviewBox');
+      const filePhoto = document.getElementById('fileInputPhoto');
+      photoBox.addEventListener('click', (e) => {
+        if (e.target.id === 'btnRemovePhoto') return;
+        filePhoto.click();
+      });
+
+      filePhoto.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function(evt) {
+          const img = new Image();
+          img.onload = function() {
+            // Resize image to max 600px width/height for compact storage
+            const canvas = document.createElement('canvas');
+            const maxDim = 600;
+            let w = img.width, h = img.height;
+            if (w > h && w > maxDim) { h = Math.round((h * maxDim) / w); w = maxDim; }
+            else if (h > maxDim) { w = Math.round((w * maxDim) / h); h = maxDim; }
+            canvas.width = w; canvas.height = h;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, w, h);
+            currentEditorPhotoBase64 = canvas.toDataURL('image/jpeg', 0.82);
+
+            const preview = document.getElementById('imgPhotoPreview');
+            preview.src = currentEditorPhotoBase64;
+            preview.classList.remove('hidden');
+            document.getElementById('photoPlaceholderContent').classList.add('hidden');
+            document.getElementById('btnRemovePhoto').classList.remove('hidden');
+          };
+          img.src = evt.target.result;
+        };
+        reader.readAsDataURL(file);
+      });
+
+      document.getElementById('btnRemovePhoto').addEventListener('click', (e) => {
+        e.stopPropagation();
+        currentEditorPhotoBase64 = '';
+        document.getElementById('imgPhotoPreview').classList.add('hidden');
+        document.getElementById('photoPlaceholderContent').classList.remove('hidden');
+        document.getElementById('btnRemovePhoto').classList.add('hidden');
+      });
+
+      // Planning controls
+      document.getElementById('btnGenerateWeek').addEventListener('click', generateFullWeek);
+      document.getElementById('btnToggleAdvancedOptions').addEventListener('click', () => {
+        document.getElementById('drawerAdvancedOptions').classList.toggle('hidden');
+      });
+
+      // Sliders
+      ['Veggie', 'Meat', 'Fish', 'Seafood'].forEach(type => {
+        const slider = document.getElementById(`sliderProp${type}`);
+        const lbl = document.getElementById(`lblProp${type}`);
+        slider.addEventListener('input', () => {
+          lbl.textContent = `${slider.value}%`;
+          settings.dietProportions[type.toLowerCase()] = parseInt(slider.value, 10);
+          saveLocalState();
+        });
+      });
+
+      // Excluded tags
+      const excludedContainer = document.getElementById('excludedTagsContainer');
+      function renderExcludedChips() {
+        excludedContainer.innerHTML = '';
+        (settings.excludedTags || []).forEach(tag => {
+          const chip = document.createElement('span');
+          chip.className = 'inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs bg-rose-50 text-rose-800 border border-rose-200';
+          chip.innerHTML = `<span>${tag}</span><button type="button" class="text-rose-600 hover:text-rose-900 font-bold ml-1">&times;</button>`;
+          chip.querySelector('button').addEventListener('click', () => {
+            settings.excludedTags = settings.excludedTags.filter(t => t !== tag);
+            saveLocalState();
+            renderExcludedChips();
+          });
+          excludedContainer.appendChild(chip);
+        });
+      }
+      renderExcludedChips();
+
+      document.getElementById('btnAddExcludedTag').addEventListener('click', () => {
+        const input = document.getElementById('inputNewExcludedTag');
+        const val = input.value.trim().toLowerCase();
+        if (val && !settings.excludedTags.includes(val)) {
+          settings.excludedTags.push(val);
+          input.value = '';
+          saveLocalState();
+          renderExcludedChips();
+        }
+      });
+
+      // Slot Picker modal
+      document.getElementById('btnCloseSlotPicker').addEventListener('click', () => {
+        document.getElementById('modalSlotPicker').classList.add('hidden');
+      });
+      document.getElementById('btnSlotPickerCancel').addEventListener('click', () => {
+        document.getElementById('modalSlotPicker').classList.add('hidden');
+      });
+      document.getElementById('btnSlotPickerClear').addEventListener('click', () => {
+        if (currentSlotPicking) {
+          const p = weeklyPlans.find(item => item.dayIndex === currentSlotPicking.dayIndex && item.slot === currentSlotPicking.slot);
+          if (p) {
+            p.mealId = null;
+            saveLocalState();
+            persistPlannerRemote();
+            renderPlanning();
+          }
+        }
+        document.getElementById('modalSlotPicker').classList.add('hidden');
+      });
+      document.getElementById('inputSlotPickerSearch').addEventListener('input', (e) => {
+        renderSlotPickerList(e.target.value);
+      });
+
+      // CSV & ZIP Exports / Imports
+      document.getElementById('btnExportCsv').addEventListener('click', exportToCsv);
+      document.getElementById('btnExportZip').addEventListener('click', exportToZip);
+
+      const fileCsv = document.getElementById('fileInputCsv');
+      document.getElementById('btnQuickImportCsv').addEventListener('click', () => fileCsv.click());
+      document.getElementById('btnTriggerImportCsv').addEventListener('click', () => fileCsv.click());
+      fileCsv.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (evt) => importFromCsv(evt.target.result);
+        reader.readAsText(file, 'UTF-8');
+      });
+
+      const fileZip = document.getElementById('fileInputZip');
+      document.getElementById('btnTriggerRestoreZip').addEventListener('click', () => fileZip.click());
+      fileZip.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        restoreFromZip(file);
+      });
+
+      // Settings Data Resets
+      document.getElementById('lblUserIdDisplay').textContent = currentUserId;
+      document.getElementById('btnCopyUserId').addEventListener('click', () => {
+        navigator.clipboard.writeText(currentUserId).then(() => {
+          document.getElementById('btnCopyUserId').textContent = 'Copié !';
+          setTimeout(() => document.getElementById('btnCopyUserId').textContent = 'Copier l\'ID', 2000);
+        });
+      });
+
+      document.getElementById('btnReloadSeedData').addEventListener('click', () => {
+        if (confirm('Voulez-vous recharger les 6 recettes d\'exemple ? Vos recettes actuelles seront conservées.')) {
+          SEED_MEALS.forEach(sm => {
+            if (!meals.some(m => m.name.toLowerCase() === sm.name.toLowerCase())) {
+              meals.push({ ...sm, id: 'meal_seed_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6) });
+            }
+          });
+          saveLocalState();
+          syncWithCloudflareD1();
+          renderMeals();
+          alert('Recettes d\'exemple ajoutées !');
+        }
+      });
+
+      document.getElementById('btnResetAllData').addEventListener('click', () => {
+        if (confirm('ATTENTION : Voulez-vous vraiment effacer toutes vos recettes et votre planning ?')) {
+          if (confirm('Êtes-vous ABSOLUMENT certain ? Cette action est irréversible.')) {
+            meals = [];
+            initEmptyWeeklyPlans();
+            saveLocalState();
+            renderMeals();
+            renderPlanning();
+            alert('Toutes les données ont été réinitialisées.');
+          }
+        }
+      });
+    }
+
+    /* ═════════════════════════════════════════════
+       14. INITIALIZATION
+       ═════════════════════════════════════════════ */
+    function init() {
+      loadLocalState();
+      setupEvents();
+      renderMeals();
+      renderPlanning();
+      checkD1Status();
+    }
+
+    init();
+
+  })();
+  </script>
+</body>
+</html>

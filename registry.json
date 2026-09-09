@@ -74,6 +74,14 @@
       "category": "dev-tools",
       "path": "/binary-decision-tournament/",
       "dateAdded": "2026-09-09"
+    },
+    {
+      "id": "mon-planning-repas",
+      "title": "MonPlanningRepas: Menus & Recettes",
+      "description": "Organisez votre carnet de recettes, planifiez automatiquement 14 repas hebdomadaires équilibrés avec verrouillage de créneaux et synchronisation SQL Cloudflare D1.",
+      "category": "nutrition",
+      "path": "/mon-planning-repas/",
+      "dateAdded": "2026-09-09"
     }
   ]
 }
