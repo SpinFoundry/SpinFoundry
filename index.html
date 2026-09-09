@@ -56,7 +56,7 @@
       <!-- Pilules de Catégories (Hauteur égale & Scroll propre) -->
       <div class="flex items-center gap-2 overflow-x-auto w-full md:w-auto pb-2 md:pb-0 scrollbar-none" id="categoryPills">
         <button type="button" data-category="all" class="category-pill px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap bg-slate-900 text-white shadow-sm transition-all">
-          All (5)
+          All (6)
         </button>
         <button type="button" data-category="color-vision" class="category-pill px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 transition-colors shadow-sm">
           👁️ Color & Vision (3)
@@ -66,6 +66,9 @@
         </button>
         <button type="button" data-category="games" class="category-pill px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 transition-colors shadow-sm">
           🕹️ Mini-Games & Puzzles (1)
+        </button>
+        <button type="button" data-category="dev-tools" class="category-pill px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 transition-colors shadow-sm">
+          🛠️ Dev & Design (1)
         </button>
         <button type="button" data-category="finance" class="category-pill px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap bg-white text-slate-400 border border-slate-200 opacity-50 cursor-not-allowed" title="Coming soon">
           📊 Finance & Wealth (0)
@@ -81,9 +84,6 @@
         </button>
         <button type="button" data-category="garden" class="category-pill px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap bg-white text-slate-400 border border-slate-200 opacity-50 cursor-not-allowed" title="Coming soon">
           🌿 Home & Garden (0)
-        </button>
-        <button type="button" data-category="dev-tools" class="category-pill px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap bg-white text-slate-400 border border-slate-200 opacity-50 cursor-not-allowed" title="Coming soon">
-          🛠️ Dev & Design (0)
         </button>
       </div>
     </div>
@@ -208,6 +208,30 @@
         
         <div class="mt-5 pt-3 border-t border-slate-100 flex items-center justify-between text-xs font-medium text-slate-900 group-hover:text-slate-600">
           <span>Launch Game</span>
+          <span class="transform group-hover:translate-x-1 transition-transform">→</span>
+        </div>
+      </a>
+
+      <!-- Carte Cliquable: Gamut Masking Tool -->
+      <a href="/gamut-masking-tool/" data-tool-id="gamut-masking-tool" data-category="dev-tools" data-tags="gamut mask color harmony oklch color wheel painters artists value luminance tonal remapping palette" class="tool-card group flex flex-col justify-between p-5 bg-white border border-slate-200/80 rounded-xl shadow-sm hover:shadow-md hover:border-slate-300 hover:-translate-y-0.5 transition-all duration-150">
+        <div>
+          <div class="flex items-center justify-between text-xs font-mono text-slate-500 mb-3">
+            <span class="inline-flex items-center gap-1.5 font-medium text-slate-700">
+              <span class="w-1.5 h-1.5 rounded-full bg-slate-600"></span>
+              Dev &amp; Design
+            </span>
+            <time>2026-09-09</time>
+          </div>
+          <h2 class="text-base font-bold text-slate-900 group-hover:text-slate-700 transition-colors">
+            Gamut Masking Tool for Visual Artists
+          </h2>
+          <p class="text-xs text-slate-600 mt-2 leading-relaxed line-clamp-3">
+            Shape geometric color masks over an OKLCH color wheel to harmonize artwork with 100% perceptual luminance (value) preservation.
+          </p>
+        </div>
+        
+        <div class="mt-5 pt-3 border-t border-slate-100 flex items-center justify-between text-xs font-medium text-slate-900 group-hover:text-slate-600">
+          <span>Open Gamut Masker</span>
           <span class="transform group-hover:translate-x-1 transition-transform">→</span>
         </div>
       </a>

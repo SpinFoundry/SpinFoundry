@@ -50,6 +50,14 @@
       "category": "games",
       "path": "/vector-td-deckbuilder/",
       "dateAdded": "2026-09-09"
+    },
+    {
+      "id": "gamut-masking-tool",
+      "title": "Gamut Masking Tool for Visual Artists",
+      "description": "Shape geometric color masks over an OKLCH color wheel to harmonize paintings and reference images with 100% perceptual luminance (value) preservation.",
+      "category": "dev-tools",
+      "path": "/gamut-masking-tool/",
+      "dateAdded": "2026-09-09"
     }
   ]
 }

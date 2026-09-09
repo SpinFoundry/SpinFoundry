@@ -1,0 +1,1521 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gamut Masking Tool for Painters & Visual Artists | SpinFoundry</title>
+  <meta name="description" content="Interactive Gamut Masking tool for painters and visual artists. Define geometric color masks on an OKLCH color wheel and remap reference images with 100% luminance (tonal value) preservation.">
+  <meta name="keywords" content="gamut mask tool, james gurney gamut mask, painter color harmony, oklch color wheel, visual artist color scheme, value preservation, color remapping, digital painting palette">
+  <link rel="canonical" href="https://spinfoundry.pages.dev/gamut-masking-tool/">
+
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://spinfoundry.pages.dev/gamut-masking-tool/">
+  <meta property="og:title" content="Gamut Masking Tool for Painters & Visual Artists | SpinFoundry">
+  <meta property="og:description" content="Construct interactive geometric gamut masks over a perceptual color wheel and remap paintings while strictly preserving original tonal values.">
+  <meta name="twitter:card" content="summary_large_image">
+
+  <link rel="stylesheet" href="/assets/styles.css">
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "Gamut Masking Tool for Painters & Visual Artists",
+    "url": "https://spinfoundry.pages.dev/gamut-masking-tool/",
+    "description": "Interactive James Gurney-style gamut masking tool that restricts image chroma and hue to geometric polygons while guaranteeing strict perceptual luminance preservation via OKLCH.",
+    "applicationCategory": "DesignApplication",
+    "operatingSystem": "All"
+  }
+  </script>
+
+  <style>
+    /* Category Badge: Dev & Design */
+    .badge-dev-tools {
+      background-color: #f1f5f9;
+      color: #334155;
+      border: 1px solid rgba(148, 163, 184, 0.4);
+    }
+    .badge-dev-tools-dot {
+      background-color: #475569;
+    }
+
+    /* Color Wheel & Canvas */
+    #wheelCanvas {
+      display: block;
+      width: 280px;
+      height: 280px;
+      border-radius: 9999px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12), inset 0 0 0 1px rgba(0, 0, 0, 0.08);
+      cursor: crosshair;
+      user-select: none;
+      -webkit-user-select: none;
+      touch-action: none;
+    }
+
+    /* Comparison Split Slider Viewport */
+    .comparison-container {
+      position: relative;
+      overflow: hidden;
+      border-radius: 0.75rem;
+      user-select: none;
+      -webkit-user-select: none;
+      background-color: #0f172a;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+      max-height: 540px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .comparison-img-wrapper {
+      position: relative;
+      display: inline-block;
+      max-width: 100%;
+      line-height: 0;
+    }
+
+    .comparison-before-canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      height: 100%;
+      width: 100%;
+      pointer-events: none;
+    }
+
+    .comparison-after-canvas {
+      display: block;
+      max-width: 100%;
+      max-height: 520px;
+      height: auto;
+      object-fit: contain;
+    }
+
+    /* Draggable Split Divider Line */
+    .comparison-divider {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 3px;
+      background-color: #ffffff;
+      box-shadow: 0 0 8px rgba(0, 0, 0, 0.5);
+      cursor: ew-resize;
+      z-index: 10;
+      transform: translateX(-50%);
+    }
+
+    .comparison-handle {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 28px;
+      height: 28px;
+      background-color: #ffffff;
+      border: 2px solid #0f172a;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+      pointer-events: none;
+    }
+
+    /* Dropzone Hover */
+    .dropzone-active {
+      border-color: #0284c7 !important;
+      background-color: #f0f9ff !important;
+    }
+
+    /* Palette Swatch */
+    .palette-swatch {
+      width: 24px;
+      height: 24px;
+      border-radius: 0.375rem;
+      border: 1px solid rgba(0, 0, 0, 0.15);
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+      display: inline-block;
+    }
+
+    /* Buttons & Interactive Elements */
+    .btn-action {
+      transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .btn-action:active {
+      transform: scale(0.97);
+    }
+
+    /* Utility Fallbacks */
+    .flex { display: flex; }
+    .flex-col { flex-direction: column; }
+    .items-center { align-items: center; }
+    .justify-between { justify-content: space-between; }
+    .justify-center { justify-content: center; }
+    .grid { display: grid; }
+    .grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .grid-cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .gap-1 { gap: 0.25rem; }
+    .gap-1\.5 { gap: 0.375rem; }
+    .gap-2 { gap: 0.5rem; }
+    .gap-3 { gap: 0.75rem; }
+    .gap-4 { gap: 1rem; }
+    .gap-6 { gap: 1.5rem; }
+    .hidden { display: none !important; }
+    .w-full { width: 100%; }
+    .max-w-2xl { max-width: 42rem; }
+    .max-w-4xl { max-width: 56rem; }
+    .max-w-5xl { max-width: 64rem; }
+    .mx-auto { margin-left: auto; margin-right: auto; }
+    .text-xs { font-size: 0.75rem; line-height: 1rem; }
+    .text-sm { font-size: 0.875rem; line-height: 1.25rem; }
+    .text-base { font-size: 1rem; line-height: 1.5rem; }
+    .text-lg { font-size: 1.125rem; line-height: 1.75rem; }
+    .text-xl { font-size: 1.25rem; line-height: 1.75rem; }
+    .text-2xl { font-size: 1.5rem; line-height: 2rem; }
+    .font-bold { font-weight: 700; }
+    .font-semibold { font-weight: 600; }
+    .font-medium { font-weight: 500; }
+    .uppercase { text-transform: uppercase; }
+    .tracking-wider { letter-spacing: 0.05em; }
+    .tracking-tight { letter-spacing: -0.025em; }
+    .rounded-lg { border-radius: 0.5rem; }
+    .rounded-xl { border-radius: 0.75rem; }
+    .rounded-2xl { border-radius: 1rem; }
+    .rounded-full { border-radius: 9999px; }
+    .shadow-sm { box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); }
+    .shadow-md { box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1); }
+    .border { border-width: 1px; }
+    .border-b { border-bottom-width: 1px; }
+    .border-t { border-top-width: 1px; }
+    .border-slate-200 { border-color: #e2e8f0; }
+    .border-slate-300 { border-color: #cbd5e1; }
+    .border-slate-100 { border-color: #f1f5f9; }
+    .bg-white { background-color: #ffffff; }
+    .bg-slate-50 { background-color: #f8fafc; }
+    .bg-slate-100 { background-color: #f1f5f9; }
+    .bg-slate-900 { background-color: #0f172a; }
+    .text-slate-900 { color: #0f172a; }
+    .text-slate-800 { color: #1e293b; }
+    .text-slate-700 { color: #334155; }
+    .text-slate-600 { color: #475569; }
+    .text-slate-500 { color: #64748b; }
+    .text-slate-400 { color: #94a3b8; }
+    .text-white { color: #ffffff; }
+    .hover\:bg-slate-50:hover { background-color: #f8fafc; }
+    .hover\:bg-slate-100:hover { background-color: #f1f5f9; }
+    .hover\:bg-slate-800:hover { background-color: #1e293b; }
+    .hover\:text-slate-900:hover { color: #0f172a; }
+    .p-3 { padding: 0.75rem; }
+    .p-4 { padding: 1rem; }
+    .p-6 { padding: 1.5rem; }
+    .px-3 { padding-left: 0.75rem; padding-right: 0.75rem; }
+    .px-4 { padding-left: 1rem; padding-right: 1rem; }
+    .py-1 { padding-top: 0.25rem; padding-bottom: 0.25rem; }
+    .py-1\.5 { padding-top: 0.375rem; padding-bottom: 0.375rem; }
+    .py-2 { padding-top: 0.5rem; padding-bottom: 0.5rem; }
+    .py-2\.5 { padding-top: 0.625rem; padding-bottom: 0.625rem; }
+    .py-10 { padding-top: 2.5rem; padding-bottom: 2.5rem; }
+    .mb-3 { margin-bottom: 0.75rem; }
+    .mb-4 { margin-bottom: 1rem; }
+    .mb-6 { margin-bottom: 1.5rem; }
+    .mt-1 { margin-top: 0.25rem; }
+    .mt-2 { margin-top: 0.5rem; }
+    .mt-4 { margin-top: 1rem; }
+    .mt-16 { margin-top: 4rem; }
+    .pt-4 { padding-top: 1rem; }
+    .pt-6 { padding-top: 1.5rem; }
+    .pb-5 { padding-bottom: 1.25rem; }
+    .space-y-1 > :not([hidden]) ~ :not([hidden]) { margin-top: 0.25rem; }
+    .space-y-2 > :not([hidden]) ~ :not([hidden]) { margin-top: 0.5rem; }
+    .space-y-4 > :not([hidden]) ~ :not([hidden]) { margin-top: 1rem; }
+    .space-y-6 > :not([hidden]) ~ :not([hidden]) { margin-top: 1.5rem; }
+    .cursor-pointer { cursor: pointer; }
+    .select-none { user-select: none; -webkit-user-select: none; }
+    .leading-relaxed { line-height: 1.625; }
+
+    .border-2 { border-width: 2px; }
+    .border-dashed { border-style: dashed; }
+    .flex-shrink-0 { flex-shrink: 0; }
+    .hover\:bg-slate-200:hover { background-color: #e2e8f0; }
+    .items-start { align-items: flex-start; }
+    .justify-end { justify-content: flex-end; }
+    .leading-tight { line-height: 1.25; }
+    .mb-1\.5 { margin-bottom: 0.375rem; }
+    .p-0\.5 { padding: 0.125rem; }
+    .py-8 { padding-top: 2rem; padding-bottom: 2rem; }
+    .rounded-md { border-radius: 0.375rem; }
+    .space-y-3 > :not([hidden]) ~ :not([hidden]) { margin-top: 0.75rem; }
+    .space-y-5 > :not([hidden]) ~ :not([hidden]) { margin-top: 1.25rem; }
+
+    @media (min-width: 640px) {
+      .sm\:flex-row { flex-direction: row; }
+      .sm\:flex-initial { flex: 0 1 auto; }
+      .sm\:w-auto { width: auto; }
+      .sm\:py-10 { padding-top: 2.5rem; padding-bottom: 2.5rem; }
+      .sm\:text-3xl { font-size: 1.875rem; line-height: 2.25rem; }
+    }
+
+    @media (min-width: 768px) {
+      .md\:flex-row { flex-direction: row; }
+      .md\:w-80 { width: 20rem; }
+      .md\:flex-1 { flex: 1 1 0%; }
+    }
+  </style>
+</head>
+<body class="bg-[#F8F9FA] text-slate-800 antialiased font-sans min-h-screen">
+
+  <main class="max-w-5xl mx-auto px-4 py-8 sm:py-10">
+
+    <!-- Top Navigation Chrome -->
+    <div class="flex items-center justify-between mb-4">
+      <a href="/" class="text-xs font-medium text-slate-500 hover:text-slate-800 flex items-center gap-1.5 transition-colors">
+        <span>←</span>
+        <span>SpinFoundry Hub</span>
+      </a>
+      <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-mono badge-dev-tools">
+        <span class="w-1.5 h-1.5 rounded-full badge-dev-tools-dot"></span>
+        Dev &amp; Design
+      </div>
+    </div>
+
+    <!-- Header -->
+    <header class="mb-6 pb-5 border-b border-slate-200">
+      <div class="flex items-center gap-2 mb-1.5">
+        <span class="px-2 py-0.5 rounded text-[11px] font-mono font-bold bg-slate-900 text-white">GAMUT MASK</span>
+        <span class="text-xs font-mono text-slate-500 uppercase tracking-wider">Perceptual Value Preservation</span>
+      </div>
+      <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900">
+        Gamut Masking Tool
+      </h1>
+      <p class="mt-1.5 text-sm text-slate-600 max-w-2xl">
+        Shape an allowed geometric color mask over the perceptual color wheel. The tool clamps chromaticity to the polygon perimeter while <strong>mathematically locking original tonal luminance (value)</strong>.
+      </p>
+    </header>
+
+    <!-- MAIN TWO-COLUMN WORKSPACE -->
+    <div class="flex flex-col md:flex-row gap-6 mb-8 items-start">
+
+      <!-- LEFT: INTERACTIVE COLOR WHEEL & MASK CONTROLS (320px) -->
+      <div class="w-full md:w-80 flex-shrink-0 bg-white border border-slate-200/80 rounded-2xl p-5 shadow-sm space-y-5">
+        
+        <div class="flex items-center justify-between">
+          <h2 class="text-sm font-bold text-slate-900">Allowed Color Gamut</h2>
+          <span class="text-[11px] font-mono text-slate-500" id="maskPointCountLabel">3 Vertices</span>
+        </div>
+
+        <!-- Canvas Wheel & Interactive Polygon -->
+        <div class="flex justify-center relative select-none">
+          <canvas id="wheelCanvas" width="280" height="280"></canvas>
+        </div>
+
+        <!-- Wheel Manipulation Instructions -->
+        <div class="text-[11px] text-slate-500 text-center font-mono leading-tight">
+          Drag handles to shape • Drag center to move • Rotate ring
+        </div>
+
+        <!-- Rotation & Polygon Points Control -->
+        <div class="space-y-3 pt-3 border-t border-slate-100 text-xs">
+          
+          <!-- Rotation Slider -->
+          <div>
+            <div class="flex items-center justify-between text-slate-600 mb-1">
+              <span class="font-medium">Mask Rotation</span>
+              <span class="font-mono font-bold text-slate-900" id="lblRotation">0°</span>
+            </div>
+            <input type="range" id="sliderRotation" min="0" max="360" value="0" class="w-full">
+          </div>
+
+          <!-- Polygon Vertices Count -->
+          <div class="flex items-center justify-between pt-1">
+            <span class="font-medium text-slate-600">Polygon Sides</span>
+            <div class="inline-flex rounded-lg border border-slate-200 p-0.5 bg-slate-50 text-[11px]">
+              <button type="button" data-points="3" class="btn-pts px-2.5 py-0.5 rounded font-bold bg-white text-slate-900 shadow-sm">3</button>
+              <button type="button" data-points="4" class="btn-pts px-2.5 py-0.5 rounded font-medium text-slate-500 hover:text-slate-800">4</button>
+              <button type="button" data-points="5" class="btn-pts px-2.5 py-0.5 rounded font-medium text-slate-500 hover:text-slate-800">5</button>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Classic Gamut Presets -->
+        <div class="space-y-2 pt-3 border-t border-slate-100">
+          <div class="text-[11px] font-mono uppercase text-slate-400 font-semibold tracking-wider">
+            Classic Color Harmonies
+          </div>
+          <div class="grid grid-cols-2 gap-1.5 text-xs">
+            <button type="button" data-preset="triadic" class="btn-preset py-1.5 px-2 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg font-medium text-left transition-colors">
+              ▲ Triadic
+            </button>
+            <button type="button" data-preset="complementary" class="btn-preset py-1.5 px-2 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg font-medium text-left transition-colors">
+              ⧓ Complementary
+            </button>
+            <button type="button" data-preset="atmospheric" class="btn-preset py-1.5 px-2 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg font-medium text-left transition-colors">
+              🌤 Atmospheric
+            </button>
+            <button type="button" data-preset="analogous" class="btn-preset py-1.5 px-2 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg font-medium text-left transition-colors">
+              ◐ Analogous
+            </button>
+            <button type="button" data-preset="muted" class="btn-preset py-1.5 px-2 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg font-medium text-left transition-colors">
+              ◈ Muted Accent
+            </button>
+            <button type="button" data-preset="reset" class="btn-preset py-1.5 px-2 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg font-medium text-left transition-colors">
+              ↺ Full Spectrum
+            </button>
+          </div>
+        </div>
+
+        <!-- Extracted Palette Swatches -->
+        <div class="space-y-2 pt-3 border-t border-slate-100">
+          <div class="text-[11px] font-mono uppercase text-slate-400 font-semibold tracking-wider">
+            Allowed Gamut Swatches
+          </div>
+          <div class="flex items-center gap-1.5" id="paletteSwatches">
+            <!-- Injected by JS -->
+          </div>
+        </div>
+
+      </div>
+
+      <!-- RIGHT: REFERENCE IMAGE VIEWPORT & COMPARISON (FLEX-1) -->
+      <div class="w-full md:flex-1 space-y-4">
+        
+        <!-- Image Loader Bar -->
+        <div class="bg-white border border-slate-200/80 rounded-2xl p-4 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-3">
+          
+          <!-- Sample Loaders -->
+          <div class="flex items-center gap-2 w-full sm:w-auto">
+            <span class="text-xs font-mono text-slate-500 whitespace-nowrap">Sample:</span>
+            <div class="flex items-center gap-1.5">
+              <button type="button" data-sample="landscape" class="btn-sample px-2.5 py-1 text-xs font-medium rounded-lg bg-slate-100 text-slate-800 hover:bg-slate-200 transition-colors">
+                Landscape
+              </button>
+              <button type="button" data-sample="still_life" class="btn-sample px-2.5 py-1 text-xs font-medium rounded-lg bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors">
+                Still Life
+              </button>
+              <button type="button" data-sample="portrait" class="btn-sample px-2.5 py-1 text-xs font-medium rounded-lg bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors">
+                Portrait
+              </button>
+            </div>
+          </div>
+
+          <!-- File Upload Button & Drag Trigger -->
+          <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
+            <input type="file" id="fileInput" accept="image/*" class="hidden">
+            <button type="button" id="btnUploadImage" class="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-slate-900 text-white hover:bg-slate-800 shadow-sm transition-all btn-action">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+              <span>Upload Custom Image</span>
+            </button>
+          </div>
+
+        </div>
+
+        <!-- Dropzone / Main Viewport -->
+        <div id="dropzone" class="comparison-container border-2 border-dashed border-slate-200">
+          
+          <div id="canvasWrapper" class="comparison-img-wrapper">
+            <!-- Base Canvas (After / Remapped Image) -->
+            <canvas id="afterCanvas" class="comparison-after-canvas"></canvas>
+            
+            <!-- Clipped Overlay Canvas (Before / Original Image) -->
+            <canvas id="beforeCanvas" class="comparison-before-canvas"></canvas>
+
+            <!-- Interactive Split Divider -->
+            <div id="splitDivider" class="comparison-divider" style="left: 50%;">
+              <div class="comparison-handle">
+                <svg class="w-3 h-3 text-slate-800" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M8 9l4-4 4 4m0 6l-4 4-4-4"/></svg>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Viewport Controls & Export Bar -->
+        <div class="bg-white border border-slate-200/80 rounded-2xl p-4 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-3">
+          
+          <!-- View Toggle Mode -->
+          <div class="flex items-center gap-2">
+            <span class="text-xs text-slate-500 font-mono">View:</span>
+            <div class="inline-flex rounded-lg border border-slate-200 p-0.5 bg-slate-50 text-xs">
+              <button type="button" id="btnModeSplit" class="px-3 py-1 rounded-md font-bold bg-white text-slate-900 shadow-sm">
+                Split Slider
+              </button>
+              <button type="button" id="btnModeToggle" class="px-3 py-1 rounded-md font-medium text-slate-600 hover:text-slate-900">
+                Hold to View Original
+              </button>
+            </div>
+          </div>
+
+          <!-- Actions -->
+          <div class="flex items-center gap-2 w-full sm:w-auto">
+            <button type="button" id="btnCopyImage" class="flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 shadow-sm transition-all btn-action">
+              <span id="lblCopyText">Copy</span>
+            </button>
+            <button type="button" id="btnDownloadImage" class="flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-bold bg-slate-900 text-white hover:bg-slate-800 shadow-sm transition-all btn-action">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+              <span>Download Remapped PNG</span>
+            </button>
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- Educational & Technical Deep Dive -->
+    <article class="mt-16 pt-8 border-t border-slate-200 text-slate-600 space-y-6 text-sm leading-relaxed">
+      
+      <div class="space-y-2">
+        <h2 class="text-lg font-bold text-slate-900">What is Gamut Masking?</h2>
+        <p>
+          Popularized by master painter and author <strong>James Gurney</strong> (<em>Color and Light</em>), gamut masking is a disciplined method for establishing color harmony. By cutting a geometric window in paper and laying it over a color wheel, the artist restricts the palette to a specific chromatic neighborhood. This creates unified atmosphere, mood, and color relationships while eliminating accidental disharmony.
+        </p>
+      </div>
+
+      <div class="space-y-2">
+        <h2 class="text-lg font-bold text-slate-900">Why Value Preservation is Critical</h2>
+        <p>
+          In painting, <em>"Value does all the work, but color gets all the credit."</em> Tonal value (perceptual luminance) dictates depth, form, lighting, and readability. Standard RGB or HSL color shifts often drastically distort lightness (e.g., desaturating yellow causes it to darken into an olive brown, while desaturating navy blue lightens it).
+        </p>
+        <p>
+          This tool executes all calculations in <strong>OKLCH</strong> (a cylindrical representation of the perceptual OKLab color space). Lightness (\(L\)) is mathematically decoupled from chroma (\(C\)) and hue (\(h\)). When an out-of-gamut pixel is projected onto the nearest boundary of the mask polygon, its original luminance \(L\) remains 100% untouched.
+        </p>
+      </div>
+
+      <div class="space-y-2">
+        <h2 class="text-lg font-bold text-slate-900">How to Use This in Your Studio Workflow</h2>
+        <ul class="list-disc pl-5 space-y-1 text-slate-600">
+          <li><strong>Mood Color Scripts:</strong> Drag the rotation slider to instantly transpose a daylight scene into a golden hour sunset or cool moonlight ambiance without losing lighting values.</li>
+          <li><strong>Reference Harmonization:</strong> Feed heterogeneous photo references through a single gamut mask before painting to guarantee that background and character elements share the exact same chromatic world.</li>
+          <li><strong>Palette Generation:</strong> Use the live extracted swatch panel below the wheel to populate your digital painting mixer brush or traditional oil palette.</li>
+        </ul>
+      </div>
+
+    </article>
+
+    <!-- SpinFoundry Footer -->
+    <footer class="mt-16 pt-6 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 gap-3">
+      <span>SpinFoundry — Zero-overhead, 100% client-side hub.</span>
+      <div class="flex items-center gap-4">
+        <a href="/" class="hover:text-slate-800 transition-colors">Catalog Hub</a>
+        <a href="/color-acuity-test/" class="hover:text-slate-800 transition-colors">Test I</a>
+        <a href="/vector-td-deckbuilder/" class="hover:text-slate-800 transition-colors">Vector Defense</a>
+        <a href="https://github.com/SpinFoundry/SpinFoundry" target="_blank" rel="noopener noreferrer" class="hover:text-slate-800 transition-colors">GitHub</a>
+        <a href="/sitemap.xml" class="hover:text-slate-800 transition-colors">Sitemap</a>
+      </div>
+    </footer>
+
+  </main>
+
+  <script>
+  (function () {
+    'use strict';
+
+    /* ═════════════════════════════════════════════
+       1. COLOR MATH: sRGB <-> Linear <-> OKLab <-> OKLCH
+       ═════════════════════════════════════════════ */
+    function srgbToLinear(c) {
+      c = c / 255;
+      return c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+    }
+
+    function linearToSrgb(c) {
+      c = Math.max(0, Math.min(1, c));
+      return Math.round(255 * (c <= 0.0031308 ? 12.92 * c : 1.055 * Math.pow(c, 1 / 2.4) - 0.055));
+    }
+
+    function linearRgbToOklab(r, g, b) {
+      const l = Math.cbrt(0.4122214708 * r + 0.5363325363 * g + 0.0514459929 * b);
+      const m = Math.cbrt(0.2119034982 * r + 0.6806995451 * g + 0.1073969566 * b);
+      const s = Math.cbrt(0.0883024619 * r + 0.2817188376 * g + 0.6299787005 * b);
+      return [
+        0.2104542553 * l + 0.7936177850 * m - 0.0040720468 * s,
+        1.9779984951 * l - 2.4285922050 * m + 0.4505937099 * s,
+        0.0259040371 * l + 0.7827717662 * m - 0.8086757660 * s
+      ];
+    }
+
+    function oklabToLinearRgb(L, a, b) {
+      const l_ = L + 0.3963377774 * a + 0.2158037573 * b;
+      const m_ = L - 0.1055613458 * a - 0.0638541728 * b;
+      const s_ = L - 0.0894841775 * a - 1.2914855480 * b;
+      const l = l_ * l_ * l_;
+      const m = m_ * m_ * m_;
+      const s = s_ * s_ * s_;
+      return [
+        +4.0767434770 * l - 3.3077115913 * m + 0.2309699292 * s,
+        -1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s,
+        -0.0041960863 * l - 0.7034186147 * m + 1.7076147010 * s
+      ];
+    }
+
+    function oklabToOklch(L, a, b) {
+      const C = Math.hypot(a, b);
+      let h = Math.atan2(b, a) * (180 / Math.PI);
+      if (h < 0) h += 360;
+      return [L, C, h];
+    }
+
+    function oklchToOklab(L, C, h) {
+      const rad = h * (Math.PI / 180);
+      return [L, C * Math.cos(rad), C * Math.sin(rad)];
+    }
+
+    function oklchToRgb(L, C, h) {
+      const [oL, a, b] = oklchToOklab(L, C, h);
+      const [rL, gL, bL] = oklabToLinearRgb(oL, a, b);
+      return [linearToSrgb(rL), linearToSrgb(gL), linearToSrgb(bL)];
+    }
+
+    const MAX_CHROMA = 0.32; // Nominal maximum chroma for the color wheel radius
+
+    /* ═════════════════════════════════════════════
+       2. GEOMETRY & POLYGON PROJECTION
+       ═════════════════════════════════════════════ */
+    function pointInPolygon(px, py, vertices) {
+      let inside = false;
+      const n = vertices.length;
+      for (let i = 0, j = n - 1; i < n; j = i++) {
+        const xi = vertices[i].x, yi = vertices[i].y;
+        const xj = vertices[j].x, yj = vertices[j].y;
+        const intersect = ((yi > py) !== (yj > py)) && (px < (xj - xi) * (py - yi) / (yj - yi) + xi);
+        if (intersect) inside = !inside;
+      }
+      return inside;
+    }
+
+    function closestPointOnSegment(px, py, ax, ay, bx, by) {
+      const abx = bx - ax;
+      const aby = by - ay;
+      const lenSq = abx * abx + aby * aby;
+      if (lenSq === 0) return { x: ax, y: ay };
+
+      const t = Math.max(0, Math.min(1, ((px - ax) * abx + (py - ay) * aby) / lenSq));
+      return {
+        x: ax + t * abx,
+        y: ay + t * aby
+      };
+    }
+
+    function projectPointToPolygon(px, py, vertices) {
+      if (pointInPolygon(px, py, vertices)) {
+        return { x: px, y: py };
+      }
+
+      let bestDistSq = Infinity;
+      let bestPoint = { x: px, y: py };
+      const n = vertices.length;
+
+      for (let i = 0; i < n; i++) {
+        const next = (i + 1) % n;
+        const p = closestPointOnSegment(px, py, vertices[i].x, vertices[i].y, vertices[next].x, vertices[next].y);
+        const dx = px - p.x;
+        const dy = py - p.y;
+        const distSq = dx * dx + dy * dy;
+        if (distSq < bestDistSq) {
+          bestDistSq = distSq;
+          bestPoint = p;
+        }
+      }
+      return bestPoint;
+    }
+
+    /* ═════════════════════════════════════════════
+       3. PRESET MASK CONFIGURATIONS
+       ═════════════════════════════════════════════ */
+    const PRESETS = {
+      triadic: [
+        { r: 0.85, a: 0 },
+        { r: 0.78, a: 120 },
+        { r: 0.72, a: 240 }
+      ],
+      complementary: [
+        { r: 0.85, a: 15 },
+        { r: 0.25, a: 85 },
+        { r: 0.85, a: 195 },
+        { r: 0.25, a: 275 }
+      ],
+      atmospheric: [
+        { r: 0.88, a: 35 },
+        { r: 0.80, a: 85 },
+        { r: 0.15, a: 60 }
+      ],
+      analogous: [
+        { r: 0.85, a: 170 },
+        { r: 0.85, a: 240 },
+        { r: 0.20, a: 240 },
+        { r: 0.20, a: 170 }
+      ],
+      muted: [
+        { r: 0.35, a: 0 },
+        { r: 0.35, a: 90 },
+        { r: 0.75, a: 150 },
+        { r: 0.35, a: 270 }
+      ],
+      reset: [
+        { r: 0.96, a: 0 },
+        { r: 0.96, a: 60 },
+        { r: 0.96, a: 120 },
+        { r: 0.96, a: 180 },
+        { r: 0.96, a: 240 },
+        { r: 0.96, a: 300 }
+      ]
+    };
+
+    /* ═════════════════════════════════════════════
+       4. APPLICATION STATE & DOM REFS
+       ═════════════════════════════════════════════ */
+    const state = {
+      maskVertices: [], // [{x, y}] in normalized coords [-1, 1]
+      rotationDeg: 0,
+      activeHandleIndex: -1,
+      isDraggingCenter: false,
+      dragStart: { x: 0, y: 0 },
+      splitPercent: 50,
+      isSplitDragging: false,
+      isHoldOriginal: false,
+      viewMode: 'split', // 'split' | 'toggle'
+      sourceImg: null,
+      sourceWidth: 0,
+      sourceHeight: 0
+    };
+
+    const DOM = {
+      wheelCanvas: document.getElementById('wheelCanvas'),
+      sliderRotation: document.getElementById('sliderRotation'),
+      lblRotation: document.getElementById('lblRotation'),
+      maskPointCountLabel: document.getElementById('maskPointCountLabel'),
+      paletteSwatches: document.getElementById('paletteSwatches'),
+      dropzone: document.getElementById('dropzone'),
+      canvasWrapper: document.getElementById('canvasWrapper'),
+      beforeCanvas: document.getElementById('beforeCanvas'),
+      afterCanvas: document.getElementById('afterCanvas'),
+      splitDivider: document.getElementById('splitDivider'),
+      btnModeSplit: document.getElementById('btnModeSplit'),
+      btnModeToggle: document.getElementById('btnModeToggle'),
+      fileInput: document.getElementById('fileInput'),
+      btnUploadImage: document.getElementById('btnUploadImage'),
+      btnCopyImage: document.getElementById('btnCopyImage'),
+      lblCopyText: document.getElementById('lblCopyText'),
+      btnDownloadImage: document.getElementById('btnDownloadImage')
+    };
+
+    /* ═════════════════════════════════════════════
+       5. COLOR WHEEL RENDERING
+       ═════════════════════════════════════════════ */
+    let wheelBgCanvas = null;
+
+    function buildWheelBackground(size) {
+      wheelBgCanvas = document.createElement('canvas');
+      wheelBgCanvas.width = size;
+      wheelBgCanvas.height = size;
+      const ctx = wheelBgCanvas.getContext('2d');
+      const cx = size / 2;
+      const cy = size / 2;
+      const radius = size / 2;
+
+      const imgData = ctx.createImageData(size, size);
+      const data = imgData.data;
+
+      for (let y = 0; y < size; y++) {
+        for (let x = 0; x < size; x++) {
+          const dx = x - cx;
+          const dy = y - cy;
+          const dist = Math.hypot(dx, dy);
+          const idx = (y * size + x) * 4;
+
+          if (dist <= radius) {
+            let angle = Math.atan2(dy, dx) * (180 / Math.PI);
+            if (angle < 0) angle += 360;
+
+            const rNorm = dist / radius;
+            const chroma = rNorm * MAX_CHROMA;
+            const [r, g, b] = oklchToRgb(0.72, chroma, angle);
+
+            data[idx]     = r;
+            data[idx + 1] = g;
+            data[idx + 2] = b;
+            data[idx + 3] = 255;
+          } else {
+            data[idx + 3] = 0;
+          }
+        }
+      }
+      ctx.putImageData(imgData, 0, 0);
+    }
+
+    function renderWheel() {
+      const canvas = DOM.wheelCanvas;
+      const ctx = canvas.getContext('2d');
+      const w = canvas.width;
+      const h = canvas.height;
+      const cx = w / 2;
+      const cy = h / 2;
+      const radius = (w / 2) - 4;
+
+      if (!wheelBgCanvas) {
+        buildWheelBackground(w);
+      }
+
+      ctx.clearRect(0, 0, w, h);
+
+      // 1. Draw chromatic disc
+      ctx.drawImage(wheelBgCanvas, 0, 0);
+
+      // 2. Draw outer boundary ring
+      ctx.strokeStyle = '#e2e8f0';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+      ctx.stroke();
+
+      // 3. Draw Mask exclusion darkening (Even-Odd Fill)
+      ctx.save();
+      ctx.fillStyle = 'rgba(15, 23, 42, 0.72)'; // Dark mask cover
+      ctx.beginPath();
+      // Outer path: entire canvas box
+      ctx.rect(0, 0, w, h);
+
+      // Inner path: mask polygon (in reverse orientation for even-odd cut)
+      if (state.maskVertices.length >= 3) {
+        state.maskVertices.forEach((v, i) => {
+          const px = cx + v.x * radius;
+          const py = cy + v.y * radius;
+          if (i === 0) ctx.moveTo(px, py);
+          else ctx.lineTo(px, py);
+        });
+        ctx.closePath();
+      }
+      ctx.fill('evenodd');
+      ctx.restore();
+
+      // 4. Draw Mask Polygon Vector Border
+      if (state.maskVertices.length >= 3) {
+        ctx.save();
+        ctx.strokeStyle = '#38bdf8';
+        ctx.lineWidth = 2.5;
+        ctx.shadowColor = 'rgba(56, 189, 248, 0.5)';
+        ctx.shadowBlur = 6;
+        ctx.beginPath();
+        state.maskVertices.forEach((v, i) => {
+          const px = cx + v.x * radius;
+          const py = cy + v.y * radius;
+          if (i === 0) ctx.moveTo(px, py);
+          else ctx.lineTo(px, py);
+        });
+        ctx.closePath();
+        ctx.stroke();
+        ctx.restore();
+
+        // 5. Draw Draggable Vertex Handles
+        state.maskVertices.forEach((v, i) => {
+          const px = cx + v.x * radius;
+          const py = cy + v.y * radius;
+          ctx.save();
+          ctx.fillStyle = '#ffffff';
+          ctx.strokeStyle = '#0f172a';
+          ctx.lineWidth = 2;
+          ctx.shadowColor = 'rgba(0,0,0,0.3)';
+          ctx.shadowBlur = 4;
+          ctx.beginPath();
+          ctx.arc(px, py, 6, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.stroke();
+          ctx.restore();
+        });
+
+        // 6. Draw Center Translation Anchor
+        const center = getPolygonCenter();
+        const cpx = cx + center.x * radius;
+        const cpy = cy + center.y * radius;
+        ctx.save();
+        ctx.fillStyle = '#38bdf8';
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.arc(cpx, cpy, 4.5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      updatePaletteSwatches();
+    }
+
+    function getPolygonCenter() {
+      if (state.maskVertices.length === 0) return { x: 0, y: 0 };
+      let sx = 0, sy = 0;
+      state.maskVertices.forEach(v => { sx += v.x; sy += v.y; });
+      return { x: sx / state.maskVertices.length, y: sy / state.maskVertices.length };
+    }
+
+    function updatePaletteSwatches() {
+      if (state.maskVertices.length < 3) return;
+
+      const colors = state.maskVertices.map(v => {
+        const angle = (Math.atan2(v.y, v.x) * (180 / Math.PI) + 360) % 360;
+        const dist = Math.min(1.0, Math.hypot(v.x, v.y));
+        const [r, g, b] = oklchToRgb(0.72, dist * MAX_CHROMA, angle);
+        const hex = '#' + [r, g, b].map(x => x.toString(16).padStart(2, '0')).join('');
+        return { hex, r, g, b };
+      });
+
+      DOM.paletteSwatches.innerHTML = colors.map(c => `
+        <span class="palette-swatch" style="background-color: ${c.hex};" title="${c.hex}"></span>
+      `).join('');
+    }
+
+    /* ═════════════════════════════════════════════
+       6. MASK PRESETS & MANIPULATION
+       ═════════════════════════════════════════════ */
+    function applyPreset(presetKey) {
+      const def = PRESETS[presetKey] || PRESETS.triadic;
+      state.maskVertices = def.map(p => {
+        const rad = (p.a + state.rotationDeg) * (Math.PI / 180);
+        return {
+          x: p.r * Math.cos(rad),
+          y: p.r * Math.sin(rad)
+        };
+      });
+      DOM.maskPointCountLabel.textContent = `${state.maskVertices.length} Vertices`;
+      renderWheel();
+      remapImage();
+    }
+
+    function setVertexCount(n) {
+      if (n === 3) applyPreset('triadic');
+      else if (n === 4) applyPreset('complementary');
+      else if (n === 5) {
+        state.maskVertices = [
+          { r: 0.82, a: 0 },
+          { r: 0.75, a: 72 },
+          { r: 0.75, a: 144 },
+          { r: 0.82, a: 216 },
+          { r: 0.35, a: 288 }
+        ].map(p => {
+          const rad = (p.a + state.rotationDeg) * (Math.PI / 180);
+          return { x: p.r * Math.cos(rad), y: p.r * Math.sin(rad) };
+        });
+        DOM.maskPointCountLabel.textContent = '5 Vertices';
+        renderWheel();
+        remapImage();
+      }
+    }
+
+    function rotateMaskTo(deg) {
+      const diffRad = (deg - state.rotationDeg) * (Math.PI / 180);
+      state.rotationDeg = deg;
+      DOM.lblRotation.textContent = `${Math.round(deg)}°`;
+
+      const cos = Math.cos(diffRad);
+      const sin = Math.sin(diffRad);
+
+      state.maskVertices.forEach(v => {
+        const nx = v.x * cos - v.y * sin;
+        const ny = v.x * sin + v.y * cos;
+        v.x = nx;
+        v.y = ny;
+      });
+
+      renderWheel();
+      remapImage();
+    }
+
+    /* ═════════════════════════════════════════════
+       7. IMAGE REMAPPING ENGINE (100% VALUE PRESERVATION)
+       ═════════════════════════════════════════════ */
+    let isRemapping = false;
+    let pendingRemap = false;
+
+    function remapImage() {
+      if (!state.sourceImg) return;
+      if (isRemapping) {
+        pendingRemap = true;
+        return;
+      }
+
+      isRemapping = true;
+
+      // Execute in animation frame for fluid non-blocking UI
+      requestAnimationFrame(() => {
+        executeRemap();
+        isRemapping = false;
+        if (pendingRemap) {
+          pendingRemap = false;
+          remapImage();
+        }
+      });
+    }
+
+    function executeRemap() {
+      const beforeCanvas = DOM.beforeCanvas;
+      const afterCanvas = DOM.afterCanvas;
+      const w = beforeCanvas.width;
+      const h = beforeCanvas.height;
+      if (w === 0 || h === 0) return;
+
+      const beforeCtx = beforeCanvas.getContext('2d');
+      const afterCtx = afterCanvas.getContext('2d');
+
+      const srcImgData = beforeCtx.getImageData(0, 0, w, h);
+      const dstImgData = afterCtx.createImageData(w, h);
+
+      const srcData = srcImgData.data;
+      const dstData = dstImgData.data;
+      const vertices = state.maskVertices;
+
+      for (let i = 0; i < srcData.length; i += 4) {
+        const r = srcData[i];
+        const g = srcData[i + 1];
+        const b = srcData[i + 2];
+        const a = srcData[i + 3];
+
+        if (a === 0) {
+          dstData[i + 3] = 0;
+          continue;
+        }
+
+        // 1. sRGB to OKLCH
+        const rL = srgbToLinear(r);
+        const gL = srgbToLinear(g);
+        const bL = srgbToLinear(b);
+        const [L_orig, a_ok, b_ok] = linearRgbToOklab(rL, gL, bL);
+        const [L, C_orig, hue_orig] = oklabToOklch(L_orig, a_ok, b_ok);
+
+        // 2. Map Chroma & Hue to normalized wheel coordinates [-1, 1]
+        const rNorm = Math.min(1.0, C_orig / MAX_CHROMA);
+        const rad = hue_orig * (Math.PI / 180);
+        const px = rNorm * Math.cos(rad);
+        const py = rNorm * Math.sin(rad);
+
+        // 3. Project to allowed polygon
+        const proj = projectPointToPolygon(px, py, vertices);
+
+        // 4. Convert projected coordinates back to clamped Chroma & Hue
+        const newDist = Math.min(1.0, Math.hypot(proj.x, proj.y));
+        const newChroma = newDist * MAX_CHROMA;
+        let newHue = Math.atan2(proj.y, proj.x) * (180 / Math.PI);
+        if (newHue < 0) newHue += 360;
+
+        // 5. Strictly preserve original L_orig!
+        const [clampedR, clampedG, clampedB] = oklchToRgb(L_orig, newChroma, newHue);
+
+        dstData[i]     = clampedR;
+        dstData[i + 1] = clampedG;
+        dstData[i + 2] = clampedB;
+        dstData[i + 3] = a;
+      }
+
+      afterCtx.putImageData(dstImgData, 0, 0);
+      updateComparisonClip();
+    }
+
+    function updateComparisonClip() {
+      const beforeCanvas = DOM.beforeCanvas;
+      const w = beforeCanvas.width;
+      const h = beforeCanvas.height;
+      const divider = DOM.splitDivider;
+
+      if (state.viewMode === 'split') {
+        divider.classList.remove('hidden');
+        divider.style.left = `${state.splitPercent}%`;
+        const clipX = (w * state.splitPercent) / 100;
+        beforeCanvas.style.clipPath = `polygon(0 0, ${clipX}px 0, ${clipX}px 100%, 0 100%)`;
+      } else {
+        // Toggle mode
+        divider.classList.add('hidden');
+        if (state.isHoldOriginal) {
+          beforeCanvas.style.clipPath = 'polygon(0 0, 100% 0, 100% 100%, 0 100%)';
+        } else {
+          beforeCanvas.style.clipPath = 'polygon(0 0, 0 0, 0 100%, 0 100%)';
+        }
+      }
+    }
+
+    /* ═════════════════════════════════════════════
+       8. IMAGE LOADING & SAMPLE GENERATION
+       ═════════════════════════════════════════════ */
+    function loadImageFromSrc(src) {
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.onload = () => {
+        state.sourceImg = img;
+        state.sourceWidth = img.naturalWidth;
+        state.sourceHeight = img.naturalHeight;
+
+        // Scale viewport canvas keeping aspect ratio, max width 800
+        const maxW = 800;
+        let scale = 1;
+        if (img.naturalWidth > maxW) {
+          scale = maxW / img.naturalWidth;
+        }
+
+        const renderW = Math.round(img.naturalWidth * scale);
+        const renderH = Math.round(img.naturalHeight * scale);
+
+        DOM.beforeCanvas.width = renderW;
+        DOM.beforeCanvas.height = renderH;
+        DOM.afterCanvas.width = renderW;
+        DOM.afterCanvas.height = renderH;
+
+        const beforeCtx = DOM.beforeCanvas.getContext('2d');
+        beforeCtx.drawImage(img, 0, 0, renderW, renderH);
+
+        remapImage();
+      };
+      img.src = src;
+    }
+
+    // Procedural Sample Images generator (Vibrant paintings)
+    function generateSampleImage(type) {
+      const sampleCanvas = document.createElement('canvas');
+      sampleCanvas.width = 640;
+      sampleCanvas.height = 420;
+      const ctx = sampleCanvas.getContext('2d');
+
+      if (type === 'landscape') {
+        // Sunset Mountain Landscape
+        const sky = ctx.createLinearGradient(0, 0, 0, 260);
+        sky.addColorStop(0, '#1e1b4b'); // deep indigo
+        sky.addColorStop(0.4, '#c026d3'); // vibrant magenta
+        sky.addColorStop(0.75, '#ea580c'); // fiery orange
+        sky.addColorStop(1, '#fef08a'); // luminous yellow
+        ctx.fillStyle = sky;
+        ctx.fillRect(0, 0, 640, 260);
+
+        // Sun
+        ctx.fillStyle = '#ffffff';
+        ctx.shadowColor = '#fbbf24';
+        ctx.shadowBlur = 24;
+        ctx.beginPath();
+        ctx.arc(320, 190, 36, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+
+        // Distant violet mountain peaks
+        ctx.fillStyle = '#4c1d95';
+        ctx.beginPath();
+        ctx.moveTo(0, 240);
+        ctx.lineTo(120, 140);
+        ctx.lineTo(240, 210);
+        ctx.lineTo(360, 130);
+        ctx.lineTo(480, 220);
+        ctx.lineTo(640, 160);
+        ctx.lineTo(640, 280);
+        ctx.lineTo(0, 280);
+        ctx.fill();
+
+        // Midground cyan-teal lake with reflections
+        const lake = ctx.createLinearGradient(0, 240, 0, 420);
+        lake.addColorStop(0, '#0284c7');
+        lake.addColorStop(0.5, '#0d9488');
+        lake.addColorStop(1, '#064e3b');
+        ctx.fillStyle = lake;
+        ctx.fillRect(0, 240, 640, 180);
+
+        // Foreground rich pine silhouettes
+        ctx.fillStyle = '#022c22';
+        for (let i = 0; i < 7; i++) {
+          const bx = 30 + i * 95;
+          ctx.beginPath();
+          ctx.moveTo(bx, 420);
+          ctx.lineTo(bx - 35, 420);
+          ctx.lineTo(bx, 280 - (i % 3) * 25);
+          ctx.lineTo(bx + 35, 420);
+          ctx.fill();
+        }
+      } else if (type === 'still_life') {
+        // Impressionist Still Life with fruit & vase
+        const bg = ctx.createRadialGradient(320, 210, 50, 320, 210, 320);
+        bg.addColorStop(0, '#312e81');
+        bg.addColorStop(1, '#0f172a');
+        ctx.fillStyle = bg;
+        ctx.fillRect(0, 0, 640, 420);
+
+        // Table drapery
+        ctx.fillStyle = '#831843';
+        ctx.beginPath();
+        ctx.moveTo(0, 280);
+        ctx.bezierCurveTo(200, 260, 440, 300, 640, 270);
+        ctx.lineTo(640, 420);
+        ctx.lineTo(0, 420);
+        ctx.fill();
+
+        // Vibrant Ceramic Vase (Cobalt Blue)
+        ctx.fillStyle = '#2563eb';
+        ctx.beginPath();
+        ctx.ellipse(320, 220, 55, 90, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Yellow Sunflowers & Coral Peonies
+        ctx.fillStyle = '#eab308';
+        ctx.beginPath(); ctx.arc(280, 110, 32, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(360, 100, 28, 0, Math.PI * 2); ctx.fill();
+
+        ctx.fillStyle = '#f43f5e';
+        ctx.beginPath(); ctx.arc(320, 80, 30, 0, Math.PI * 2); ctx.fill();
+
+        // Table apples (Emerald Green & Crimson)
+        ctx.fillStyle = '#16a34a';
+        ctx.beginPath(); ctx.arc(220, 340, 26, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = '#dc2626';
+        ctx.beginPath(); ctx.arc(390, 350, 30, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = '#f97316';
+        ctx.beginPath(); ctx.arc(340, 360, 24, 0, Math.PI * 2); ctx.fill();
+      } else {
+        // Expressive Portrait
+        const bg = ctx.createLinearGradient(0, 0, 640, 420);
+        bg.addColorStop(0, '#047857');
+        bg.addColorStop(1, '#1e1b4b');
+        ctx.fillStyle = bg;
+        ctx.fillRect(0, 0, 640, 420);
+
+        // Warm Face Base
+        ctx.fillStyle = '#fbbf24';
+        ctx.beginPath();
+        ctx.ellipse(320, 210, 80, 115, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Cool Shadow Half
+        ctx.fillStyle = 'rgba(79, 70, 229, 0.45)';
+        ctx.beginPath();
+        ctx.ellipse(320, 210, 80, 115, 0, -Math.PI / 2, Math.PI / 2);
+        ctx.fill();
+
+        // Hair (Fiery Copper)
+        ctx.fillStyle = '#c2410c';
+        ctx.beginPath();
+        ctx.arc(320, 150, 95, Math.PI, 0);
+        ctx.fill();
+
+        // Turquoise Scarf
+        ctx.fillStyle = '#06b6d4';
+        ctx.beginPath();
+        ctx.ellipse(320, 350, 140, 60, 0, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      loadImageFromSrc(sampleCanvas.toDataURL('image/png'));
+    }
+
+    /* ═════════════════════════════════════════════
+       9. INTERACTION EVENTS
+       ═════════════════════════════════════════════ */
+    function setupWheelInteractions() {
+      const canvas = DOM.wheelCanvas;
+
+      function getWheelCoords(e) {
+        const rect = canvas.getBoundingClientRect();
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        const cx = rect.width / 2;
+        const cy = rect.height / 2;
+        const radius = (rect.width / 2) - 4;
+
+        const x = (clientX - rect.left - cx) / radius;
+        const y = (clientY - rect.top - cy) / radius;
+        return { x, y };
+      }
+
+      canvas.addEventListener('mousedown', (e) => {
+        const pt = getWheelCoords(e);
+
+        // Check if clicking a handle
+        let foundIdx = -1;
+        state.maskVertices.forEach((v, idx) => {
+          if (Math.hypot(v.x - pt.x, v.y - pt.y) < 0.12) {
+            foundIdx = idx;
+          }
+        });
+
+        if (foundIdx !== -1) {
+          state.activeHandleIndex = foundIdx;
+        } else if (pointInPolygon(pt.x, pt.y, state.maskVertices)) {
+          state.isDraggingCenter = true;
+          state.dragStart = pt;
+        }
+      });
+
+      window.addEventListener('mousemove', (e) => {
+        if (state.activeHandleIndex !== -1) {
+          const pt = getWheelCoords(e);
+          // Clamp inside unit wheel
+          const dist = Math.hypot(pt.x, pt.y);
+          if (dist > 0.98) {
+            pt.x = (pt.x / dist) * 0.98;
+            pt.y = (pt.y / dist) * 0.98;
+          }
+          state.maskVertices[state.activeHandleIndex] = pt;
+          renderWheel();
+          remapImage();
+        } else if (state.isDraggingCenter) {
+          const pt = getWheelCoords(e);
+          const dx = pt.x - state.dragStart.x;
+          const dy = pt.y - state.dragStart.y;
+          state.dragStart = pt;
+
+          // Translate all vertices
+          state.maskVertices.forEach(v => {
+            v.x += dx;
+            v.y += dy;
+            const d = Math.hypot(v.x, v.y);
+            if (d > 0.98) {
+              v.x = (v.x / d) * 0.98;
+              v.y = (v.y / d) * 0.98;
+            }
+          });
+
+          renderWheel();
+          remapImage();
+        }
+      });
+
+      window.addEventListener('mouseup', () => {
+        state.activeHandleIndex = -1;
+        state.isDraggingCenter = false;
+      });
+
+      // Touch handlers
+      canvas.addEventListener('touchstart', (e) => {
+        const pt = getWheelCoords(e);
+        let foundIdx = -1;
+        state.maskVertices.forEach((v, idx) => {
+          if (Math.hypot(v.x - pt.x, v.y - pt.y) < 0.16) {
+            foundIdx = idx;
+          }
+        });
+        if (foundIdx !== -1) {
+          state.activeHandleIndex = foundIdx;
+        } else if (pointInPolygon(pt.x, pt.y, state.maskVertices)) {
+          state.isDraggingCenter = true;
+          state.dragStart = pt;
+        }
+      }, { passive: false });
+
+      window.addEventListener('touchmove', (e) => {
+        if (state.activeHandleIndex !== -1 || state.isDraggingCenter) {
+          e.preventDefault();
+          const pt = getWheelCoords(e);
+          if (state.activeHandleIndex !== -1) {
+            const dist = Math.hypot(pt.x, pt.y);
+            if (dist > 0.98) {
+              pt.x = (pt.x / dist) * 0.98;
+              pt.y = (pt.y / dist) * 0.98;
+            }
+            state.maskVertices[state.activeHandleIndex] = pt;
+          } else if (state.isDraggingCenter) {
+            const dx = pt.x - state.dragStart.x;
+            const dy = pt.y - state.dragStart.y;
+            state.dragStart = pt;
+            state.maskVertices.forEach(v => {
+              v.x += dx;
+              v.y += dy;
+              const d = Math.hypot(v.x, v.y);
+              if (d > 0.98) {
+                v.x = (v.x / d) * 0.98;
+                v.y = (v.y / d) * 0.98;
+              }
+            });
+          }
+          renderWheel();
+          remapImage();
+        }
+      }, { passive: false });
+
+      window.addEventListener('touchend', () => {
+        state.activeHandleIndex = -1;
+        state.isDraggingCenter = false;
+      });
+    }
+
+    function setupComparisonSlider() {
+      const dropzone = DOM.dropzone;
+      const divider = DOM.splitDivider;
+
+      function updateSplitFromClientX(clientX) {
+        const rect = dropzone.getBoundingClientRect();
+        let pct = ((clientX - rect.left) / rect.width) * 100;
+        pct = Math.max(0, Math.min(100, pct));
+        state.splitPercent = pct;
+        updateComparisonClip();
+      }
+
+      divider.addEventListener('mousedown', (e) => {
+        state.isSplitDragging = true;
+      });
+
+      window.addEventListener('mousemove', (e) => {
+        if (state.isSplitDragging) {
+          updateSplitFromClientX(e.clientX);
+        }
+      });
+
+      window.addEventListener('mouseup', () => {
+        state.isSplitDragging = false;
+      });
+
+      divider.addEventListener('touchstart', (e) => {
+        state.isSplitDragging = true;
+      }, { passive: true });
+
+      window.addEventListener('touchmove', (e) => {
+        if (state.isSplitDragging) {
+          updateSplitFromClientX(e.touches[0].clientX);
+        }
+      }, { passive: true });
+
+      window.addEventListener('touchend', () => {
+        state.isSplitDragging = false;
+      });
+    }
+
+    function setupFileAndUIEvents() {
+      // Rotation Slider
+      DOM.sliderRotation.addEventListener('input', (e) => {
+        rotateMaskTo(parseFloat(e.target.value));
+      });
+
+      // Preset Buttons
+      document.querySelectorAll('.btn-preset').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const p = btn.dataset.preset;
+          applyPreset(p);
+        });
+      });
+
+      // Vertex Count Buttons
+      document.querySelectorAll('.btn-pts').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.btn-pts').forEach(b => {
+            b.className = 'btn-pts px-2.5 py-0.5 rounded font-medium text-slate-500 hover:text-slate-800';
+          });
+          btn.className = 'btn-pts px-2.5 py-0.5 rounded font-bold bg-white text-slate-900 shadow-sm';
+          setVertexCount(parseInt(btn.dataset.points, 10));
+        });
+      });
+
+      // Sample Image Buttons
+      document.querySelectorAll('.btn-sample').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.btn-sample').forEach(b => {
+            b.className = 'btn-sample px-2.5 py-1 text-xs font-medium rounded-lg bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors';
+          });
+          btn.className = 'btn-sample px-2.5 py-1 text-xs font-medium rounded-lg bg-slate-100 text-slate-800 hover:bg-slate-200 transition-colors';
+          generateSampleImage(btn.dataset.sample);
+        });
+      });
+
+      // File upload & Dropzone
+      DOM.btnUploadImage.addEventListener('click', () => {
+        DOM.fileInput.click();
+      });
+
+      DOM.fileInput.addEventListener('change', (e) => {
+        if (e.target.files && e.target.files[0]) {
+          const reader = new FileReader();
+          reader.onload = (evt) => {
+            loadImageFromSrc(evt.target.result);
+          };
+          reader.readAsDataURL(e.target.files[0]);
+        }
+      });
+
+      // Drag & Drop on Viewport
+      const dz = DOM.dropzone;
+      dz.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dz.classList.add('dropzone-active');
+      });
+      dz.addEventListener('dragleave', () => {
+        dz.classList.remove('dropzone-active');
+      });
+      dz.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dz.classList.remove('dropzone-active');
+        if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+          const reader = new FileReader();
+          reader.onload = (evt) => {
+            loadImageFromSrc(evt.target.result);
+          };
+          reader.readAsDataURL(e.dataTransfer.files[0]);
+        }
+      });
+
+      // View Modes: Split vs Hold to View
+      DOM.btnModeSplit.addEventListener('click', () => {
+        state.viewMode = 'split';
+        DOM.btnModeSplit.className = 'px-3 py-1 rounded-md font-bold bg-white text-slate-900 shadow-sm';
+        DOM.btnModeToggle.className = 'px-3 py-1 rounded-md font-medium text-slate-600 hover:text-slate-900';
+        updateComparisonClip();
+      });
+
+      DOM.btnModeToggle.addEventListener('click', () => {
+        state.viewMode = 'toggle';
+        DOM.btnModeToggle.className = 'px-3 py-1 rounded-md font-bold bg-white text-slate-900 shadow-sm';
+        DOM.btnModeSplit.className = 'px-3 py-1 rounded-md font-medium text-slate-600 hover:text-slate-900';
+        state.isHoldOriginal = false;
+        updateComparisonClip();
+      });
+
+      DOM.btnModeToggle.addEventListener('mousedown', () => {
+        if (state.viewMode === 'toggle') {
+          state.isHoldOriginal = true;
+          updateComparisonClip();
+        }
+      });
+      window.addEventListener('mouseup', () => {
+        if (state.viewMode === 'toggle') {
+          state.isHoldOriginal = false;
+          updateComparisonClip();
+        }
+      });
+
+      // Download Remapped Image
+      DOM.btnDownloadImage.addEventListener('click', () => {
+        const link = document.createElement('a');
+        link.download = 'gamut-remapped-artwork.png';
+        link.href = DOM.afterCanvas.toDataURL('image/png');
+        link.click();
+      });
+
+      // Copy Image to Clipboard
+      DOM.btnCopyImage.addEventListener('click', () => {
+        DOM.afterCanvas.toBlob((blob) => {
+          if (!blob) return;
+          try {
+            const item = new ClipboardItem({ 'image/png': blob });
+            navigator.clipboard.write([item]).then(() => {
+              DOM.lblCopyText.textContent = 'Copied!';
+              setTimeout(() => { DOM.lblCopyText.textContent = 'Copy'; }, 2000);
+            }).catch(() => {
+              DOM.lblCopyText.textContent = 'Use Download';
+              setTimeout(() => { DOM.lblCopyText.textContent = 'Copy'; }, 2000);
+            });
+          } catch (e) {
+            DOM.lblCopyText.textContent = 'Use Download';
+            setTimeout(() => { DOM.lblCopyText.textContent = 'Copy'; }, 2000);
+          }
+        });
+      });
+    }
+
+    /* ═════════════════════════════════════════════
+       10. INIT
+       ═════════════════════════════════════════════ */
+    function init() {
+      setupWheelInteractions();
+      setupComparisonSlider();
+      setupFileAndUIEvents();
+
+      // Initialize with Triadic Preset and Landscape sample
+      applyPreset('triadic');
+      generateSampleImage('landscape');
+    }
+
+    init();
+
+  })();
+  </script>
+</body>
+</html>
