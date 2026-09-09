@@ -4,14 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Color Vision & Acuity Test | SpinFoundry</title>
-  <meta name="description" content="Test your color discrimination threshold with 30 progressive levels. Find the odd tile in a growing grid with ever-finer color deltas — no timers, just pure visual acuity.">
+  <meta name="description" content="Test your color discrimination threshold with 30 progressive levels. Find the odd tile in a growing grid with ever-finer color deltas — sudden death, pure visual acuity.">
   <meta name="keywords" content="color vision test, color acuity test, color discrimination, Ishihara alternative, hue perception test, color blindness test online">
   <link rel="canonical" href="https://spinfoundry.pages.dev/color-acuity-test/">
 
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://spinfoundry.pages.dev/color-acuity-test/">
   <meta property="og:title" content="Color Vision & Acuity Test | SpinFoundry">
-  <meta property="og:description" content="30-level progressive color discrimination test. Find the odd tile — no timers, pure perceptual precision.">
+  <meta property="og:description" content="30-level progressive color discrimination test. Find the odd tile — sudden death mode, pure perceptual precision.">
   <meta name="twitter:card" content="summary">
 
   <link rel="stylesheet" href="/assets/styles.css">
@@ -44,9 +44,19 @@
     }
     .color-tile.wrong {
       animation: shake 0.35s ease;
+      outline: 3px solid #ef4444;
+      outline-offset: -2px;
+      z-index: 2;
     }
     .color-tile.correct {
       animation: pulse-correct 0.4s ease;
+    }
+    .color-tile.reveal-target {
+      animation: target-reveal 0.9s cubic-bezier(0.34, 1.56, 0.64, 1) infinite alternate;
+      outline: 3px solid #10b981;
+      outline-offset: 2px;
+      z-index: 10;
+      position: relative;
     }
     @keyframes shake {
       0%,100%{transform:translateX(0)}
@@ -60,8 +70,29 @@
       50%{transform:scale(1.18)}
       100%{transform:scale(1)}
     }
-    /* Heart lives */
-    .heart-lost { opacity: 0.2; }
+    @keyframes target-reveal {
+      0% {
+        transform: scale(1.04);
+        box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.5), 0 8px 24px rgba(16, 185, 129, 0.3);
+      }
+      100% {
+        transform: scale(1.14);
+        box-shadow: 0 0 0 7px rgba(16, 185, 129, 0.9), 0 12px 30px rgba(16, 185, 129, 0.6);
+      }
+    }
+    @keyframes slide-fade-up {
+      0% {
+        opacity: 0;
+        transform: translateY(24px) scale(0.97);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+    .animate-results {
+      animation: slide-fade-up 0.55s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
     /* Result rank badge */
     .rank-badge {
       display: inline-block;
@@ -97,7 +128,17 @@
       color: #334155;
     }
     .delta-gradient-bar {
-      background: linear-gradient(to right, #34d399, #fbbf24, #a855f7);
+      background: linear-gradient(to right, #34d399, #fbbf24, #f97316, #a855f7);
+    }
+    /* Tier card highlighting in scale */
+    .tier-box {
+      transition: all 0.2s ease;
+    }
+    .tier-box.active-tier {
+      border-color: #0f172a;
+      background-color: #ffffff;
+      box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+      transform: translateY(-2px);
     }
   </style>
 </head>
@@ -123,22 +164,21 @@
         Color Vision &amp; Acuity Test
       </h1>
       <p class="mt-1.5 text-sm text-slate-600 max-w-lg">
-        Find the tile that differs from the rest. 30 progressive levels — the color delta shrinks with every correct pick. No timer, no stress.
+        Find the tile that differs from the rest. 30 progressive levels — the color delta shrinks with every correct pick. Single mistake ends the run!
       </p>
     </header>
 
-    <!-- HUD: Level + Lives + Delta -->
+    <!-- HUD: Level + Mode + Delta -->
     <div id="hud" class="flex items-center justify-between mb-5 px-4 py-3 bg-white border border-slate-200/80 rounded-xl shadow-sm">
       <div class="text-center">
         <div class="text-[10px] font-mono uppercase text-slate-400 tracking-wider">Level</div>
         <div class="text-xl font-extrabold text-slate-900 font-mono" id="hudLevel">1 / 30</div>
       </div>
       <div class="text-center">
-        <div class="text-[10px] font-mono uppercase text-slate-400 tracking-wider mb-1">Lives</div>
-        <div class="flex items-center gap-1" id="hudLives">
-          <span class="text-lg" id="heart0">❤️</span>
-          <span class="text-lg" id="heart1">❤️</span>
-          <span class="text-lg" id="heart2">❤️</span>
+        <div class="text-[10px] font-mono uppercase text-slate-400 tracking-wider mb-1">Mode</div>
+        <div class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-mono font-semibold bg-rose-50 text-rose-700 border border-rose-200/60">
+          <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
+          Sudden Death
         </div>
       </div>
       <div class="text-center">
@@ -148,26 +188,29 @@
     </div>
 
     <!-- Instruction strip -->
-    <p id="instruction" class="text-center text-xs text-slate-500 mb-4">
+    <p id="instruction" class="text-center text-xs text-slate-500 mb-4 transition-all">
       Tap the tile that looks <strong class="text-slate-700">slightly different</strong> from the others.
     </p>
 
     <!-- Game Board -->
-    <div id="gameBoard" class="w-full mb-6">
+    <div id="gameBoard" class="w-full mb-6 transition-opacity duration-300">
       <!-- Grid injected by JS -->
     </div>
 
     <!-- Progress bar -->
     <div class="w-full bg-slate-100 rounded-full h-1.5 mb-8 overflow-hidden">
-      <div id="progressBar" class="h-1.5 bg-slate-900 rounded-full transition-all" style="width:3.33%"></div>
+      <div id="progressBar" class="h-1.5 bg-slate-900 rounded-full transition-all duration-300" style="width:3.33%"></div>
     </div>
 
     <!-- Results Panel (hidden until game ends) -->
-    <div id="resultPanel" class="hidden">
-      <div class="bg-white border border-slate-200/80 rounded-2xl shadow-sm p-6 sm:p-8 space-y-5">
+    <div id="resultPanel" class="hidden mb-10">
+      <div class="bg-white border border-slate-200/80 rounded-2xl shadow-sm p-6 sm:p-8 space-y-6">
 
-        <div class="flex items-center justify-between">
-          <h2 class="text-lg font-extrabold tracking-tight text-slate-900">Test Complete</h2>
+        <div class="flex items-center justify-between border-b border-slate-100 pb-4">
+          <div>
+            <h2 class="text-lg font-extrabold tracking-tight text-slate-900" id="resultTitle">Test Complete</h2>
+            <p class="text-xs text-slate-500 mt-0.5" id="resultSubtitle">Here is your color vision diagnostic summary</p>
+          </div>
           <span id="resultRank" class="rank-badge"></span>
         </div>
 
@@ -182,23 +225,51 @@
             <div class="text-[10px] font-mono uppercase text-slate-400 tracking-wider mt-0.5">Min Delta</div>
           </div>
           <div class="p-3 rounded-xl bg-slate-50 border border-slate-200/80">
-            <div class="text-2xl font-extrabold text-slate-900 font-mono" id="resAccuracy">—</div>
-            <div class="text-[10px] font-mono uppercase text-slate-400 tracking-wider mt-0.5">Accuracy</div>
+            <div class="text-2xl font-extrabold text-slate-900 font-mono" id="resScore">—</div>
+            <div class="text-[10px] font-mono uppercase text-slate-400 tracking-wider mt-0.5">Progress</div>
           </div>
         </div>
 
         <!-- Rank description -->
         <div id="resDescription" class="text-sm text-slate-600 leading-relaxed border-l-2 border-slate-200 pl-3"></div>
 
-        <!-- Delta scale visual -->
+        <!-- Category Progress Scale (Tier Cards) -->
+        <div class="space-y-2">
+          <div class="text-[10px] font-mono text-slate-400 uppercase tracking-wider">Acuity Category Scale</div>
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs" id="tierScaleGrid">
+            <div id="tierBox1" class="tier-box p-2.5 rounded-lg border border-slate-200/80 bg-slate-50/50">
+              <div class="font-semibold text-slate-800 text-[11px]">Student</div>
+              <div class="text-[10px] text-slate-500 font-mono mt-0.5">Lv. 1–8</div>
+              <div class="text-[9px] text-slate-400 mt-1">ΔL 20% → 6.5%</div>
+            </div>
+            <div id="tierBox2" class="tier-box p-2.5 rounded-lg border border-slate-200/80 bg-slate-50/50">
+              <div class="font-semibold text-slate-800 text-[11px]">Inspector</div>
+              <div class="text-[10px] text-slate-500 font-mono mt-0.5">Lv. 9–16</div>
+              <div class="text-[9px] text-slate-400 mt-1">ΔL 5.8% → 2.7%</div>
+            </div>
+            <div id="tierBox3" class="tier-box p-2.5 rounded-lg border border-slate-200/80 bg-slate-50/50">
+              <div class="font-semibold text-slate-800 text-[11px]">Lynx Vision</div>
+              <div class="text-[10px] text-slate-500 font-mono mt-0.5">Lv. 17–24</div>
+              <div class="text-[9px] text-slate-400 mt-1">ΔL 2.4% → 1.4%</div>
+            </div>
+            <div id="tierBox4" class="tier-box p-2.5 rounded-lg border border-slate-200/80 bg-slate-50/50">
+              <div class="font-semibold text-slate-800 text-[11px]">Tetrachromat</div>
+              <div class="text-[10px] text-slate-500 font-mono mt-0.5">Lv. 25–30</div>
+              <div class="text-[9px] text-slate-400 mt-1">ΔL 1.3% → 0.9%</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Delta scale visual slider -->
         <div>
           <div class="flex items-center justify-between text-[10px] font-mono text-slate-400 uppercase tracking-wider mb-1.5">
-            <span>Easy (ΔL 20%)</span>
-            <span>Expert (ΔL 0.8%)</span>
+            <span>Entry (ΔL 20%)</span>
+            <span id="resScaleLabel" class="text-slate-700 font-semibold">Your Mark</span>
+            <span>Master (ΔL 0.9%)</span>
           </div>
           <div class="relative h-2 bg-slate-100 rounded-full overflow-hidden">
             <div class="h-2 delta-gradient-bar rounded-full" style="width:100%"></div>
-            <div id="resMarker" class="absolute top-0 h-2 w-0.5 bg-slate-900 rounded-full transition-all" style="left:0%"></div>
+            <div id="resMarker" class="absolute top-0 h-2 w-1 bg-slate-900 rounded-full transition-all" style="left:0%"></div>
           </div>
         </div>
 
@@ -259,10 +330,7 @@
       <div class="space-y-2">
         <h3 class="font-semibold text-slate-900">The Delta L Metric Explained</h3>
         <p>
-          This test uses <strong>HSL color space</strong> and shifts the target tile's <strong>Lightness (L) channel</strong> by a precise percentage (ΔL). At Level 1, the odd tile is 20% brighter or darker than the rest — trivially easy. By Level 30, the delta shrinks to approximately 0.8%, approaching the limits of typical human vision under normal screen conditions.
-        </p>
-        <p>
-          The delta follows a deterministic exponential decay curve: <code>ΔL = 20 × (0.8 / 20)^((level-1)/29)</code>, ensuring smooth progression across all 30 levels.
+          This test uses <strong>HSL color space</strong> and shifts the target tile's <strong>Lightness (L) channel</strong> by a precise percentage (ΔL). At Level 1, the odd tile is 20% brighter or darker than the rest — easily distinguishable. The delta follows a smoothed power-curve progression specifically balanced through the higher levels, descending from 20% down to approximately 0.9% at Level 30.
         </p>
       </div>
 
@@ -305,16 +373,8 @@
     ───────────────────────────────────────────── */
     const STORAGE_KEY  = 'spinfoundry_color_acuity';
     const TOTAL_LEVELS = 30;
-    const MAX_LIVES    = 3;
 
-    // Grid size per level: 2×2 up to 8×8, stepping every ~4 levels
-    // Levels  1– 4 → 2×2 (4 tiles)
-    // Levels  5– 8 → 3×3 (9 tiles)
-    // Levels  9–12 → 4×4 (16 tiles)
-    // Levels 13–16 → 5×5 (25 tiles)
-    // Levels 17–20 → 6×6 (36 tiles)
-    // Levels 21–24 → 7×7 (49 tiles)
-    // Levels 25–30 → 8×8 (64 tiles)
+    // Grid size per level: 2x2 up to 8x8
     function gridSize(level) {
       if (level <= 4)  return 2;
       if (level <= 8)  return 3;
@@ -325,15 +385,14 @@
       return 8;
     }
 
-    // Delta L (lightness offset, %) for a given level — exponential decay
-    // Level 1 → 20.0%   Level 30 → ~0.80%
+    // Smoothed delta curve:
+    // Level 1: 20.0%, Level 16: ~2.7%, Level 24: ~1.4%, Level 30: ~0.90%
     function deltaForLevel(level) {
-      const start = 20.0;
-      const end   = 0.80;
-      return start * Math.pow(end / start, (level - 1) / (TOTAL_LEVELS - 1));
+      const t = (Math.max(1, Math.min(TOTAL_LEVELS, level)) - 1) / (TOTAL_LEVELS - 1);
+      return 20.0 * Math.pow(0.045, Math.pow(t, 0.72));
     }
 
-    // Hue palette per level group — keeps things visually interesting
+    // Hue palette per level group
     const PALETTE = [
       { h: 210, s: 55 },  // blue-steel
       { h: 340, s: 50 },  // rose
@@ -350,9 +409,6 @@
     ───────────────────────────────────────────── */
     let state = {
       level:       1,
-      lives:       MAX_LIVES,
-      correctPicks: 0,
-      totalPicks:  0,
       targetIndex: 0,
       gameOver:    false,
       won:         false
@@ -362,27 +418,28 @@
        DOM REFS
     ───────────────────────────────────────────── */
     const DOM = {
-      hudLevel:        document.getElementById('hudLevel'),
-      hudDelta:        document.getElementById('hudDelta'),
-      hearts:          [
-        document.getElementById('heart0'),
-        document.getElementById('heart1'),
-        document.getElementById('heart2')
-      ],
-      gameBoard:       document.getElementById('gameBoard'),
-      progressBar:     document.getElementById('progressBar'),
-      instruction:     document.getElementById('instruction'),
-      resultPanel:     document.getElementById('resultPanel'),
-      resLevel:        document.getElementById('resLevel'),
-      resDelta:        document.getElementById('resDelta'),
-      resAccuracy:     document.getElementById('resAccuracy'),
-      resultRank:      document.getElementById('resultRank'),
-      resDescription:  document.getElementById('resDescription'),
-      resMarker:       document.getElementById('resMarker'),
-      btnTryAgain:     document.getElementById('btnTryAgain'),
-      btnCopyResult:   document.getElementById('btnCopyResult'),
+      hudLevel:          document.getElementById('hudLevel'),
+      hudDelta:          document.getElementById('hudDelta'),
+      gameBoard:         document.getElementById('gameBoard'),
+      progressBar:       document.getElementById('progressBar'),
+      instruction:       document.getElementById('instruction'),
+      resultPanel:       document.getElementById('resultPanel'),
+      resultTitle:       document.getElementById('resultTitle'),
+      resultSubtitle:    document.getElementById('resultSubtitle'),
+      resLevel:          document.getElementById('resLevel'),
+      resDelta:          document.getElementById('resDelta'),
+      resScore:          document.getElementById('resScore'),
+      resultRank:        document.getElementById('resultRank'),
+      resDescription:    document.getElementById('resDescription'),
+      resMarker:         document.getElementById('resMarker'),
+      resScaleLabel:     document.getElementById('resScaleLabel'),
+      btnTryAgain:       document.getElementById('btnTryAgain'),
+      btnCopyResult:     document.getElementById('btnCopyResult'),
       btnCopyResultText: document.getElementById('btnCopyResultText'),
-      hud:             document.getElementById('hud')
+      tierBox1:          document.getElementById('tierBox1'),
+      tierBox2:          document.getElementById('tierBox2'),
+      tierBox3:          document.getElementById('tierBox3'),
+      tierBox4:          document.getElementById('tierBox4')
     };
 
     /* ─────────────────────────────────────────────
@@ -392,18 +449,13 @@
       return `hsl(${h}, ${s}%, ${Math.min(95, Math.max(5, l))}%)`;
     }
 
-    // Pick a base lightness mid-range (40–65%) to ensure delta is visible both ways
     function baseLightness(level) {
-      // Deterministic but varies per level
       const vals = [52, 55, 48, 58, 50, 54, 46, 60, 52, 56,
                     49, 57, 51, 53, 47, 61, 50, 55, 48, 58,
                     52, 54, 46, 60, 51, 56, 49, 57, 53, 50];
       return vals[(level - 1) % vals.length];
     }
 
-    /* ─────────────────────────────────────────────
-       RANDOM TARGET INDEX — Fisher-Yates pick
-    ───────────────────────────────────────────── */
     function randomTarget(count) {
       return Math.floor(Math.random() * count);
     }
@@ -416,12 +468,6 @@
       DOM.hudLevel.textContent = `${state.level} / ${TOTAL_LEVELS}`;
       DOM.hudDelta.textContent = `ΔL ${delta.toFixed(1)}%`;
       DOM.progressBar.style.width = `${((state.level - 1) / TOTAL_LEVELS) * 100}%`;
-
-      // Hearts
-      for (let i = 0; i < MAX_LIVES; i++) {
-        const alive = i < state.lives;
-        DOM.hearts[i].classList.toggle('heart-lost', !alive);
-      }
     }
 
     /* ─────────────────────────────────────────────
@@ -436,13 +482,11 @@
       const { h, s } = PALETTE[palIdx];
       const baseL  = baseLightness(level);
 
-      // Randomly decide if target is brighter or darker
-      const sign   = Math.random() < 0.5 ? 1 : -1;
+      const sign    = Math.random() < 0.5 ? 1 : -1;
       const targetL = baseL + sign * delta;
 
       state.targetIndex = randomTarget(total);
 
-      // Build grid
       const board = DOM.gameBoard;
       board.innerHTML = '';
       board.style.display = 'grid';
@@ -470,17 +514,14 @@
 
       const tile  = e.currentTarget;
       const index = parseInt(tile.getAttribute('data-index'), 10);
-      state.totalPicks++;
 
       if (index === state.targetIndex) {
-        // ✅ Correct
-        state.correctPicks++;
+        // Correct pick
         tile.classList.add('correct');
         disableGrid();
 
         setTimeout(() => {
           if (state.level >= TOTAL_LEVELS) {
-            // Won all 30 levels
             state.won = true;
             endGame();
           } else {
@@ -488,25 +529,27 @@
             renderHUD();
             renderGrid();
           }
-        }, 420);
+        }, 320);
 
       } else {
-        // ❌ Wrong tile
-        state.lives = Math.max(0, state.lives - 1);
+        // Sudden death: game over immediately
+        state.gameOver = true;
+        disableGrid();
         tile.classList.add('wrong');
-        renderHUD();
 
-        setTimeout(() => {
-          tile.classList.remove('wrong');
-        }, 380);
-
-        if (state.lives === 0) {
-          state.gameOver = true;
-          setTimeout(endGame, 400);
+        // Reveal the correct tile with an animated green pulse
+        const targetTile = DOM.gameBoard.querySelector(`[data-index="${state.targetIndex}"]`);
+        if (targetTile) {
+          targetTile.classList.add('reveal-target');
         }
-      }
 
-      saveState();
+        DOM.instruction.innerHTML = '❌ <span class="text-rose-600 font-semibold">Missed!</span> The highlighted green tile was the target.';
+
+        // Wait 1.4s so the user clearly sees the correct tile before showing the results card
+        setTimeout(() => {
+          endGame();
+        }, 1400);
+      }
     }
 
     function disableGrid() {
@@ -519,24 +562,28 @@
     ───────────────────────────────────────────── */
     function getRank(level) {
       if (level >= 25) return {
+        tier: 4,
         label: 'Tetrachromatic Master',
         color: 'rank-tetrachromat',
         desc:  'Near the biological limit of human trichromatic vision. Your color discrimination is extraordinary — you perceive differences that most people simply cannot see.'
       };
       if (level >= 17) return {
+        tier: 3,
         label: 'Lynx Vision',
         color: 'rank-lynx',
         desc:  'Exceptional perceptual acuity. You consistently detect subtle color differences well below the threshold of the average viewer — prime for professional design and retouching work.'
       };
       if (level >= 9) return {
+        tier: 2,
         label: 'Fine Arts Inspector',
         color: 'rank-inspector',
         desc:  'Above-average color discrimination. You notice nuances in color that escape the casual observer — a strong asset in graphic design, printing, and color grading.'
       };
       return {
+        tier: 1,
         label: 'Screen Calibrator Student',
         color: 'rank-student',
-        desc:  'Good baseline vision. Your results may be affected by your display calibration or ambient lighting conditions. Try a calibrated IPS monitor in a dim room for a better score.'
+        desc:  'Good baseline vision. Your results may be affected by your display calibration or ambient lighting conditions. Try a calibrated IPS monitor in a dim room for a higher score.'
       };
     }
 
@@ -546,31 +593,47 @@
     function endGame() {
       state.gameOver = true;
       disableGrid();
-      DOM.gameBoard.style.opacity = '0.35';
-      DOM.instruction.textContent = state.won
-        ? '🏆 Flawless run! All 30 levels completed.'
-        : `💔 Game over — you ran out of lives on Level ${state.level}.`;
+      DOM.gameBoard.style.opacity = '0.45';
 
       const reachedLevel = state.won ? TOTAL_LEVELS : Math.max(1, state.level - 1);
       const minDelta     = deltaForLevel(Math.max(1, reachedLevel));
-      const accuracy     = state.totalPicks > 0
-        ? Math.round((state.correctPicks / state.totalPicks) * 100)
-        : 0;
-      const rank = getRank(reachedLevel);
+      const rank         = getRank(reachedLevel);
 
-      // Fill results
-      DOM.resLevel.textContent    = reachedLevel;
-      DOM.resDelta.textContent    = `${minDelta.toFixed(1)}%`;
-      DOM.resAccuracy.textContent = `${accuracy}%`;
-      DOM.resultRank.textContent  = rank.label;
-      DOM.resultRank.className    = `rank-badge ${rank.color}`;
+      // Title & Subtitle
+      if (state.won) {
+        DOM.resultTitle.textContent = '🏆 Flawless Victory!';
+        DOM.resultSubtitle.textContent = 'All 30 levels conquered without a single mistake!';
+      } else {
+        DOM.resultTitle.textContent = `Test Complete — Level ${reachedLevel}`;
+        DOM.resultSubtitle.textContent = `Ended on level ${state.level} at ΔL ${deltaForLevel(state.level).toFixed(1)}%`;
+      }
+
+      // Stats
+      DOM.resLevel.textContent       = `${reachedLevel} / 30`;
+      DOM.resDelta.textContent       = `${minDelta.toFixed(1)}%`;
+      DOM.resScore.textContent       = `${Math.round((reachedLevel / TOTAL_LEVELS) * 100)}%`;
+      DOM.resultRank.textContent     = rank.label;
+      DOM.resultRank.className       = `rank-badge ${rank.color}`;
       DOM.resDescription.textContent = rank.desc;
+      DOM.resScaleLabel.textContent  = `Level ${reachedLevel} (${rank.label})`;
 
-      // Marker on delta scale: level 1 = 0%, level 30 = 100%
-      const markerPct = ((reachedLevel - 1) / (TOTAL_LEVELS - 1)) * 100;
+      // Highlight active tier box in the category scale
+      [DOM.tierBox1, DOM.tierBox2, DOM.tierBox3, DOM.tierBox4].forEach((box, i) => {
+        if (box) {
+          box.classList.toggle('active-tier', (i + 1) === rank.tier);
+        }
+      });
+
+      // Marker position on scale
+      const markerPct = Math.min(100, Math.max(0, ((reachedLevel - 1) / (TOTAL_LEVELS - 1)) * 100));
       DOM.resMarker.style.left = `${markerPct}%`;
 
+      // Animate results card in
       DOM.resultPanel.classList.remove('hidden');
+      DOM.resultPanel.classList.add('animate-results');
+
+      // Scroll smoothly into view
+      DOM.resultPanel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 
       // Persist best result
       try {
@@ -579,7 +642,6 @@
           localStorage.setItem(STORAGE_KEY, JSON.stringify({
             bestLevel: reachedLevel,
             bestDelta: minDelta,
-            bestAccuracy: accuracy,
             bestRank: rank.label
           }));
         }
@@ -592,20 +654,17 @@
     function copyResult() {
       const reachedLevel = state.won ? TOTAL_LEVELS : Math.max(1, state.level - 1);
       const minDelta     = deltaForLevel(Math.max(1, reachedLevel));
-      const accuracy     = state.totalPicks > 0
-        ? Math.round((state.correctPicks / state.totalPicks) * 100)
-        : 0;
-      const rank = getRank(reachedLevel);
+      const rank         = getRank(reachedLevel);
 
       const text = [
         '🎨 SpinFoundry — Color Vision & Acuity Test',
         '─────────────────────────────────────',
+        `Mode            : Sudden Death (1 Mistake = End)`,
         `Level Reached   : ${reachedLevel} / 30`,
         `Minimum Delta   : ΔL ${minDelta.toFixed(2)}%`,
-        `Accuracy        : ${accuracy}%`,
-        `Rank            : ${rank.label}`,
+        `Rank Tier       : ${rank.label}`,
         '─────────────────────────────────────',
-        'Test your color acuity: https://spinfoundry.pages.dev/color-acuity-test/'
+        'Test your color discrimination: https://spinfoundry.pages.dev/color-acuity-test/'
       ].join('\n');
 
       navigator.clipboard.writeText(text).then(() => {
@@ -618,37 +677,18 @@
     }
 
     /* ─────────────────────────────────────────────
-       SAVE / PERSIST STATE (mid-game)
-    ───────────────────────────────────────────── */
-    function saveState() {
-      try {
-        localStorage.setItem(STORAGE_KEY + '_session', JSON.stringify({
-          level:        state.level,
-          lives:        state.lives,
-          correctPicks: state.correctPicks,
-          totalPicks:   state.totalPicks,
-          gameOver:     state.gameOver,
-          won:          state.won
-        }));
-      } catch (e) {}
-    }
-
-    /* ─────────────────────────────────────────────
        RESET / START
     ───────────────────────────────────────────── */
     function resetGame() {
       state = {
-        level:        1,
-        lives:        MAX_LIVES,
-        correctPicks: 0,
-        totalPicks:   0,
-        targetIndex:  0,
-        gameOver:     false,
-        won:          false
+        level:       1,
+        targetIndex: 0,
+        gameOver:    false,
+        won:         false
       };
-      try { localStorage.removeItem(STORAGE_KEY + '_session'); } catch (e) {}
 
       DOM.resultPanel.classList.add('hidden');
+      DOM.resultPanel.classList.remove('animate-results');
       DOM.gameBoard.style.opacity = '1';
       DOM.instruction.innerHTML = 'Tap the tile that looks <strong class="text-slate-700">slightly different</strong> from the others.';
 
@@ -660,17 +700,6 @@
        INIT
     ───────────────────────────────────────────── */
     function init() {
-      // Restore mid-game session if present
-      try {
-        const session = JSON.parse(localStorage.getItem(STORAGE_KEY + '_session') || 'null');
-        if (session && !session.gameOver && session.level > 1) {
-          state.level        = session.level;
-          state.lives        = session.lives;
-          state.correctPicks = session.correctPicks;
-          state.totalPicks   = session.totalPicks;
-        }
-      } catch (e) {}
-
       DOM.btnTryAgain.addEventListener('click', resetGame);
       DOM.btnCopyResult.addEventListener('click', copyResult);
 
