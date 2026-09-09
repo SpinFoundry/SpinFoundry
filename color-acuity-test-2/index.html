@@ -93,12 +93,12 @@
       animation: slide-fade-up 0.55s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }
     .badge-simulations {
-      background-color: #f5f3ff;
-      color: #6d28d9;
-      border: 1px solid rgba(221, 214, 254, 0.6);
+      background-color: #fdf4ff;
+      color: #a21caf;
+      border: 1px solid rgba(240, 171, 252, 0.6);
     }
     .badge-simulations-dot {
-      background-color: #8b5cf6;
+      background-color: #d946ef;
     }
     .rank-badge {
       display: inline-block;
@@ -160,16 +160,30 @@
   <main class="max-w-2xl mx-auto px-4 py-10">
 
     <!-- Breadcrumb & Top Bar -->
-    <div class="flex items-center justify-between mb-6">
+    <div class="flex items-center justify-between mb-4">
       <a href="/" class="text-xs font-medium text-slate-500 hover:text-slate-800 flex items-center gap-1.5 transition-colors">
         <span>←</span>
         <span>SpinFoundry Hub</span>
       </a>
       <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-mono badge-simulations">
         <span class="w-1.5 h-1.5 rounded-full badge-simulations-dot"></span>
-        Simulations &amp; Physics
+        Color &amp; Vision
       </div>
     </div>
+
+    <!-- Color & Vision Suite Navigation Menu -->
+    <nav class="flex items-center gap-1.5 overflow-x-auto pb-2 mb-6 text-xs border-b border-slate-200/80 scrollbar-none" aria-label="Visual Tests Menu">
+      <span class="text-[11px] font-mono text-slate-400 uppercase tracking-wider mr-1 hidden sm:inline">Suite:</span>
+      <a href="/color-acuity-test/" class="px-2.5 py-1 rounded-md font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors whitespace-nowrap">
+        Test I: Single Mode
+      </a>
+      <a href="/color-acuity-test-2/" class="px-2.5 py-1 rounded-md font-semibold bg-slate-900 text-white shadow-sm whitespace-nowrap">
+        Test II: 6-Spectrum Radar
+      </a>
+      <a href="/color-matching-test/" class="px-2.5 py-1 rounded-md font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors whitespace-nowrap">
+        Test III: Memory &amp; Wheel Match
+      </a>
+    </nav>
 
     <!-- Header -->
     <header class="mb-6 pb-5 border-b border-slate-200">

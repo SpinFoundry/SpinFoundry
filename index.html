@@ -56,7 +56,10 @@
       <!-- Pilules de Catégories (Hauteur égale & Scroll propre) -->
       <div class="flex items-center gap-2 overflow-x-auto w-full md:w-auto pb-2 md:pb-0 scrollbar-none" id="categoryPills">
         <button type="button" data-category="all" class="category-pill px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap bg-slate-900 text-white shadow-sm transition-all">
-          All (3)
+          All (4)
+        </button>
+        <button type="button" data-category="color-vision" class="category-pill px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 transition-colors shadow-sm">
+          👁️ Color & Vision (3)
         </button>
         <button type="button" data-category="nutrition" class="category-pill px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 transition-colors shadow-sm">
           🥗 Nutrition & Kitchen (1)
@@ -67,8 +70,8 @@
         <button type="button" data-category="conversions" class="category-pill px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap bg-white text-slate-400 border border-slate-200 opacity-50 cursor-not-allowed" title="Coming soon">
           📏 Measures & Conversions (0)
         </button>
-        <button type="button" data-category="simulations" class="category-pill px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 transition-colors shadow-sm">
-          🧪 Simulations & Physics (2)
+        <button type="button" data-category="simulations" class="category-pill px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap bg-white text-slate-400 border border-slate-200 opacity-50 cursor-not-allowed" title="Coming soon">
+          🧪 Simulations & Physics (0)
         </button>
         <button type="button" data-category="games" class="category-pill px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap bg-white text-slate-400 border border-slate-200 opacity-50 cursor-not-allowed" title="Coming soon">
           🕹️ Mini-Games & Puzzles (0)
@@ -114,12 +117,12 @@
       </a>
 
       <!-- Carte Cliquable: Color Acuity Test -->
-      <a href="/color-acuity-test/" data-tool-id="color-acuity-test" data-category="simulations" data-tags="color vision acuity test discrimination eye eyesight hue perception" class="tool-card group flex flex-col justify-between p-5 bg-white border border-slate-200/80 rounded-xl shadow-sm hover:shadow-md hover:border-slate-300 hover:-translate-y-0.5 transition-all duration-150">
+      <a href="/color-acuity-test/" data-tool-id="color-acuity-test" data-category="color-vision" data-tags="color vision acuity test discrimination eye eyesight hue perception" class="tool-card group flex flex-col justify-between p-5 bg-white border border-slate-200/80 rounded-xl shadow-sm hover:shadow-md hover:border-slate-300 hover:-translate-y-0.5 transition-all duration-150">
         <div>
           <div class="flex items-center justify-between text-xs font-mono text-slate-500 mb-3">
             <span class="inline-flex items-center gap-1.5 font-medium text-slate-700">
               <span class="w-1.5 h-1.5 rounded-full bg-violet-500"></span>
-              Simulations & Physics
+              Color & Vision
             </span>
             <time>2026-09-09</time>
           </div>
@@ -138,12 +141,12 @@
       </a>
 
       <!-- Carte Cliquable: Color Acuity Test II -->
-      <a href="/color-acuity-test-2/" data-tool-id="color-acuity-test-2" data-category="simulations" data-tags="color vision acuity test 2 spectrum radar chart red yellow blue orange purple green" class="tool-card group flex flex-col justify-between p-5 bg-white border border-slate-200/80 rounded-xl shadow-sm hover:shadow-md hover:border-slate-300 hover:-translate-y-0.5 transition-all duration-150">
+      <a href="/color-acuity-test-2/" data-tool-id="color-acuity-test-2" data-category="color-vision" data-tags="color vision acuity test 2 spectrum radar chart red yellow blue orange purple green" class="tool-card group flex flex-col justify-between p-5 bg-white border border-slate-200/80 rounded-xl shadow-sm hover:shadow-md hover:border-slate-300 hover:-translate-y-0.5 transition-all duration-150">
         <div>
           <div class="flex items-center justify-between text-xs font-mono text-slate-500 mb-3">
             <span class="inline-flex items-center gap-1.5 font-medium text-slate-700">
               <span class="w-1.5 h-1.5 rounded-full bg-indigo-500"></span>
-              Simulations & Physics
+              Color & Vision
             </span>
             <time>2026-09-09</time>
           </div>
@@ -157,6 +160,30 @@
         
         <div class="mt-5 pt-3 border-t border-slate-100 flex items-center justify-between text-xs font-medium text-slate-900 group-hover:text-slate-600">
           <span>Start 6-Spectrum Test</span>
+          <span class="transform group-hover:translate-x-1 transition-transform">→</span>
+        </div>
+      </a>
+
+      <!-- Carte Cliquable: Color Matching Test -->
+      <a href="/color-matching-test/" data-tool-id="color-matching-test" data-category="color-vision" data-tags="color memory matching test color wheel hue recall picker accuracy delta" class="tool-card group flex flex-col justify-between p-5 bg-white border border-slate-200/80 rounded-xl shadow-sm hover:shadow-md hover:border-slate-300 hover:-translate-y-0.5 transition-all duration-150">
+        <div>
+          <div class="flex items-center justify-between text-xs font-mono text-slate-500 mb-3">
+            <span class="inline-flex items-center gap-1.5 font-medium text-slate-700">
+              <span class="w-1.5 h-1.5 rounded-full bg-fuchsia-500"></span>
+              Color & Vision
+            </span>
+            <time>2026-09-09</time>
+          </div>
+          <h2 class="text-base font-bold text-slate-900 group-hover:text-slate-700 transition-colors">
+            Color Memory & Matching Test
+          </h2>
+          <p class="text-xs text-slate-600 mt-2 leading-relaxed line-clamp-3">
+            Memorize a color flashed for 5 seconds, then recall and match it precisely on an interactive color wheel across 5 rounds.
+          </p>
+        </div>
+        
+        <div class="mt-5 pt-3 border-t border-slate-100 flex items-center justify-between text-xs font-medium text-slate-900 group-hover:text-slate-600">
+          <span>Start Match Test</span>
           <span class="transform group-hover:translate-x-1 transition-transform">→</span>
         </div>
       </a>

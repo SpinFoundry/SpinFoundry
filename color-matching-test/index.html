@@ -1,0 +1,950 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Color Memory & Matching Test | SpinFoundry</title>
+  <meta name="description" content="Test your visual color memory across 5 rounds. Memorize a target color flashed for 5 seconds, then pick and fine-tune your match on a color wheel. Real-time visual feedback and distance scoring.">
+  <meta name="keywords" content="color memory test, color matching test, color wheel picker, color recall test, hue memory, Delta E distance, visual perception test">
+  <link rel="canonical" href="https://spinfoundry.pages.dev/color-matching-test/">
+
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://spinfoundry.pages.dev/color-matching-test/">
+  <meta property="og:title" content="Color Memory & Matching Test | SpinFoundry">
+  <meta property="og:description" content="Memorize a color for 5 seconds, then locate it on the interactive color wheel. 5 rounds of chromatic memory testing.">
+  <meta name="twitter:card" content="summary">
+
+  <link rel="stylesheet" href="/assets/styles.css">
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "Color Memory & Matching Test",
+    "url": "https://spinfoundry.pages.dev/color-matching-test/",
+    "description": "5-round chromatic memory and matching assessment with real-time Euclidean color distance calculation and interactive color wheel picker.",
+    "applicationCategory": "UtilityApplication",
+    "operatingSystem": "All"
+  }
+  </script>
+
+  <style>
+    .badge-simulations {
+      background-color: #fdf4ff;
+      color: #a21caf;
+      border: 1px solid rgba(240, 171, 252, 0.6);
+    }
+    .badge-simulations-dot {
+      background-color: #d946ef;
+    }
+    .rank-badge {
+      display: inline-block;
+      padding: 0.25rem 0.75rem;
+      border-radius: 9999px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+    .rank-tetrachromat {
+      background-color: #f5f3ff;
+      color: #5b21b6;
+    }
+    .rank-lynx {
+      background-color: #fffbeb;
+      color: #92400e;
+    }
+    .rank-inspector {
+      background-color: #ecfdf5;
+      color: #065f46;
+    }
+    .rank-student {
+      background-color: #f1f5f9;
+      color: #334155;
+    }
+    /* Countdown circle */
+    .countdown-ring {
+      transition: stroke-dashoffset 1s linear;
+      transform: rotate(-90deg);
+      transform-origin: 50% 50%;
+    }
+    /* Wheel cursor */
+    #wheelCursor {
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      border: 2.5px solid #ffffff;
+      box-shadow: 0 0 0 1.5px #0f172a, 0 2px 6px rgba(0,0,0,0.3);
+      pointer-events: none;
+      transform: translate(-50%, -50%);
+      transition: transform 0.04s ease;
+    }
+    /* Animation for round reveal */
+    @keyframes pop-in {
+      0% { transform: scale(0.92); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    .animate-pop {
+      animation: pop-in 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    @keyframes slide-fade-up {
+      0% { opacity: 0; transform: translateY(20px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+    .animate-results {
+      animation: slide-fade-up 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    /* Slider custom styling */
+    input[type=range] {
+      -webkit-appearance: none;
+      appearance: none;
+      background: transparent;
+      cursor: pointer;
+    }
+    input[type=range]::-webkit-slider-runnable-track {
+      background: #e2e8f0;
+      height: 6px;
+      border-radius: 3px;
+    }
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      margin-top: -6px;
+      background-color: #0f172a;
+      height: 18px;
+      width: 18px;
+      border-radius: 50%;
+      border: 2px solid #ffffff;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    }
+  </style>
+</head>
+<body class="bg-[#F8F9FA] text-slate-800 antialiased font-sans min-h-screen">
+
+  <main class="max-w-2xl mx-auto px-4 py-10">
+
+    <!-- Breadcrumb & Top Bar -->
+    <div class="flex items-center justify-between mb-4">
+      <a href="/" class="text-xs font-medium text-slate-500 hover:text-slate-800 flex items-center gap-1.5 transition-colors">
+        <span>←</span>
+        <span>SpinFoundry Hub</span>
+      </a>
+      <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-mono badge-simulations">
+        <span class="w-1.5 h-1.5 rounded-full badge-simulations-dot"></span>
+        Color &amp; Vision
+      </div>
+    </div>
+
+    <!-- Color & Vision Suite Navigation Menu -->
+    <nav class="flex items-center gap-1.5 overflow-x-auto pb-2 mb-6 text-xs border-b border-slate-200/80 scrollbar-none" aria-label="Visual Tests Menu">
+      <span class="text-[11px] font-mono text-slate-400 uppercase tracking-wider mr-1 hidden sm:inline">Suite:</span>
+      <a href="/color-acuity-test/" class="px-2.5 py-1 rounded-md font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors whitespace-nowrap">
+        Test I: Single Mode
+      </a>
+      <a href="/color-acuity-test-2/" class="px-2.5 py-1 rounded-md font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors whitespace-nowrap">
+        Test II: 6-Spectrum Radar
+      </a>
+      <a href="/color-matching-test/" class="px-2.5 py-1 rounded-md font-semibold bg-slate-900 text-white shadow-sm whitespace-nowrap">
+        Test III: Memory &amp; Wheel Match
+      </a>
+    </nav>
+
+    <!-- Header -->
+    <header class="mb-6 pb-5 border-b border-slate-200">
+      <div class="flex items-center gap-2 mb-2">
+        <span class="px-2 py-0.5 rounded text-[11px] font-mono font-bold bg-fuchsia-600 text-white">TEST III</span>
+        <span class="text-xs font-mono text-slate-500 uppercase tracking-wider">Chromatic Memory &amp; Wheel Match</span>
+      </div>
+      <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900">
+        Color Memory &amp; Matching Test
+      </h1>
+      <p class="mt-1.5 text-sm text-slate-600 max-w-lg">
+        A random swatch is presented for <strong>5 seconds</strong>. Once hidden, locate and recreate that exact shade using the interactive color wheel. 5 rounds to evaluate your visual color retention.
+      </p>
+    </header>
+
+    <!-- Round Pipeline Bar -->
+    <div class="mb-5 p-3.5 bg-white border border-slate-200/80 rounded-xl shadow-sm flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <span class="text-[10px] font-mono uppercase text-slate-400 tracking-wider">Rounds</span>
+        <div class="flex items-center gap-1.5" id="roundPills">
+          <!-- 5 round dots rendered by JS -->
+        </div>
+      </div>
+      <div class="text-xs font-mono font-semibold text-slate-800" id="roundStatusText">
+        Round 1 of 5
+      </div>
+    </div>
+
+    <!-- Active Stage Container -->
+    <div id="testStage" class="bg-white border border-slate-200/80 rounded-2xl shadow-sm p-6 sm:p-8 mb-8 space-y-6">
+
+      <!-- PHASE 1: MEMORIZE (5 seconds) -->
+      <div id="memorizePhase" class="flex flex-col items-center justify-center py-4 space-y-5 animate-pop">
+        <div class="text-center space-y-1">
+          <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-mono font-semibold bg-amber-50 text-amber-800 border border-amber-200/60">
+            <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+            Memorization Phase
+          </div>
+          <h2 class="text-xl font-bold text-slate-900">Memorize this exact color</h2>
+          <p class="text-xs text-slate-500">Pay attention to hue, vibrancy, and brightness. Swatch disappears in:</p>
+        </div>
+
+        <!-- 5s Countdown Timer & Swatch -->
+        <div class="relative flex items-center justify-center">
+          <svg class="w-48 h-48 sm:w-56 sm:h-56" viewBox="0 0 120 120">
+            <circle cx="60" cy="60" r="54" stroke="#f1f5f9" stroke-width="6" fill="none" />
+            <circle id="timerRing" class="countdown-ring" cx="60" cy="60" r="54" stroke="#0f172a" stroke-width="6" stroke-linecap="round" fill="none" stroke-dasharray="339.29" stroke-dashoffset="0" />
+          </svg>
+          <!-- Big Color Swatch in center -->
+          <div id="targetSwatch" class="absolute w-36 h-36 sm:w-42 sm:h-42 rounded-full shadow-inner border-4 border-white"></div>
+        </div>
+
+        <div class="text-3xl font-extrabold font-mono text-slate-900" id="countdownSec">5s</div>
+      </div>
+
+      <!-- PHASE 2: MATCH (Interactive Wheel Picker) -->
+      <div id="matchPhase" class="hidden space-y-6 animate-pop">
+        <div class="text-center space-y-1">
+          <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-mono font-semibold bg-blue-50 text-blue-800 border border-blue-200/60">
+            <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+            Matching Phase
+          </div>
+          <h2 class="text-xl font-bold text-slate-900">Recreate the color you saw</h2>
+          <p class="text-xs text-slate-500">Click or drag on the wheel to adjust hue &amp; saturation. Fine-tune lightness below.</p>
+        </div>
+
+        <!-- Color Wheel + Live Preview Comparison -->
+        <div class="flex flex-col sm:flex-row items-center justify-center gap-6 pt-2">
+          
+          <!-- Interactive Canvas Wheel -->
+          <div class="relative w-64 h-64 flex-shrink-0 cursor-crosshair select-none" id="wheelContainer">
+            <canvas id="colorWheelCanvas" width="256" height="256" class="w-64 h-64 rounded-full shadow-md border border-slate-200"></canvas>
+            <div id="wheelCursor"></div>
+          </div>
+
+          <!-- Live User Selection Preview -->
+          <div class="flex flex-col items-center gap-3 w-full sm:w-48">
+            <div class="text-[11px] font-mono uppercase text-slate-400 tracking-wider">Your Selection</div>
+            <div id="previewSwatch" class="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl shadow-md border-2 border-slate-200/80 transition-colors"></div>
+            <div class="text-center text-xs font-mono font-bold text-slate-800" id="previewHslLabel">
+              hsl(0, 0%, 50%)
+            </div>
+
+            <!-- Lightness Fine-Tune Slider -->
+            <div class="w-full space-y-1.5 pt-2 border-t border-slate-100">
+              <div class="flex items-center justify-between text-[10px] font-mono text-slate-500">
+                <span>Lightness</span>
+                <span id="lightnessValLabel">50%</span>
+              </div>
+              <input type="range" id="lightnessSlider" min="15" max="85" value="50" class="w-full">
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Submit Guess Button -->
+        <div class="pt-3 border-t border-slate-100">
+          <button id="btnSubmitGuess" type="button"
+            class="w-full inline-flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-sm font-bold bg-slate-900 text-white hover:bg-slate-800 shadow-sm transition-all active:scale-95">
+            Submit Color Match →
+          </button>
+        </div>
+      </div>
+
+      <!-- PHASE 3: ROUND FEEDBACK (Visual Comparison & Distance) -->
+      <div id="feedbackPhase" class="hidden space-y-6 animate-pop">
+        <div class="text-center space-y-1">
+          <span class="rank-badge" id="feedbackRatingBadge">Close Match</span>
+          <h2 class="text-xl font-bold text-slate-900" id="feedbackTitle">Round 1 Comparison</h2>
+        </div>
+
+        <!-- Side-by-side color comparison -->
+        <div class="grid grid-cols-2 gap-4 max-w-md mx-auto">
+          <div class="flex flex-col items-center p-4 rounded-xl bg-slate-50 border border-slate-200/80 space-y-2">
+            <span class="text-[10px] font-mono uppercase text-slate-400 tracking-wider">Original Color</span>
+            <div id="fbTargetSwatch" class="w-24 h-24 rounded-xl shadow-inner border border-slate-200"></div>
+            <span id="fbTargetLabel" class="text-xs font-mono text-slate-600 font-semibold">hsl(0, 0%, 50%)</span>
+          </div>
+
+          <div class="flex flex-col items-center p-4 rounded-xl bg-slate-50 border border-slate-200/80 space-y-2">
+            <span class="text-[10px] font-mono uppercase text-slate-400 tracking-wider">Your Guess</span>
+            <div id="fbGuessSwatch" class="w-24 h-24 rounded-xl shadow-inner border border-slate-200"></div>
+            <span id="fbGuessLabel" class="text-xs font-mono text-slate-600 font-semibold">hsl(0, 0%, 50%)</span>
+          </div>
+        </div>
+
+        <!-- Distance metric bar -->
+        <div class="p-4 rounded-xl bg-slate-50 border border-slate-200/80 space-y-2 max-w-md mx-auto">
+          <div class="flex items-center justify-between text-xs">
+            <span class="font-medium text-slate-700">Perceptual Distance (ΔE)</span>
+            <span class="font-mono font-bold text-slate-900" id="fbDeltaVal">4.2</span>
+          </div>
+          <div class="w-full bg-slate-200 rounded-full h-2 overflow-hidden">
+            <div id="fbDistanceBar" class="h-2 rounded-full transition-all duration-500 bg-emerald-500" style="width:85%"></div>
+          </div>
+          <div class="flex items-center justify-between text-[9px] font-mono text-slate-400">
+            <span>Spot On (0)</span>
+            <span>Moderate (25)</span>
+            <span>Far Off (50+)</span>
+          </div>
+        </div>
+
+        <!-- Next button -->
+        <div class="pt-2 max-w-md mx-auto">
+          <button id="btnNextRound" type="button"
+            class="w-full inline-flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-sm font-bold bg-slate-900 text-white hover:bg-slate-800 shadow-sm transition-all active:scale-95">
+            Next Round →
+          </button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- FINAL RESULTS PANEL (hidden until round 5 finished) -->
+    <div id="finalResultPanel" class="hidden mb-10">
+      <div class="bg-white border border-slate-200/80 rounded-2xl shadow-sm p-6 sm:p-8 space-y-6">
+
+        <div class="flex items-center justify-between border-b border-slate-100 pb-4">
+          <div>
+            <h2 class="text-lg font-extrabold tracking-tight text-slate-900">Color Memory Complete</h2>
+            <p class="text-xs text-slate-500 mt-0.5">Overall 5-round chromatic retention diagnostics</p>
+          </div>
+          <span id="finalRankBadge" class="rank-badge"></span>
+        </div>
+
+        <!-- High-level stats -->
+        <div class="grid grid-cols-3 gap-3 text-center">
+          <div class="p-3 rounded-xl bg-slate-50 border border-slate-200/80">
+            <div class="text-2xl font-extrabold text-slate-900 font-mono" id="resAvgDelta">—</div>
+            <div class="text-[10px] font-mono uppercase text-slate-400 tracking-wider mt-0.5">Average ΔE</div>
+          </div>
+          <div class="p-3 rounded-xl bg-slate-50 border border-slate-200/80">
+            <div class="text-2xl font-extrabold text-slate-900 font-mono" id="resBestDelta">—</div>
+            <div class="text-[10px] font-mono uppercase text-slate-400 tracking-wider mt-0.5">Best Round ΔE</div>
+          </div>
+          <div class="p-3 rounded-xl bg-slate-50 border border-slate-200/80">
+            <div class="text-2xl font-extrabold text-slate-900 font-mono" id="resAccuracyScore">—</div>
+            <div class="text-[10px] font-mono uppercase text-slate-400 tracking-wider mt-0.5">Memory Score</div>
+          </div>
+        </div>
+
+        <!-- 5-Round Visual Breakdown Table -->
+        <div class="border border-slate-200 rounded-lg overflow-hidden text-sm shadow-sm">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="bg-slate-50 text-[11px] font-mono uppercase text-slate-500 border-b border-slate-200">
+                <th class="py-2.5 px-4 font-semibold">Round</th>
+                <th class="py-2.5 px-4 text-center font-semibold">Target vs Pick</th>
+                <th class="py-2.5 px-4 text-right font-semibold">Distance (ΔE)</th>
+              </tr>
+            </thead>
+            <tbody id="finalTableBody" class="divide-y divide-slate-100 bg-white">
+              <!-- Rendered by JS -->
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Qualitative summary -->
+        <div id="finalSummaryText" class="text-sm text-slate-600 leading-relaxed border-l-2 border-slate-200 pl-3"></div>
+
+        <!-- Action buttons -->
+        <div class="flex flex-col sm:flex-row gap-3 pt-2">
+          <button id="btnPlayAgain" type="button"
+            class="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold bg-slate-900 text-white hover:bg-slate-700 shadow-sm transition-all active:scale-95">
+            ↺ Play Again
+          </button>
+          <button id="btnCopyMemoryResult" type="button"
+            class="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold bg-white text-slate-800 border border-slate-200 hover:border-slate-400 shadow-sm transition-all active:scale-95">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+            <span id="btnCopyMemoryText">Copy Memory Result</span>
+          </button>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Contextual Gear Module -->
+    <div class="pt-8 border-t border-slate-200 space-y-3 mt-4">
+      <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-500">Color Precision Tools</h3>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+        <a href="https://www.amazon.com/dp/B000FG7RWO?tag=spinfoundry-20" target="_blank" rel="noopener noreferrer sponsored"
+          class="p-3 bg-white border border-slate-200/80 rounded-lg hover:border-slate-300 hover:shadow-sm transition-all block">
+          <span class="font-medium text-slate-900">Pantone Formula Guide</span>
+          <p class="text-slate-500 mt-0.5">Essential color fan decks for comparing physical samples to digital hues.</p>
+        </a>
+        <a href="https://www.amazon.com/dp/B07D7CHZH4?tag=spinfoundry-20" target="_blank" rel="noopener noreferrer sponsored"
+          class="p-3 bg-white border border-slate-200/80 rounded-lg hover:border-slate-300 hover:shadow-sm transition-all block">
+          <span class="font-medium text-slate-900">Color-Accurate Display</span>
+          <p class="text-slate-500 mt-0.5">High sRGB/DCI-P3 coverage prevents chromatic memory drift caused by gamut clipping.</p>
+        </a>
+        <a href="https://www.amazon.com/dp/B01NAUBQS9?tag=spinfoundry-20" target="_blank" rel="noopener noreferrer sponsored"
+          class="p-3 bg-white border border-slate-200/80 rounded-lg hover:border-slate-300 hover:shadow-sm transition-all block">
+          <span class="font-medium text-slate-900">Digital Color Sensor Spectrophotometer</span>
+          <p class="text-slate-500 mt-0.5">Handheld color scanner for sampling and matching exact real-world surface colors.</p>
+        </a>
+        <a href="https://www.amazon.com/dp/B08MCMV6RB?tag=spinfoundry-20" target="_blank" rel="noopener noreferrer sponsored"
+          class="p-3 bg-white border border-slate-200/80 rounded-lg hover:border-slate-300 hover:shadow-sm transition-all block">
+          <span class="font-medium text-slate-900">Color Perception &amp; Theory Book</span>
+          <p class="text-slate-500 mt-0.5">In-depth exploration of human visual memory, optical illusions, and color harmony.</p>
+        </a>
+      </div>
+      <p class="text-[11px] text-slate-400 italic">SpinFoundry may earn an affiliate commission on qualifying purchases.</p>
+    </div>
+
+    <!-- Educational & Technical Details -->
+    <article class="pt-10 border-t border-slate-200 space-y-5 text-sm text-slate-700 leading-relaxed mt-4">
+      <h2 class="text-xl font-bold tracking-tight text-slate-900">How Chromatic Memory Works</h2>
+
+      <div class="space-y-2">
+        <h3 class="font-semibold text-slate-900">The Challenge of Color Memory</h3>
+        <p>
+          Unlike shapes or numbers, human color memory is notoriously volatile. When viewing a color in isolation, the brain rapidly normalizes it toward a prototypical category (e.g., shifting an olive tone toward a generic "green" in short-term visual memory). This phenomenon is known as <strong>categorical memory distortion</strong>.
+        </p>
+      </div>
+
+      <div class="space-y-2">
+        <h3 class="font-semibold text-slate-900">Measuring Color Distance (ΔE)</h3>
+        <p>
+          To quantify error, this test converts both your pick and the target color into normalized <strong>CIE Lab</strong> coordinates and measures their Euclidean distance:
+        </p>
+        <p class="font-mono text-xs bg-white p-3 rounded-lg border border-slate-200">
+          ΔE = √[ (L₁ - L₂)² + (a₁ - a₂)² + (b₁ - b₂)² ]
+        </p>
+        <ul class="list-disc pl-5 space-y-1 text-xs sm:text-sm">
+          <li><strong>ΔE &lt; 5.0:</strong> Exceptional match — imperceptible or barely perceptible difference.</li>
+          <li><strong>ΔE 5.0 – 15.0:</strong> Good match — slight perceptible difference in saturation or hue.</li>
+          <li><strong>ΔE 15.0 – 30.0:</strong> Fair match — noticeable shift in color tone.</li>
+          <li><strong>ΔE &gt; 30.0:</strong> Significant color recall divergence.</li>
+        </ul>
+      </div>
+    </article>
+
+    <!-- Footer -->
+    <footer class="mt-16 pt-6 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 gap-3">
+      <span>SpinFoundry — Zero-overhead, 100% client-side hub.</span>
+      <div class="flex items-center gap-4">
+        <a href="/" class="hover:text-slate-800 transition-colors">Catalog Hub</a>
+        <a href="/color-acuity-test/" class="hover:text-slate-800 transition-colors">Test I</a>
+        <a href="/color-acuity-test-2/" class="hover:text-slate-800 transition-colors">Test II (Radar)</a>
+        <a href="https://github.com/SpinFoundry/SpinFoundry" target="_blank" rel="noopener noreferrer" class="hover:text-slate-800 transition-colors">GitHub</a>
+        <a href="/sitemap.xml" class="hover:text-slate-800 transition-colors">Sitemap</a>
+      </div>
+    </footer>
+
+  </main>
+
+  <script>
+  (function () {
+    'use strict';
+
+    /* ─────────────────────────────────────────────
+       CONSTANTS & CONFIG
+    ───────────────────────────────────────────── */
+    const TOTAL_ROUNDS = 5;
+    const MEMORIZE_DURATION = 5; // seconds
+    const STORAGE_KEY = 'spinfoundry_color_matching';
+
+    /* ─────────────────────────────────────────────
+       COLOR CONVERSIONS: HSL -> RGB -> LAB
+    ───────────────────────────────────────────── */
+    function hslToRgb(h, s, l) {
+      h = h / 360;
+      s = s / 100;
+      l = l / 100;
+      let r, g, b;
+
+      if (s === 0) {
+        r = g = b = l;
+      } else {
+        const hue2rgb = (p, q, t) => {
+          if (t < 0) t += 1;
+          if (t > 1) t -= 1;
+          if (t < 1/6) return p + (q - p) * 6 * t;
+          if (t < 1/2) return q;
+          if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+          return p;
+        };
+        const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+        const p = 2 * l - q;
+        r = hue2rgb(p, q, h + 1/3);
+        g = hue2rgb(p, q, h);
+        b = hue2rgb(p, q, h - 1/3);
+      }
+      return [Math.round(r * 255), Math.round(g * 255), Math.round(b * 255)];
+    }
+
+    function rgbToLab(r, g, b) {
+      // sRGB to linear
+      let [rL, gL, bL] = [r / 255, g / 255, b / 255].map(v => {
+        return v > 0.04045 ? Math.pow((v + 0.055) / 1.055, 2.4) : v / 12.92;
+      });
+
+      // Linear to XYZ (D65)
+      let x = (rL * 0.4124 + gL * 0.3576 + bL * 0.1805) / 0.95047;
+      let y = (rL * 0.2126 + gL * 0.7152 + bL * 0.0722) / 1.00000;
+      let z = (rL * 0.0193 + gL * 0.1192 + bL * 0.9505) / 1.08883;
+
+      // XYZ to Lab
+      const f = t => t > 0.008856 ? Math.cbrt(t) : (7.787 * t) + 16/116;
+      let fx = f(x), fy = f(y), fz = f(z);
+
+      let L = (116 * fy) - 16;
+      let a = 500 * (fx - fy);
+      let bVal = 200 * (fy - fz);
+      return [L, a, bVal];
+    }
+
+    function deltaE(hsl1, hsl2) {
+      const rgb1 = hslToRgb(hsl1.h, hsl1.s, hsl1.l);
+      const rgb2 = hslToRgb(hsl2.h, hsl2.s, hsl2.l);
+      const lab1 = rgbToLab(...rgb1);
+      const lab2 = rgbToLab(...rgb2);
+
+      const dL = lab1[0] - lab2[0];
+      const da = lab1[1] - lab2[1];
+      const db = lab1[2] - lab2[2];
+      return Math.sqrt(dL * dL + da * da + db * db);
+    }
+
+    /* ─────────────────────────────────────────────
+       STATE
+    ───────────────────────────────────────────── */
+    let currentRound = 1;
+    let timerInterval = null;
+    let secondsLeft = MEMORIZE_DURATION;
+
+    let targetColor = { h: 0, s: 70, l: 50 };
+    let userColor = { h: 0, s: 70, l: 50 };
+
+    const roundHistory = []; // { target, guess, delta }
+
+    /* ─────────────────────────────────────────────
+       DOM REFS
+    ───────────────────────────────────────────── */
+    const DOM = {
+      roundPills:         document.getElementById('roundPills'),
+      roundStatusText:    document.getElementById('roundStatusText'),
+      memorizePhase:      document.getElementById('memorizePhase'),
+      matchPhase:         document.getElementById('matchPhase'),
+      feedbackPhase:      document.getElementById('feedbackPhase'),
+      finalResultPanel:   document.getElementById('finalResultPanel'),
+      targetSwatch:       document.getElementById('targetSwatch'),
+      countdownSec:       document.getElementById('countdownSec'),
+      timerRing:          document.getElementById('timerRing'),
+      wheelCanvas:        document.getElementById('colorWheelCanvas'),
+      wheelContainer:     document.getElementById('wheelContainer'),
+      wheelCursor:        document.getElementById('wheelCursor'),
+      previewSwatch:      document.getElementById('previewSwatch'),
+      previewHslLabel:    document.getElementById('previewHslLabel'),
+      lightnessSlider:    document.getElementById('lightnessSlider'),
+      lightnessValLabel:  document.getElementById('lightnessValLabel'),
+      btnSubmitGuess:     document.getElementById('btnSubmitGuess'),
+      feedbackRatingBadge: document.getElementById('feedbackRatingBadge'),
+      feedbackTitle:      document.getElementById('feedbackTitle'),
+      fbTargetSwatch:     document.getElementById('fbTargetSwatch'),
+      fbTargetLabel:      document.getElementById('fbTargetLabel'),
+      fbGuessSwatch:      document.getElementById('fbGuessSwatch'),
+      fbGuessLabel:       document.getElementById('fbGuessLabel'),
+      fbDeltaVal:         document.getElementById('fbDeltaVal'),
+      fbDistanceBar:      document.getElementById('fbDistanceBar'),
+      btnNextRound:       document.getElementById('btnNextRound'),
+      resAvgDelta:        document.getElementById('resAvgDelta'),
+      resBestDelta:       document.getElementById('resBestDelta'),
+      resAccuracyScore:   document.getElementById('resAccuracyScore'),
+      finalRankBadge:     document.getElementById('finalRankBadge'),
+      finalTableBody:     document.getElementById('finalTableBody'),
+      finalSummaryText:   document.getElementById('finalSummaryText'),
+      btnPlayAgain:       document.getElementById('btnPlayAgain'),
+      btnCopyMemoryResult: document.getElementById('btnCopyMemoryResult'),
+      btnCopyMemoryText:  document.getElementById('btnCopyMemoryText'),
+      testStage:          document.getElementById('testStage')
+    };
+
+    /* ─────────────────────────────────────────────
+       DRAW COLOR WHEEL CANVAS
+    ───────────────────────────────────────────── */
+    function drawColorWheel() {
+      const canvas = DOM.wheelCanvas;
+      const ctx = canvas.getContext('2d');
+      const width = canvas.width;
+      const height = canvas.height;
+      const cx = width / 2;
+      const cy = height / 2;
+      const radius = width / 2;
+
+      const imgData = ctx.createImageData(width, height);
+      const data = imgData.data;
+
+      for (let y = 0; y < height; y++) {
+        for (let x = 0; x < width; x++) {
+          const dx = x - cx;
+          const dy = y - cy;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+
+          const idx = (y * width + x) * 4;
+
+          if (dist <= radius) {
+            // Angle in degrees [0, 360)
+            let angle = Math.atan2(dy, dx) * (180 / Math.PI);
+            if (angle < 0) angle += 360;
+
+            const sat = Math.min(100, (dist / radius) * 100);
+            const [r, g, b] = hslToRgb(angle, sat, userColor.l);
+
+            data[idx]     = r;
+            data[idx + 1] = g;
+            data[idx + 2] = b;
+            data[idx + 3] = 255;
+          } else {
+            data[idx + 3] = 0; // transparent outside circle
+          }
+        }
+      }
+      ctx.putImageData(imgData, 0, 0);
+    }
+
+    /* ─────────────────────────────────────────────
+       UPDATE WHEEL CURSOR POSITION
+    ───────────────────────────────────────────── */
+    function updateCursorPosition() {
+      const radius = 128; // container width 256 / 2
+      const angleRad = (userColor.h * Math.PI) / 180;
+      const dist = (userColor.s / 100) * radius;
+
+      const x = 128 + dist * Math.cos(angleRad);
+      const y = 128 + dist * Math.sin(angleRad);
+
+      DOM.wheelCursor.style.left = `${x}px`;
+      DOM.wheelCursor.style.top  = `${y}px`;
+      DOM.wheelCursor.style.backgroundColor = `hsl(${userColor.h}, ${userColor.s}%, ${userColor.l}%)`;
+    }
+
+    /* ─────────────────────────────────────────────
+       WHEEL INTERACTION (CLICK & DRAG)
+    ───────────────────────────────────────────── */
+    let isDragging = false;
+
+    function handleWheelPick(e) {
+      const rect = DOM.wheelCanvas.getBoundingClientRect();
+      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+      const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+
+      const x = clientX - rect.left - (rect.width / 2);
+      const y = clientY - rect.top  - (rect.height / 2);
+      const maxRadius = rect.width / 2;
+      const dist = Math.min(maxRadius, Math.sqrt(x * x + y * y));
+
+      let angle = Math.atan2(y, x) * (180 / Math.PI);
+      if (angle < 0) angle += 360;
+
+      userColor.h = Math.round(angle);
+      userColor.s = Math.round((dist / maxRadius) * 100);
+
+      updatePickerUI();
+    }
+
+    function updatePickerUI() {
+      const hsl = `hsl(${userColor.h}, ${userColor.s}%, ${userColor.l}%)`;
+      DOM.previewSwatch.style.backgroundColor = hsl;
+      DOM.previewHslLabel.textContent = hsl;
+      updateCursorPosition();
+    }
+
+    /* ─────────────────────────────────────────────
+       ROUND PILLS INDICATOR
+    ───────────────────────────────────────────── */
+    function renderRoundPills() {
+      DOM.roundPills.innerHTML = Array.from({ length: TOTAL_ROUNDS }).map((_, i) => {
+        const roundNum = i + 1;
+        let cls = 'w-2 h-2 rounded-full bg-slate-200';
+        if (roundNum < currentRound) {
+          cls = 'w-2 h-2 rounded-full bg-emerald-500';
+        } else if (roundNum === currentRound) {
+          cls = 'w-2.5 h-2.5 rounded-full bg-slate-900 ring-2 ring-slate-300';
+        }
+        return `<span class="${cls}"></span>`;
+      }).join('');
+      DOM.roundStatusText.textContent = `Round ${currentRound} of ${TOTAL_ROUNDS}`;
+    }
+
+    /* ─────────────────────────────────────────────
+       START ROUND
+    ───────────────────────────────────────────── */
+    function startRound() {
+      renderRoundPills();
+
+      // Generate distinct, vibrant random target
+      targetColor = {
+        h: Math.floor(Math.random() * 360),
+        s: 45 + Math.floor(Math.random() * 45), // 45-90%
+        l: 35 + Math.floor(Math.random() * 35)  // 35-70%
+      };
+
+      // Reset user pick to neutral center
+      userColor = {
+        h: (targetColor.h + 180) % 360,
+        s: 30,
+        l: 50
+      };
+      DOM.lightnessSlider.value = 50;
+      DOM.lightnessValLabel.textContent = '50%';
+
+      // Show memorize phase
+      DOM.memorizePhase.classList.remove('hidden');
+      DOM.matchPhase.classList.add('hidden');
+      DOM.feedbackPhase.classList.add('hidden');
+
+      DOM.targetSwatch.style.backgroundColor = `hsl(${targetColor.h}, ${targetColor.s}%, ${targetColor.l}%)`;
+
+      // Countdown setup
+      const circumference = 2 * Math.PI * 54; // 339.29
+      secondsLeft = MEMORIZE_DURATION;
+      DOM.countdownSec.textContent = `${secondsLeft}s`;
+      DOM.timerRing.style.strokeDashoffset = '0';
+
+      clearInterval(timerInterval);
+      timerInterval = setInterval(() => {
+        secondsLeft--;
+        DOM.countdownSec.textContent = `${secondsLeft}s`;
+        const offset = circumference * (1 - (secondsLeft / MEMORIZE_DURATION));
+        DOM.timerRing.style.strokeDashoffset = offset;
+
+        if (secondsLeft <= 0) {
+          clearInterval(timerInterval);
+          transitionToMatchPhase();
+        }
+      }, 1000);
+    }
+
+    /* ─────────────────────────────────────────────
+       TRANSITION TO MATCH PHASE
+    ───────────────────────────────────────────── */
+    function transitionToMatchPhase() {
+      DOM.memorizePhase.classList.add('hidden');
+      DOM.matchPhase.classList.remove('hidden');
+
+      drawColorWheel();
+      updatePickerUI();
+    }
+
+    /* ─────────────────────────────────────────────
+       SUBMIT GUESS & SHOW FEEDBACK
+    ───────────────────────────────────────────── */
+    function submitGuess() {
+      const dist = deltaE(targetColor, userColor);
+
+      roundHistory.push({
+        target: { ...targetColor },
+        guess:  { ...userColor },
+        delta:  dist
+      });
+
+      DOM.matchPhase.classList.add('hidden');
+      DOM.feedbackPhase.classList.remove('hidden');
+
+      // Populate feedback
+      DOM.feedbackTitle.textContent = `Round ${currentRound} Comparison`;
+      DOM.fbTargetSwatch.style.backgroundColor = `hsl(${targetColor.h}, ${targetColor.s}%, ${targetColor.l}%)`;
+      DOM.fbTargetLabel.textContent = `hsl(${targetColor.h}, ${targetColor.s}%, ${targetColor.l}%)`;
+
+      DOM.fbGuessSwatch.style.backgroundColor = `hsl(${userColor.h}, ${userColor.s}%, ${userColor.l}%)`;
+      DOM.fbGuessLabel.textContent = `hsl(${userColor.h}, ${userColor.s}%, ${userColor.l}%)`;
+
+      DOM.fbDeltaVal.textContent = dist.toFixed(1);
+
+      // Distance score bar (0 is perfect 100%, 40+ is 0%)
+      const scorePct = Math.max(0, Math.min(100, Math.round((1 - (dist / 40)) * 100)));
+      DOM.fbDistanceBar.style.width = `${scorePct}%`;
+
+      // Rating badge
+      if (dist < 6) {
+        DOM.feedbackRatingBadge.textContent = 'Phenomenal Match (ΔE < 6)';
+        DOM.feedbackRatingBadge.className = 'rank-badge rank-tetrachromat';
+        DOM.fbDistanceBar.className = 'h-2 rounded-full transition-all duration-500 bg-violet-500';
+      } else if (dist < 14) {
+        DOM.feedbackRatingBadge.textContent = 'Close Match (ΔE < 14)';
+        DOM.feedbackRatingBadge.className = 'rank-badge rank-inspector';
+        DOM.fbDistanceBar.className = 'h-2 rounded-full transition-all duration-500 bg-emerald-500';
+      } else if (dist < 26) {
+        DOM.feedbackRatingBadge.textContent = 'Moderate Divergence';
+        DOM.feedbackRatingBadge.className = 'rank-badge rank-lynx';
+        DOM.fbDistanceBar.className = 'h-2 rounded-full transition-all duration-500 bg-amber-500';
+      } else {
+        DOM.feedbackRatingBadge.textContent = 'Noticeable Memory Drift';
+        DOM.feedbackRatingBadge.className = 'rank-badge rank-student';
+        DOM.fbDistanceBar.className = 'h-2 rounded-full transition-all duration-500 bg-slate-500';
+      }
+
+      if (currentRound >= TOTAL_ROUNDS) {
+        DOM.btnNextRound.textContent = 'View Final Results →';
+      } else {
+        DOM.btnNextRound.textContent = `Proceed to Round ${currentRound + 1} →`;
+      }
+    }
+
+    /* ─────────────────────────────────────────────
+       FINAL REPORT
+    ───────────────────────────────────────────── */
+    function showFinalReport() {
+      DOM.testStage.classList.add('hidden');
+      DOM.finalResultPanel.classList.remove('hidden');
+      DOM.finalResultPanel.classList.add('animate-results');
+      DOM.finalResultPanel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+      const sumDelta = roundHistory.reduce((acc, r) => acc + r.delta, 0);
+      const avgDelta = sumDelta / TOTAL_ROUNDS;
+      const bestDelta = Math.min(...roundHistory.map(r => r.delta));
+      const overallScore = Math.max(0, Math.min(100, Math.round((1 - (avgDelta / 35)) * 100)));
+
+      DOM.resAvgDelta.textContent = avgDelta.toFixed(1);
+      DOM.resBestDelta.textContent = bestDelta.toFixed(1);
+      DOM.resAccuracyScore.textContent = `${overallScore}%`;
+
+      // Overall rank
+      let rank = { label: 'Screen Calibrator Student', cls: 'rank-student', desc: 'Noticeable color memory drift. This is completely standard without dedicated training; short-term chromatic memory naturally normalizes toward primary color prototypes.' };
+      if (avgDelta < 8) {
+        rank = { label: 'Tetrachromatic Master', cls: 'rank-tetrachromat', desc: 'Incredible eidetic color memory! Your ability to accurately preserve exact hue angles, saturation, and luminance across delays is in the top 1% of observers.' };
+      } else if (avgDelta < 16) {
+        rank = { label: 'Lynx Vision', cls: 'rank-lynx', desc: 'Superior chromatic recall. You consistently match shades with very little drift, characteristic of experienced colorists and digital retouching professionals.' };
+      } else if (avgDelta < 25) {
+        rank = { label: 'Fine Arts Inspector', cls: 'rank-inspector', desc: 'Above-average color retention. You accurately identify the general hue family and brightness with only moderate saturation drift.' };
+      }
+
+      DOM.finalRankBadge.textContent = rank.label;
+      DOM.finalRankBadge.className = `rank-badge ${rank.cls}`;
+      DOM.finalSummaryText.innerHTML = `<p class="font-medium text-slate-900 mb-1">${rank.label}</p><p>${rank.desc}</p>`;
+
+      // Table rows
+      DOM.finalTableBody.innerHTML = roundHistory.map((r, i) => `
+        <tr class="hover:bg-slate-50 transition-colors">
+          <td class="py-2.5 px-4 font-mono font-semibold text-slate-900">
+            Round ${i + 1}
+          </td>
+          <td class="py-2.5 px-4 text-center">
+            <div class="inline-flex items-center gap-1.5">
+              <span class="w-6 h-6 rounded-md shadow-sm border border-slate-200" style="background-color: hsl(${r.target.h}, ${r.target.s}%, ${r.target.l}%)" title="Target"></span>
+              <span class="text-xs text-slate-400">vs</span>
+              <span class="w-6 h-6 rounded-md shadow-sm border border-slate-200" style="background-color: hsl(${r.guess.h}, ${r.guess.s}%, ${r.guess.l}%)" title="Your Guess"></span>
+            </div>
+          </td>
+          <td class="py-2.5 px-4 text-right font-mono font-bold text-slate-800">
+            ΔE ${r.delta.toFixed(1)}
+          </td>
+        </tr>
+      `).join('');
+
+      // Persist best score
+      try {
+        const prev = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+        if (!prev.bestAvg || avgDelta < prev.bestAvg) {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify({
+            bestAvg: avgDelta,
+            bestScore: overallScore,
+            rank: rank.label
+          }));
+        }
+      } catch (e) {}
+    }
+
+    /* ─────────────────────────────────────────────
+       COPY RESULT
+    ───────────────────────────────────────────── */
+    function copyResult() {
+      const sumDelta = roundHistory.reduce((acc, r) => acc + r.delta, 0);
+      const avgDelta = (sumDelta / TOTAL_ROUNDS).toFixed(1);
+      const bestDelta = Math.min(...roundHistory.map(r => r.delta)).toFixed(1);
+
+      const lines = [
+        '🎨 SpinFoundry — Color Memory & Matching Test',
+        '───────────────────────────────────────────',
+        `Average Distance : ΔE ${avgDelta}`,
+        `Best Round       : ΔE ${bestDelta}`,
+        ...roundHistory.map((r, i) => `• Round ${i+1}: ΔE ${r.delta.toFixed(1)}`),
+        '───────────────────────────────────────────',
+        'Test your color memory: https://spinfoundry.pages.dev/color-matching-test/'
+      ];
+
+      navigator.clipboard.writeText(lines.join('\n')).then(() => {
+        DOM.btnCopyMemoryText.textContent = 'Copied!';
+        setTimeout(() => { DOM.btnCopyMemoryText.textContent = 'Copy Memory Result'; }, 2200);
+      }).catch(() => {
+        DOM.btnCopyMemoryText.textContent = 'Copy Failed';
+        setTimeout(() => { DOM.btnCopyMemoryText.textContent = 'Copy Memory Result'; }, 2200);
+      });
+    }
+
+    /* ─────────────────────────────────────────────
+       RESET
+    ───────────────────────────────────────────── */
+    function playAgain() {
+      roundHistory.length = 0;
+      currentRound = 1;
+      DOM.finalResultPanel.classList.add('hidden');
+      DOM.testStage.classList.remove('hidden');
+      startRound();
+    }
+
+    /* ─────────────────────────────────────────────
+       EVENT LISTENERS
+    ───────────────────────────────────────────── */
+    function setupEvents() {
+      // Wheel interaction
+      const wheel = DOM.wheelCanvas;
+      wheel.addEventListener('mousedown', (e) => {
+        isDragging = true;
+        handleWheelPick(e);
+      });
+      window.addEventListener('mousemove', (e) => {
+        if (isDragging) handleWheelPick(e);
+      });
+      window.addEventListener('mouseup', () => { isDragging = false; });
+
+      wheel.addEventListener('touchstart', (e) => {
+        isDragging = true;
+        handleWheelPick(e);
+      }, { passive: false });
+      window.addEventListener('touchmove', (e) => {
+        if (isDragging) {
+          e.preventDefault();
+          handleWheelPick(e);
+        }
+      }, { passive: false });
+      window.addEventListener('touchend', () => { isDragging = false; });
+
+      // Lightness slider
+      DOM.lightnessSlider.addEventListener('input', (e) => {
+        userColor.l = parseInt(e.target.value, 10);
+        DOM.lightnessValLabel.textContent = `${userColor.l}%`;
+        drawColorWheel();
+        updatePickerUI();
+      });
+
+      // Buttons
+      DOM.btnSubmitGuess.addEventListener('click', submitGuess);
+      DOM.btnNextRound.addEventListener('click', () => {
+        if (currentRound >= TOTAL_ROUNDS) {
+          showFinalReport();
+        } else {
+          currentRound++;
+          startRound();
+        }
+      });
+      DOM.btnPlayAgain.addEventListener('click', playAgain);
+      DOM.btnCopyMemoryResult.addEventListener('click', copyResult);
+    }
+
+    /* ─────────────────────────────────────────────
+       INIT
+    ───────────────────────────────────────────── */
+    function init() {
+      setupEvents();
+      startRound();
+    }
+
+    init();
+  })();
+  </script>
+</body>
+</html>

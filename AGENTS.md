@@ -52,6 +52,7 @@ SpinFoundry is hosted on **Cloudflare Pages** (`spinfoundry.pages.dev`) via GitH
 | `coffee-brew` | Coffee & Fermentation | ☕ | Espresso ratios, pour-over extraction, kombucha, brewing |
 | `garden` | Home & Garden | 🌿 | Soil amendments, plant spacing, sun angle, compost ratios |
 | `dev-tools` | Dev & Design | 🛠️ | Regex testing, CSS gradient generators, color contrast, cron |
+| `color-vision` | Color & Vision | 👁️ | Acuity thresholds, chromatic memory, multi-spectrum radar tests |
 
 ---
 
