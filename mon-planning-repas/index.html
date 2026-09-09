@@ -349,6 +349,54 @@
       overflow-y: auto !important;
       padding: 1.5rem !important;
     }
+
+    /* Segmented Option Buttons (Type & Course) */
+    .btn-type-option, .btn-category-option {
+      background-color: #ffffff !important;
+      border: 1px solid #cbd5e1 !important;
+      color: #334155 !important;
+      cursor: pointer !important;
+      touch-action: manipulation !important;
+      user-select: none !important;
+      font-size: 0.75rem !important;
+      line-height: 1rem !important;
+      transition: all 0.12s ease !important;
+    }
+    .btn-type-option:hover, .btn-category-option:hover {
+      background-color: #f8fafc !important;
+      border-color: #94a3b8 !important;
+    }
+    .btn-category-option.active {
+      background-color: #0f172a !important;
+      color: #ffffff !important;
+      border-color: #0f172a !important;
+      font-weight: 700 !important;
+      box-shadow: 0 1px 3px rgba(15, 23, 42, 0.15) !important;
+    }
+    .btn-type-option.active[data-value="veggie"] {
+      background-color: #ecfdf5 !important;
+      color: #065f46 !important;
+      border-color: #10b981 !important;
+      font-weight: 700 !important;
+    }
+    .btn-type-option.active[data-value="meat"] {
+      background-color: #fff1f2 !important;
+      color: #9f1239 !important;
+      border-color: #f43f5e !important;
+      font-weight: 700 !important;
+    }
+    .btn-type-option.active[data-value="fish"] {
+      background-color: #f0f9ff !important;
+      color: #075985 !important;
+      border-color: #0284c7 !important;
+      font-weight: 700 !important;
+    }
+    .btn-type-option.active[data-value="seafood"] {
+      background-color: #f0fdfa !important;
+      color: #115e59 !important;
+      border-color: #14b8a6 !important;
+      font-weight: 700 !important;
+    }
   </style>
 </head>
 <body class="bg-[#F8F9FA] text-slate-800 font-sans min-h-screen flex flex-col justify-between antialiased">
@@ -367,8 +415,13 @@
         </span>
       </div>
 
-      <!-- Cloudflare D1 SQL Status Badge & CSV Action -->
+      <!-- Cloudflare D1 SQL Status Badge, User Account & CSV Action -->
       <div class="flex items-center gap-2">
+        <button type="button" id="btnAccountHeader" class="btn-tap inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-mono border border-slate-200 bg-white hover:bg-slate-50 text-slate-700" title="Gérer votre compte utilisateur / Connexion">
+          <span class="w-2 h-2 rounded-full bg-slate-400" id="headerUserDot"></span>
+          <span id="lblHeaderUser" class="text-[11px]">👤 Connexion</span>
+        </button>
+
         <div id="d1StatusBadge" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-mono border border-slate-200 bg-slate-50 text-slate-600" title="Statut de la base SQL Cloudflare D1">
           <span id="d1StatusDot" class="w-2 h-2 rounded-full bg-slate-400"></span>
           <span id="d1StatusText" class="hidden sm:inline text-[11px]">Vérification D1...</span>
@@ -598,6 +651,44 @@
         </p>
       </div>
 
+      <!-- Compte Utilisateur Cloud SQL Card -->
+      <div class="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-sm space-y-3">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <div class="w-8 h-8 rounded-lg bg-blue-50 border border-blue-200 flex items-center justify-center text-blue-600 font-bold text-sm">
+              👤
+            </div>
+            <div>
+              <h2 class="text-sm font-bold text-slate-900">Compte Utilisateur Cloud SQL</h2>
+              <p class="text-xs text-slate-500">Accédez à vos données sur tous vos appareils sans mot de passe.</p>
+            </div>
+          </div>
+          <span id="badgeAccountStatus" class="text-xs font-mono font-medium px-2.5 py-1 rounded-full bg-slate-100 text-slate-700">
+            Mode Invité
+          </span>
+        </div>
+
+        <div class="p-4 bg-slate-50 rounded-xl border border-slate-200/60 space-y-3">
+          <div class="flex flex-col sm:flex-row sm:items-center gap-2">
+            <div class="flex-1">
+              <label for="inputUsernameSettings" class="block text-[11px] font-mono font-semibold uppercase text-slate-600 mb-1">Votre nom d'utilisateur (pseudo) :</label>
+              <input type="text" id="inputUsernameSettings" placeholder="Ex: florian, chef_mario, famille_dupont" class="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs font-mono focus:border-slate-900 focus:outline-none bg-white">
+            </div>
+            <div class="flex items-center gap-2 sm:pt-4">
+              <button type="button" id="btnLoginUsernameSettings" class="btn-tap px-4 py-2 rounded-lg bg-slate-900 hover:bg-slate-800 text-white font-mono text-xs font-semibold">
+                Se connecter
+              </button>
+              <button type="button" id="btnSyncNowSettings" class="btn-tap px-3 py-2 rounded-lg border border-slate-200 hover:bg-white text-slate-700 font-mono text-xs font-semibold" title="Forcer la synchronisation avec la base Cloudflare D1">
+                🔄 Synchroniser
+              </button>
+            </div>
+          </div>
+          <p class="text-[11px] text-slate-500 leading-relaxed">
+            💡 <strong>Rétention cloud permanente :</strong> Vos recettes et votre planning sont stockés directement dans la base SQL Cloudflare D1 associés à ce pseudo. Entrez simplement ce même pseudo sur un autre appareil pour récupérer l'ensemble de vos données instantanément sans mot de passe.
+          </p>
+        </div>
+      </div>
+
       <!-- Cloudflare D1 SQL Serverless Card -->
       <div class="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-sm space-y-3">
         <div class="flex items-center justify-between">
@@ -762,21 +853,36 @@
         </div>
       </div>
 
-      <!-- Photo Picker Box -->
-      <div class="space-y-1.5">
+      <!-- Photo Picker Box with Camera & Gallery -->
+      <div class="space-y-2">
         <label class="block text-xs font-mono font-semibold uppercase text-slate-700">Photo du plat</label>
-        <div id="photoPreviewBox" class="relative w-full h-36 bg-slate-100 rounded-xl border-2 border-dashed border-slate-300 hover:border-slate-400 flex flex-col items-center justify-center cursor-pointer overflow-hidden group transition-colors">
+        
+        <div id="photoPreviewBox" class="relative w-full h-36 bg-slate-50 rounded-xl border-2 border-dashed border-slate-300 flex flex-col items-center justify-center overflow-hidden">
           <img id="imgPhotoPreview" src="" class="hidden w-full h-full object-cover">
-          <div id="photoPlaceholderContent" class="text-center p-3 text-slate-500">
-            <span class="text-2xl block mb-1">📸</span>
-            <span class="text-xs font-medium text-slate-700">Ajouter une photo</span>
-            <span class="text-[10px] text-slate-400 block">Galerie ou appareil photo</span>
+          <div id="photoPlaceholderContent" class="text-center p-3 text-slate-400">
+            <span class="text-3xl block mb-1">🍲</span>
+            <span class="text-xs font-medium text-slate-600 block">Aucune photo</span>
+            <span class="text-[10px] text-slate-400">Prenez une photo ou sélectionnez depuis la galerie</span>
           </div>
-          <button type="button" id="btnRemovePhoto" class="hidden absolute top-2 right-2 p-1 rounded-full bg-slate-900/80 text-white hover:bg-slate-900 text-xs">
-            &times;
+          <button type="button" id="btnRemovePhoto" class="hidden absolute top-2 right-2 px-2.5 py-1 rounded-lg bg-slate-900/85 hover:bg-slate-900 text-white text-[11px] font-mono font-semibold shadow-md">
+            ✕ Supprimer
           </button>
         </div>
-        <input type="file" id="fileInputPhoto" accept="image/*" class="hidden">
+
+        <!-- Mobile Camera & Gallery Action Buttons -->
+        <div class="grid grid-cols-2 gap-2">
+          <button type="button" id="btnTriggerCamera" class="btn-tap py-2 px-3 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-800 text-xs font-semibold flex items-center justify-center gap-1.5 shadow-sm">
+            <span>📷</span>
+            <span>Appareil photo</span>
+          </button>
+          <button type="button" id="btnTriggerGallery" class="btn-tap py-2 px-3 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-800 text-xs font-semibold flex items-center justify-center gap-1.5 shadow-sm">
+            <span>🖼️</span>
+            <span>Galerie mobile</span>
+          </button>
+        </div>
+
+        <input type="file" id="fileInputCamera" accept="image/*" capture="environment" class="hidden">
+        <input type="file" id="fileInputGallery" accept="image/*" class="hidden">
       </div>
 
       <!-- Dish Name -->
@@ -785,27 +891,24 @@
         <input type="text" id="inputMealName" required placeholder="Ex: Spaghetti Bolognaise" class="w-full px-3 py-2 rounded-xl border border-slate-200 focus:border-slate-900 focus:outline-none text-sm">
       </div>
 
-      <!-- Protein Type -->
+      <!-- Protein Type (Segmented Buttons) -->
       <div class="space-y-1">
         <label class="block text-xs font-mono font-semibold uppercase text-slate-700">Type de plat *</label>
-        <div class="grid grid-cols-2 sm:grid-cols-4 gap-1.5 text-xs font-medium">
-          <label class="flex items-center gap-1.5 p-2 rounded-lg border border-slate-200 cursor-pointer has-[:checked]:border-emerald-600 has-[:checked]:bg-emerald-50">
-            <input type="radio" name="mealType" value="veggie" checked class="accent-emerald-600">
-            <span>🌱 Végé</span>
-          </label>
-          <label class="flex items-center gap-1.5 p-2 rounded-lg border border-slate-200 cursor-pointer has-[:checked]:border-rose-600 has-[:checked]:bg-rose-50">
-            <input type="radio" name="mealType" value="meat" class="accent-rose-600">
-            <span>🥩 Viande</span>
-          </label>
-          <label class="flex items-center gap-1.5 p-2 rounded-lg border border-slate-200 cursor-pointer has-[:checked]:border-sky-600 has-[:checked]:bg-sky-50">
-            <input type="radio" name="mealType" value="fish" class="accent-sky-600">
-            <span>🐟 Poisson</span>
-          </label>
-          <label class="flex items-center gap-1.5 p-2 rounded-lg border border-slate-200 cursor-pointer has-[:checked]:border-teal-600 has-[:checked]:bg-teal-50">
-            <input type="radio" name="mealType" value="seafood" class="accent-teal-600">
-            <span>🦐 Fruits de m.</span>
-          </label>
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-1.5 text-xs font-medium" id="typeButtonGroup">
+          <button type="button" data-value="veggie" class="btn-type-option p-2 rounded-lg border text-center transition-all active">
+            🌱 Végé
+          </button>
+          <button type="button" data-value="meat" class="btn-type-option p-2 rounded-lg border text-center transition-all">
+            🥩 Viande
+          </button>
+          <button type="button" data-value="fish" class="btn-type-option p-2 rounded-lg border text-center transition-all">
+            🐟 Poisson
+          </button>
+          <button type="button" data-value="seafood" class="btn-type-option p-2 rounded-lg border text-center transition-all">
+            🦐 Fruits de m.
+          </button>
         </div>
+        <input type="hidden" id="inputMealType" value="veggie">
       </div>
 
       <!-- Season, Calorie & Prep Time (3 Columns) -->
@@ -845,23 +948,21 @@
 
       </div>
 
-      <!-- Course Category -->
+      <!-- Course Category (Segmented Buttons) -->
       <div class="space-y-1">
-        <label class="block text-xs font-mono font-semibold uppercase text-slate-700">Catégorie de service</label>
-        <div class="flex items-center gap-2 text-xs">
-          <label class="flex-1 text-center p-2 rounded-lg border border-slate-200 cursor-pointer has-[:checked]:border-slate-900 has-[:checked]:bg-slate-900 has-[:checked]:text-white">
-            <input type="radio" name="mealCategory" value="main" checked class="hidden">
-            <span>Plat principal</span>
-          </label>
-          <label class="flex-1 text-center p-2 rounded-lg border border-slate-200 cursor-pointer has-[:checked]:border-slate-900 has-[:checked]:bg-slate-900 has-[:checked]:text-white">
-            <input type="radio" name="mealCategory" value="starter" class="hidden">
-            <span>Entrée</span>
-          </label>
-          <label class="flex-1 text-center p-2 rounded-lg border border-slate-200 cursor-pointer has-[:checked]:border-slate-900 has-[:checked]:bg-slate-900 has-[:checked]:text-white">
-            <input type="radio" name="mealCategory" value="dessert" class="hidden">
-            <span>Dessert</span>
-          </label>
+        <label class="block text-xs font-mono font-semibold uppercase text-slate-700">Catégorie de service *</label>
+        <div class="flex items-center gap-2 text-xs" id="categoryButtonGroup">
+          <button type="button" data-value="starter" class="btn-category-option flex-1 py-2 px-3 rounded-lg border text-center font-medium transition-all">
+            🥗 Entrée
+          </button>
+          <button type="button" data-value="main" class="btn-category-option flex-1 py-2 px-3 rounded-lg border text-center font-medium transition-all active">
+            🍲 Plat principal
+          </button>
+          <button type="button" data-value="dessert" class="btn-category-option flex-1 py-2 px-3 rounded-lg border text-center font-medium transition-all">
+            🍰 Dessert
+          </button>
         </div>
+        <input type="hidden" id="inputMealCategory" value="main">
       </div>
 
       <!-- Tags & Recipe URL -->
@@ -910,6 +1011,47 @@
         </button>
         <button type="button" id="btnSlotPickerCancel" class="btn-tap px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-mono text-slate-600">
           Fermer
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═════════════════════════════════════════════
+       USER ACCOUNT / LOGIN MODAL
+       ═════════════════════════════════════════════ -->
+  <div id="modalUserAccount" class="hidden modal-overlay">
+    <div class="modal-box space-y-4">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+        <h3 class="text-base font-extrabold text-slate-900 font-mono flex items-center gap-2">
+          <span>👤</span>
+          <span>Connexion Cloud SQL</span>
+        </h3>
+        <button type="button" id="btnCloseAccountModal" class="text-slate-400 hover:text-slate-700 p-1 text-base leading-none">&times;</button>
+      </div>
+
+      <p class="text-xs text-slate-600 leading-relaxed">
+        Entrez votre <strong>nom d'utilisateur (pseudo)</strong> pour synchroniser vos recettes et plannings dans la base SQL Cloudflare D1. Aucun mot de passe requis !
+      </p>
+
+      <div class="space-y-1.5">
+        <label for="inputUsernameModal" class="block text-xs font-mono font-semibold uppercase text-slate-700">Nom d'utilisateur (pseudo) *</label>
+        <input type="text" id="inputUsernameModal" placeholder="Ex: florian, chef_mario..." class="w-full px-3 py-2 rounded-xl border border-slate-200 focus:border-slate-900 focus:outline-none text-sm font-mono bg-white">
+        <span class="text-[11px] text-slate-400 block">Lettres, chiffres, tirets et underscores autorisés.</span>
+      </div>
+
+      <div class="p-3 bg-slate-50 rounded-xl border border-slate-200/60 text-xs space-y-1">
+        <div class="flex items-center justify-between text-slate-600 font-mono">
+          <span>Compte actif :</span>
+          <span id="lblModalCurrentAccount" class="font-bold text-slate-900">Mode Invité</span>
+        </div>
+      </div>
+
+      <div class="pt-2 border-t border-slate-100 flex items-center justify-end gap-2">
+        <button type="button" id="btnCancelAccountModal" class="btn-tap px-4 py-2 rounded-xl border border-slate-200 text-xs font-mono text-slate-600 hover:bg-slate-50">
+          Annuler
+        </button>
+        <button type="button" id="btnConfirmLoginModal" class="btn-tap px-5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-mono font-bold tracking-wider uppercase shadow-sm">
+          Se connecter
         </button>
       </div>
     </div>
@@ -1028,11 +1170,14 @@
        2. USER ID & LOCAL STORAGE KEYS
        ═════════════════════════════════════════════ */
     const KEY_USER_ID = 'spinfoundry_mpr_userid_v1';
+    const KEY_USERNAME = 'spinfoundry_mpr_username_v1';
     const KEY_LOCAL_MEALS = 'spinfoundry_mpr_meals_v1';
     const KEY_LOCAL_PLANS = 'spinfoundry_mpr_plans_v1';
     const KEY_LOCAL_SETTINGS = 'spinfoundry_mpr_settings_v1';
 
-    function getOrCreateUserId() {
+    let currentUsername = localStorage.getItem(KEY_USERNAME) || '';
+
+    function getOrCreateGuestUserId() {
       let uid = localStorage.getItem(KEY_USER_ID);
       if (!uid) {
         uid = 'usr_' + Math.random().toString(36).substring(2, 11) + Date.now().toString(36);
@@ -1041,7 +1186,13 @@
       return uid;
     }
 
-    const currentUserId = getOrCreateUserId();
+    function getEffectiveUserId() {
+      if (currentUsername && currentUsername.trim()) {
+        const clean = currentUsername.trim().toLowerCase().replace(/[^a-z0-9_-]/g, '_');
+        return 'usr_' + clean;
+      }
+      return getOrCreateGuestUserId();
+    }
 
     /* App Global State */
     let meals = [];
@@ -1058,12 +1209,106 @@
     let d1Connected = false;
 
     /* ═════════════════════════════════════════════
-       3. CLOUDFLARE D1 SQL SYNC ENGINE
+       3. CLOUDFLARE D1 SQL SYNC ENGINE & USER MGMT
        ═════════════════════════════════════════════ */
+    function normalizeMeal(m) {
+      return {
+        id: m.id,
+        name: m.name || 'Sans titre',
+        type: m.type || 'veggie',
+        season: m.season || 'all',
+        calorieLevel: m.calorieLevel || m.calorie_level || 'medium',
+        prepTime: m.prepTime || m.prep_time || 'medium',
+        category: m.category || 'main',
+        tags: m.tags || '',
+        recipeUrl: m.recipeUrl || m.recipe_url || '',
+        photo: m.photo || ''
+      };
+    }
+
+    function normalizePlan(p) {
+      return {
+        dayIndex: p.dayIndex ?? p.day_index,
+        slot: p.slot,
+        mealId: p.mealId ?? p.meal_id ?? null,
+        isLocked: Boolean(p.isLocked ?? p.is_locked)
+      };
+    }
+
+    function updateUserUI() {
+      const btnHeader = document.getElementById('lblHeaderUser');
+      const dotHeader = document.getElementById('headerUserDot');
+      const badgeSettings = document.getElementById('badgeAccountStatus');
+      const inputSettings = document.getElementById('inputUsernameSettings');
+      const btnLoginSettings = document.getElementById('btnLoginUsernameSettings');
+      const lblModalAccount = document.getElementById('lblModalCurrentAccount');
+      const inputModal = document.getElementById('inputUsernameModal');
+      const lblUid = document.getElementById('lblUserIdDisplay');
+
+      const effId = getEffectiveUserId();
+      if (lblUid) lblUid.textContent = effId;
+
+      if (currentUsername && currentUsername.trim()) {
+        const display = '@' + currentUsername.trim();
+        if (btnHeader) btnHeader.textContent = display;
+        if (dotHeader) dotHeader.className = 'w-2 h-2 rounded-full bg-emerald-500 animate-pulse';
+        if (badgeSettings) {
+          badgeSettings.className = 'text-xs font-mono font-medium px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200';
+          badgeSettings.textContent = '● Connecté : ' + display;
+        }
+        if (inputSettings) inputSettings.value = currentUsername.trim();
+        if (btnLoginSettings) btnLoginSettings.textContent = 'Changer / Déco.';
+        if (lblModalAccount) lblModalAccount.textContent = display;
+        if (inputModal) inputModal.value = currentUsername.trim();
+      } else {
+        if (btnHeader) btnHeader.textContent = 'Connexion';
+        if (dotHeader) dotHeader.className = 'w-2 h-2 rounded-full bg-slate-400';
+        if (badgeSettings) {
+          badgeSettings.className = 'text-xs font-mono font-medium px-2.5 py-1 rounded-full bg-slate-100 text-slate-600 border border-slate-200';
+          badgeSettings.textContent = '○ Mode Invité (Non connecté)';
+        }
+        if (inputSettings) inputSettings.value = '';
+        if (btnLoginSettings) btnLoginSettings.textContent = 'Se connecter';
+        if (lblModalAccount) lblModalAccount.textContent = 'Mode Invité';
+        if (inputModal) inputModal.value = '';
+      }
+    }
+
+    async function loginWithUsername(newUsername) {
+      const trimmed = (newUsername || '').trim();
+      if (!trimmed) {
+        // Log out to guest mode
+        if (currentUsername) {
+          if (confirm('Voulez-vous vous déconnecter et revenir au mode invité ?')) {
+            currentUsername = '';
+            localStorage.removeItem(KEY_USERNAME);
+            updateUserUI();
+            loadLocalState();
+            renderMeals();
+            renderPlanning();
+            alert('Vous êtes maintenant en mode invité.');
+          }
+        }
+        return;
+      }
+
+      currentUsername = trimmed.toLowerCase();
+      localStorage.setItem(KEY_USERNAME, currentUsername);
+      updateUserUI();
+
+      if (d1Connected) {
+        await fetchUserDataFromD1();
+        alert(`Connecté avec succès en tant que @${currentUsername} ! Vos données Cloudflare D1 sont synchronisées.`);
+      } else {
+        // Even if offline/local, still bound to user identity
+        alert(`Nom d'utilisateur actif : @${currentUsername}. Vos données sont prêtes et se synchroniseront avec Cloud SQL dès connexion.`);
+      }
+    }
+
     async function checkD1Status() {
       try {
         const res = await fetch('/api/status', {
-          headers: { 'X-User-Id': currentUserId }
+          headers: { 'X-User-Id': getEffectiveUserId() }
         });
         if (res.ok) {
           const data = await res.json();
@@ -1098,29 +1343,47 @@
       }
     }
 
-    async function syncWithCloudflareD1() {
+    async function fetchUserDataFromD1() {
       if (!d1Connected) return;
+      const uid = getEffectiveUserId();
       try {
-        // Fetch meals from D1
         const res = await fetch('/api/meals', {
-          headers: { 'X-User-Id': currentUserId }
+          headers: { 'X-User-Id': uid }
         });
         if (res.ok) {
           const data = await res.json();
-          if (data.meals && data.meals.length > 0) {
-            meals = data.meals;
-            saveLocalState();
-            renderMeals();
+          if (data.meals && Array.isArray(data.meals) && data.meals.length > 0) {
+            meals = data.meals.map(normalizeMeal);
           } else if (meals.length > 0) {
-            // Push local meals to D1
+            // Push current meals to Cloud SQL for this newly logged-in account
             await fetch('/api/meals', {
               method: 'POST',
-              headers: { 'Content-Type': 'application/json', 'X-User-Id': currentUserId },
+              headers: { 'Content-Type': 'application/json', 'X-User-Id': uid },
               body: JSON.stringify({ meals })
             });
           }
         }
-      } catch (e) {}
+
+        const resPlans = await fetch('/api/planner', {
+          headers: { 'X-User-Id': uid }
+        });
+        if (resPlans.ok) {
+          const data = await resPlans.json();
+          if (data.plans && Array.isArray(data.plans) && data.plans.length > 0) {
+            weeklyPlans = data.plans.map(normalizePlan);
+          }
+        }
+
+        saveLocalState();
+        renderMeals();
+        renderPlanning();
+      } catch (err) {
+        console.warn('Sync with D1 error:', err);
+      }
+    }
+
+    async function syncWithCloudflareD1() {
+      await fetchUserDataFromD1();
     }
 
     async function persistMealRemote(meal) {
@@ -1128,7 +1391,7 @@
       try {
         await fetch('/api/meals', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'X-User-Id': currentUserId },
+          headers: { 'Content-Type': 'application/json', 'X-User-Id': getEffectiveUserId() },
           body: JSON.stringify({ meal })
         });
       } catch (e) {}
@@ -1139,7 +1402,7 @@
       try {
         await fetch(`/api/meals?id=${encodeURIComponent(id)}`, {
           method: 'DELETE',
-          headers: { 'X-User-Id': currentUserId }
+          headers: { 'X-User-Id': getEffectiveUserId() }
         });
       } catch (e) {}
     }
@@ -1149,7 +1412,7 @@
       try {
         await fetch('/api/planner', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'X-User-Id': currentUserId },
+          headers: { 'Content-Type': 'application/json', 'X-User-Id': getEffectiveUserId() },
           body: JSON.stringify({ plans: weeklyPlans })
         });
       } catch (e) {}
@@ -1311,28 +1574,28 @@
         card.innerHTML = `
           <div>
             ${mediaHtml}
-            <div class="p-4 space-y-2.5">
+            <div class="p-4 space-y-2">
               
-              <!-- Badges Row -->
+              <!-- Title First (Hero) -->
+              <h3 class="text-[15px] sm:text-base font-bold text-slate-900 leading-snug group-hover:text-slate-700 transition-colors">
+                ${m.name}
+              </h3>
+
+              <!-- Badges Row (Subordinate / Smaller) -->
               <div class="flex items-center gap-1.5 flex-wrap text-xs">
-                <span class="px-2 py-0.5 rounded-full font-mono text-[11px] font-semibold border ${diet.class}">
+                <span class="px-2 py-0.5 rounded-md font-mono text-[10px] font-medium border ${diet.class}">
                   ${diet.icon} ${diet.label}
                 </span>
-                <span class="px-2 py-0.5 rounded-full font-mono text-[11px] bg-slate-100 text-slate-600" title="Saison">
+                <span class="px-2 py-0.5 rounded-md font-mono text-[10px] bg-slate-100 text-slate-600" title="Saison">
                   ${season.icon} ${season.label}
                 </span>
-                <span class="px-1.5 py-0.5 rounded font-mono text-[11px] bg-slate-100 text-slate-600 font-bold" title="Calories: ${cal.label}">
+                <span class="px-1.5 py-0.5 rounded font-mono text-[10px] bg-slate-100 text-slate-600 font-bold" title="Calories: ${cal.label}">
                   ${cal.tag}
                 </span>
-                <span class="px-1.5 py-0.5 rounded font-mono text-[11px] bg-slate-100 text-slate-600" title="Temps: ${prep.label}">
+                <span class="px-1.5 py-0.5 rounded font-mono text-[10px] bg-slate-100 text-slate-600" title="Temps: ${prep.label}">
                   ${prep.icon}
                 </span>
               </div>
-
-              <!-- Title -->
-              <h3 class="text-sm font-bold text-slate-900 leading-snug group-hover:text-slate-700 transition-colors">
-                ${m.name}
-              </h3>
 
               <!-- Tags -->
               ${tagsHtml ? `<div class="flex items-center gap-1 flex-wrap pt-0.5">${tagsHtml}</div>` : ''}
@@ -1413,11 +1676,11 @@
         const meal = meals.find(m => m.id === mealId);
         if (meal) {
           document.getElementById('inputMealName').value = meal.name || '';
-          setRadioValue('mealType', meal.type || 'veggie');
+          setMealType(meal.type || 'veggie');
           document.getElementById('selectMealSeason').value = meal.season || 'all';
           document.getElementById('selectMealCalorie').value = meal.calorieLevel || meal.calorie_level || 'medium';
           document.getElementById('selectMealPrepTime').value = meal.prepTime || meal.prep_time || 'medium';
-          setRadioValue('mealCategory', meal.category || 'main');
+          setMealCategory(meal.category || 'main');
           document.getElementById('inputMealTags').value = (meal.tags || '').replace(/;/g, ', ');
           document.getElementById('inputMealUrl').value = meal.recipeUrl || meal.recipe_url || '';
 
@@ -1437,11 +1700,11 @@
         title.textContent = 'Nouveau repas';
         btnDelete.classList.add('hidden');
         document.getElementById('inputMealName').value = '';
-        setRadioValue('mealType', 'veggie');
+        setMealType('veggie');
         document.getElementById('selectMealSeason').value = 'all';
         document.getElementById('selectMealCalorie').value = 'medium';
         document.getElementById('selectMealPrepTime').value = 'medium';
-        setRadioValue('mealCategory', 'main');
+        setMealCategory('main');
         document.getElementById('inputMealTags').value = '';
         document.getElementById('inputMealUrl').value = '';
 
@@ -1460,6 +1723,22 @@
       currentEditingMealId = null;
     }
 
+    function setMealType(val) {
+      const input = document.getElementById('inputMealType');
+      if (input) input.value = val;
+      document.querySelectorAll('#typeButtonGroup .btn-type-option').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.value === val);
+      });
+    }
+
+    function setMealCategory(val) {
+      const input = document.getElementById('inputMealCategory');
+      if (input) input.value = val;
+      document.querySelectorAll('#categoryButtonGroup .btn-category-option').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.value === val);
+      });
+    }
+
     function saveMealFromEditor() {
       const name = document.getElementById('inputMealName').value.trim();
       if (!name) {
@@ -1468,11 +1747,11 @@
         return;
       }
 
-      const type = getRadioValue('mealType') || 'veggie';
+      const type = document.getElementById('inputMealType').value || 'veggie';
       const season = document.getElementById('selectMealSeason').value;
       const calorieLevel = document.getElementById('selectMealCalorie').value;
       const prepTime = document.getElementById('selectMealPrepTime').value;
-      const category = getRadioValue('mealCategory') || 'main';
+      const category = document.getElementById('inputMealCategory').value || 'main';
       const rawTags = document.getElementById('inputMealTags').value.trim();
       // Normalize tags to semicolon for CSV compatibility
       const tags = rawTags.split(/[;,]+/).map(t => t.trim()).filter(Boolean).join(';');
@@ -1518,16 +1797,6 @@
       closeMealEditor();
       renderMeals();
       renderPlanning();
-    }
-
-    function setRadioValue(name, val) {
-      const el = document.querySelector(`input[name="${name}"][value="${val}"]`);
-      if (el) el.checked = true;
-    }
-
-    function getRadioValue(name) {
-      const el = document.querySelector(`input[name="${name}"]:checked`);
-      return el ? el.value : null;
     }
 
     /* ═════════════════════════════════════════════
@@ -1652,11 +1921,11 @@
             ${meal.photo ? `<img src="${meal.photo}" class="w-full h-full object-cover">` : diet.icon}
           </div>
           <div class="min-w-0 flex-1">
-            <h4 class="text-xs font-bold text-slate-800 truncate group-hover:text-blue-600 transition-colors">
+            <h4 class="text-[13px] sm:text-sm font-bold text-slate-900 truncate group-hover:text-blue-600 transition-colors">
               ${meal.name}
             </h4>
             <div class="flex items-center gap-1.5 mt-0.5">
-              <span class="text-[10px] font-mono font-medium px-1.5 py-0.2 rounded border ${diet.class}">
+              <span class="text-[9px] font-mono font-medium px-1.5 py-0.5 rounded border ${diet.class}">
                 ${diet.label}
               </span>
             </div>
@@ -2271,23 +2540,14 @@
         }
       });
 
-      // Photo upload
-      const photoBox = document.getElementById('photoPreviewBox');
-      const filePhoto = document.getElementById('fileInputPhoto');
-      photoBox.addEventListener('click', (e) => {
-        if (e.target.id === 'btnRemovePhoto') return;
-        filePhoto.click();
-      });
-
-      filePhoto.addEventListener('change', (e) => {
-        const file = e.target.files[0];
+      // Dual Camera & Gallery photo capture
+      function processImageFile(file) {
         if (!file) return;
-
         const reader = new FileReader();
         reader.onload = function(evt) {
           const img = new Image();
           img.onload = function() {
-            // Resize image to max 600px width/height for compact storage
+            // Resize image to max 600px width/height for fast local & SQL storage
             const canvas = document.createElement('canvas');
             const maxDim = 600;
             let w = img.width, h = img.height;
@@ -2307,7 +2567,36 @@
           img.src = evt.target.result;
         };
         reader.readAsDataURL(file);
-      });
+      }
+
+      const fileCamera = document.getElementById('fileInputCamera');
+      const fileGallery = document.getElementById('fileInputGallery');
+      const btnCamera = document.getElementById('btnTriggerCamera');
+      const btnGallery = document.getElementById('btnTriggerGallery');
+      const photoBox = document.getElementById('photoPreviewBox');
+
+      if (btnCamera && fileCamera) {
+        btnCamera.addEventListener('click', () => fileCamera.click());
+        fileCamera.addEventListener('change', (e) => {
+          processImageFile(e.target.files[0]);
+          e.target.value = '';
+        });
+      }
+
+      if (btnGallery && fileGallery) {
+        btnGallery.addEventListener('click', () => fileGallery.click());
+        fileGallery.addEventListener('change', (e) => {
+          processImageFile(e.target.files[0]);
+          e.target.value = '';
+        });
+      }
+
+      if (photoBox && fileGallery) {
+        photoBox.addEventListener('click', (e) => {
+          if (e.target.id === 'btnRemovePhoto') return;
+          fileGallery.click();
+        });
+      }
 
       document.getElementById('btnRemovePhoto').addEventListener('click', (e) => {
         e.stopPropagation();
@@ -2315,6 +2604,19 @@
         document.getElementById('imgPhotoPreview').classList.add('hidden');
         document.getElementById('photoPlaceholderContent').classList.remove('hidden');
         document.getElementById('btnRemovePhoto').classList.add('hidden');
+      });
+
+      // Type & Category segmented buttons
+      document.querySelectorAll('#typeButtonGroup .btn-type-option').forEach(btn => {
+        btn.addEventListener('click', () => {
+          setMealType(btn.dataset.value);
+        });
+      });
+
+      document.querySelectorAll('#categoryButtonGroup .btn-category-option').forEach(btn => {
+        btn.addEventListener('click', () => {
+          setMealCategory(btn.dataset.value);
+        });
       });
 
       // Planning controls
@@ -2409,17 +2711,85 @@
         restoreFromZip(file);
       });
 
+      // User Account Modal & Cloud SQL Login
+      const modalAccount = document.getElementById('modalUserAccount');
+      const btnHeaderAccount = document.getElementById('btnAccountHeader');
+      const btnCloseAccount = document.getElementById('btnCloseAccountModal');
+      const btnCancelAccount = document.getElementById('btnCancelAccountModal');
+      const btnConfirmModal = document.getElementById('btnConfirmLoginModal');
+      const inputModal = document.getElementById('inputUsernameModal');
+
+      if (btnHeaderAccount && modalAccount) {
+        btnHeaderAccount.addEventListener('click', () => {
+          inputModal.value = currentUsername || '';
+          updateUserUI();
+          modalAccount.classList.remove('hidden');
+          inputModal.focus();
+        });
+      }
+
+      function closeAccountModal() {
+        if (modalAccount) modalAccount.classList.add('hidden');
+      }
+
+      if (btnCloseAccount) btnCloseAccount.addEventListener('click', closeAccountModal);
+      if (btnCancelAccount) btnCancelAccount.addEventListener('click', closeAccountModal);
+
+      if (btnConfirmModal && inputModal) {
+        btnConfirmModal.addEventListener('click', () => {
+          const val = inputModal.value.trim();
+          loginWithUsername(val);
+          closeAccountModal();
+        });
+        inputModal.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') {
+            const val = inputModal.value.trim();
+            loginWithUsername(val);
+            closeAccountModal();
+          }
+        });
+      }
+
+      // Settings Account controls
+      const btnSettingsLogin = document.getElementById('btnLoginUsernameSettings');
+      const inputSettingsUser = document.getElementById('inputUsernameSettings');
+      const btnSyncNow = document.getElementById('btnSyncNowSettings');
+
+      if (btnSettingsLogin && inputSettingsUser) {
+        btnSettingsLogin.addEventListener('click', () => {
+          const val = inputSettingsUser.value.trim();
+          loginWithUsername(val);
+        });
+        inputSettingsUser.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') {
+            const val = inputSettingsUser.value.trim();
+            loginWithUsername(val);
+          }
+        });
+      }
+
+      if (btnSyncNow) {
+        btnSyncNow.addEventListener('click', async () => {
+          btnSyncNow.disabled = true;
+          btnSyncNow.textContent = 'Synchronisation...';
+          await fetchUserDataFromD1();
+          btnSyncNow.disabled = false;
+          btnSyncNow.textContent = 'Synchroniser maintenant';
+          alert('Synchronisation Cloud SQL terminée !');
+        });
+      }
+
       // Settings Data Resets
-      document.getElementById('lblUserIdDisplay').textContent = currentUserId;
       document.getElementById('btnCopyUserId').addEventListener('click', () => {
-        navigator.clipboard.writeText(currentUserId).then(() => {
+        const uid = getEffectiveUserId();
+        navigator.clipboard.writeText(uid).then(() => {
           document.getElementById('btnCopyUserId').textContent = 'Copié !';
           setTimeout(() => document.getElementById('btnCopyUserId').textContent = 'Copier l\'ID', 2000);
         });
       });
 
       document.getElementById('btnReloadSeedData').addEventListener('click', () => {
-        if (confirm('Voulez-vous recharger les 6 recettes d\'exemple ? Vos recettes actuelles seront conservées.')) {
+        if (confirm('Voulez-vous recharger les recettes d\'exemple ? Vos recettes actuelles seront conservées.')) {
           SEED_MEALS.forEach(sm => {
             if (!meals.some(m => m.name.toLowerCase() === sm.name.toLowerCase())) {
               meals.push({ ...sm, id: 'meal_seed_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6) });
@@ -2451,10 +2821,24 @@
        ═════════════════════════════════════════════ */
     function init() {
       loadLocalState();
+      updateUserUI();
       setupEvents();
       renderMeals();
       renderPlanning();
       checkD1Status();
+
+      // Deep linking via query params
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('modal') === 'editor') {
+        openMealEditor();
+      } else if (params.get('modal') === 'account') {
+        const modalAccount = document.getElementById('modalUserAccount');
+        const inputModal = document.getElementById('inputUsernameModal');
+        if (modalAccount) {
+          inputModal.value = currentUsername || '';
+          modalAccount.classList.remove('hidden');
+        }
+      }
     }
 
     init();
