@@ -427,6 +427,23 @@
           Oklab chromaticity • Vertices = Paint tubes + Neutral mix
         </div>
 
+        <!-- 3D Biconic Value / Lightness Slicing Slider -->
+        <div class="pt-3 border-t border-slate-100 text-xs space-y-2">
+          <div class="flex items-center justify-between text-slate-600">
+            <span class="font-medium flex items-center gap-1.5">
+              <span>Value Slice (L)</span>
+              <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-100 text-slate-500 font-semibold">3D Gamut</span>
+            </span>
+            <span class="font-mono font-bold text-slate-900" id="lblValueL">50%</span>
+          </div>
+          <input type="range" id="sliderValueL" min="0" max="100" value="50" class="w-full cursor-pointer accent-slate-900">
+          <div class="flex justify-between text-[10px] font-mono text-slate-400 px-0.5">
+            <span>0% (Black PBk9)</span>
+            <span>50% Mid</span>
+            <span>100% (White PW6)</span>
+          </div>
+        </div>
+
         <!-- Geometric Controls (Visible only in Geometric Mode) -->
         <div id="geometricControls" class="hidden space-y-3 pt-3 border-t border-slate-100 text-xs">
           
@@ -576,6 +593,16 @@
         </p>
         <p>
           Every possible color you can physically mix from those tubes lies inside the <strong>Convex Hull</strong> formed by those pigments' spectral coordinates plus the neutral center $(0,0)$ (tints, shades, and grays produced by mixing with white and black).
+        </p>
+      </div>
+
+      <div class="space-y-2">
+        <h2 class="text-lg font-bold text-slate-900">3D Biconic Gamut Envelope &amp; Physical Tinting/Shading Curves</h2>
+        <p>
+          Mixing real paint with <strong>Titanium White (PW6)</strong> to raise its value inherently desaturates it into a pastel tint. Conversely, shading down toward <strong>Ivory Black (PBk9)</strong> collapses chroma into deep, low-saturation darks. Flat 2D gamut models treat color harmony as an infinite vertical cylinder, falsely allowing pure saturated yellows at deep shadow levels or intense saturated ultramarines at highlight values ($L > 0.85$).
+        </p>
+        <p>
+          This engine enforces a <strong>true 3D biconic gamut envelope</strong> anchored by physical White ($L_w = 0.965$) and physical Black ($L_k = 0.170$). For every single pixel, its exact perceptual luminance ($L$) calculates a sliced convex mixing hull interpolating between each pigment's intrinsic peak chroma point and the White/Black apexes. This prevents artificial supersaturation at tonal extremes and produces faithful, lifelike studio mixing boundaries.
         </p>
       </div>
 
@@ -887,6 +914,10 @@
     // Max pigment chroma is ~0.21, display sRGB edge is ~0.26
     const OKLAB_CHROMA_MAX = 0.25;
 
+    // 3D Biconic Gamut Anchors (Oklab L, a, b)
+    const WHITE_ANCHOR = { l: 0.965, a: 0.0, b: 0.0 }; // Titanium White PW6 tint apex
+    const BLACK_ANCHOR = { l: 0.170, a: 0.0, b: 0.0 }; // Ivory Black PBk9 shade base
+
     /* ═════════════════════════════════════════════
        3. 2D CONVEX HULL & POLYGON PROJECTION
        ═════════════════════════════════════════════ */
@@ -964,6 +995,7 @@
     }
 
     function projectPointToPolygon(px, py, vertices) {
+      if (vertices.length < 3) return { x: px, y: py };
       if (pointInPolygon(px, py, vertices)) {
         return { x: px, y: py };
       }
@@ -992,7 +1024,9 @@
     const state = {
       maskMode: 'pigments', // 'pigments' | 'geometric'
       selectedPigmentIds: new Set(['pw6', 'pbk9', 'py43', 'pr108']), // Default Zorn
-      hullVertices: [], // [{x, y, data}] in normalized Oklab chromatic space [-1, 1]
+      hullVertices: [], // [{x, y, data}] 2D envelope at peak chroma
+      sliceHulls: new Array(256), // Precomputed slice hulls for L in [0, 1]
+      previewL: 0.50, // Value slice preview slider [0, 1]
       activePigmentPins: [], // [{px, py, pigment}]
       
       // Geometric mask state
@@ -1026,6 +1060,8 @@
       wheelSubtitle: document.getElementById('wheelSubtitle'),
       wheelCanvas: document.getElementById('wheelCanvas'),
       maskPointCountLabel: document.getElementById('maskPointCountLabel'),
+      sliderValueL: document.getElementById('sliderValueL'),
+      lblValueL: document.getElementById('lblValueL'),
       geometricControls: document.getElementById('geometricControls'),
       sliderRotation: document.getElementById('sliderRotation'),
       lblRotation: document.getElementById('lblRotation'),
@@ -1049,31 +1085,92 @@
     };
 
     /* ═════════════════════════════════════════════
-       5. PIGMENT HULL CALCULATION
+       5. 3D BICONIC GAMUT & LIGHTNESS SLICE CALCULATION
        ═════════════════════════════════════════════ */
+    // Physical interpolation of pigment chromaticity (a, b) at arbitrary lightness L
+    function interpolatePigmentAtL(pigmentOklab, targetL) {
+      const pL = pigmentOklab.l;
+      const pa = pigmentOklab.a;
+      const pb = pigmentOklab.b;
+
+      const Lw = WHITE_ANCHOR.l;
+      const Lk = BLACK_ANCHOR.l;
+
+      // Pure White tint apex or above: neutral zero chroma
+      if (targetL >= Lw) return { a: 0.0, b: 0.0 };
+      // Pure Black shade base or below: neutral zero chroma
+      if (targetL <= Lk) return { a: 0.0, b: 0.0 };
+
+      if (targetL >= pL) {
+        // TINTING CURVE: Interpolate between pigment peak (pL, pa, pb) and White (Lw, 0, 0)
+        const denom = Lw - pL;
+        const t = denom > 1e-5 ? Math.max(0, Math.min(1, (targetL - pL) / denom)) : 1;
+        return {
+          a: (1 - t) * pa,
+          b: (1 - t) * pb
+        };
+      } else {
+        // SHADING CURVE: Interpolate between pigment peak (pL, pa, pb) and Black (Lk, 0, 0)
+        const denom = pL - Lk;
+        const t = denom > 1e-5 ? Math.max(0, Math.min(1, (pL - targetL) / denom)) : 1;
+        return {
+          a: (1 - t) * pa,
+          b: (1 - t) * pb
+        };
+      }
+    }
+
+    // Compute 2D convex hull slice polygon at lightness L (normalized to [-1, 1])
+    function computeSlicePolygonAtL(targetL) {
+      if (state.maskMode === 'pigments') {
+        const pts = [{ x: 0, y: 0, isNeutral: true }];
+
+        PIGMENT_DATABASE.forEach(pigment => {
+          if (state.selectedPigmentIds.has(pigment.id)) {
+            const chromaticity = interpolatePigmentAtL(pigment.oklab, targetL);
+            const nx = chromaticity.a / OKLAB_CHROMA_MAX;
+            const ny = chromaticity.b / OKLAB_CHROMA_MAX;
+            pts.push({ x: nx, y: ny, pigment });
+          }
+        });
+
+        return pts.length >= 3 ? computeConvexHull2D(pts) : pts.slice();
+      } else {
+        // Geometric Mode: Taper geometric polygon toward center neutral (0,0) based on biconic curve
+        const Lw = WHITE_ANCHOR.l;
+        const Lk = BLACK_ANCHOR.l;
+        let scale = 1.0;
+        if (targetL >= Lw || targetL <= Lk) {
+          scale = 0.0;
+        } else if (targetL > 0.55) {
+          scale = Math.max(0, (Lw - targetL) / (Lw - 0.55));
+        } else {
+          scale = Math.max(0, (targetL - Lk) / (0.55 - Lk));
+        }
+
+        return state.geometricVertices.map(v => ({
+          x: v.x * scale,
+          y: v.y * scale
+        }));
+      }
+    }
+
+    // Build fast precomputed LUT of slice hulls for all 256 lightness levels
+    function buildSliceLUT() {
+      for (let bin = 0; bin < 256; bin++) {
+        const targetL = bin / 255.0;
+        state.sliceHulls[bin] = computeSlicePolygonAtL(targetL);
+      }
+    }
+
     function updatePigmentHull() {
-      // Collect (a, b) points for all selected pigments
-      const pts = [];
-
-      // Always include the neutral center (0, 0) representing White/Gray/Tint mixing
-      pts.push({
-        x: 0,
-        y: 0,
-        isNeutral: true,
-        label: 'Neutral (0,0)'
-      });
-
+      // 1. Build peak maximum chroma envelope for selected pigments
+      const pts = [{ x: 0, y: 0, isNeutral: true, label: 'Neutral' }];
       PIGMENT_DATABASE.forEach(pigment => {
         if (state.selectedPigmentIds.has(pigment.id)) {
-          // Normalize (a, b) by OKLAB_CHROMA_MAX into [-1, 1]
           const nx = pigment.oklab.a / OKLAB_CHROMA_MAX;
           const ny = pigment.oklab.b / OKLAB_CHROMA_MAX;
-          pts.push({
-            x: nx,
-            y: ny,
-            pigment: pigment,
-            label: pigment.code
-          });
+          pts.push({ x: nx, y: ny, pigment, label: pigment.code });
         }
       });
 
@@ -1082,6 +1179,9 @@
       } else {
         state.hullVertices = pts.slice();
       }
+
+      // 2. Precompute 3D biconic slice LUT (256 bins)
+      buildSliceLUT();
 
       DOM.maskPointCountLabel.textContent = `${state.hullVertices.length} Hull Vertices`;
       DOM.lblSelectedCount.textContent = `${state.selectedPigmentIds.size} Selected`;
@@ -1168,19 +1268,21 @@
       ctx.moveTo(cx, cy - radius); ctx.lineTo(cx, cy + radius);
       ctx.stroke();
 
-      // Current active polygon vertices
-      const activePolygon = (state.maskMode === 'pigments') ? state.hullVertices : state.geometricVertices;
+      // Peak envelope polygon and active L-slice polygon
+      const peakEnvelope = (state.maskMode === 'pigments') ? state.hullVertices : state.geometricVertices;
+      const sliceBin = Math.min(255, Math.max(0, Math.round(state.previewL * 255)));
+      const slicePolygon = (state.maskMode === 'pigments') ? (state.sliceHulls[sliceBin] || peakEnvelope) : computeSlicePolygonAtL(state.previewL);
 
-      // 3. Dark mask exclusion overlay (Even-Odd Fill)
-      if (activePolygon.length >= 3) {
+      // 3. Dark mask exclusion overlay (Even-Odd Fill on the active slice polygon)
+      if (slicePolygon.length >= 3) {
         ctx.save();
         ctx.fillStyle = 'rgba(15, 23, 42, 0.75)'; // Dark physical cut-out
         ctx.beginPath();
         // Entire canvas rect
         ctx.rect(0, 0, w, h);
 
-        // Mask polygon in reverse order
-        activePolygon.forEach((v, i) => {
+        // Mask slice polygon in reverse order
+        slicePolygon.forEach((v, i) => {
           const px = cx + v.x * radius;
           const py = cy + v.y * radius;
           if (i === 0) ctx.moveTo(px, py);
@@ -1189,15 +1291,16 @@
         ctx.closePath();
         ctx.fill('evenodd');
         ctx.restore();
+      }
 
-        // 4. Polygon vector boundary line
+      // 4. Draw Peak Chroma Envelope (Ghost Dashed Polygon)
+      if (peakEnvelope.length >= 3) {
         ctx.save();
-        ctx.strokeStyle = (state.maskMode === 'pigments') ? '#38bdf8' : '#a855f7';
-        ctx.lineWidth = 2.5;
-        ctx.shadowColor = (state.maskMode === 'pigments') ? 'rgba(56, 189, 248, 0.6)' : 'rgba(168, 85, 247, 0.6)';
-        ctx.shadowBlur = 6;
+        ctx.setLineDash([3, 4]);
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.35)';
+        ctx.lineWidth = 1.5;
         ctx.beginPath();
-        activePolygon.forEach((v, i) => {
+        peakEnvelope.forEach((v, i) => {
           const px = cx + v.x * radius;
           const py = cy + v.y * radius;
           if (i === 0) ctx.moveTo(px, py);
@@ -1208,7 +1311,26 @@
         ctx.restore();
       }
 
-      // 5. Draw Pins & Labels
+      // 5. Draw Active Lightness Slice Boundary (Vibrant Solid Stroke & Glow)
+      if (slicePolygon.length >= 3) {
+        ctx.save();
+        ctx.strokeStyle = (state.maskMode === 'pigments') ? '#38bdf8' : '#a855f7';
+        ctx.lineWidth = 2.5;
+        ctx.shadowColor = (state.maskMode === 'pigments') ? 'rgba(56, 189, 248, 0.7)' : 'rgba(168, 85, 247, 0.7)';
+        ctx.shadowBlur = 6;
+        ctx.beginPath();
+        slicePolygon.forEach((v, i) => {
+          const px = cx + v.x * radius;
+          const py = cy + v.y * radius;
+          if (i === 0) ctx.moveTo(px, py);
+          else ctx.lineTo(px, py);
+        });
+        ctx.closePath();
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      // 6. Draw Pins & Labels
       state.activePigmentPins = [];
 
       if (state.maskMode === 'pigments') {
@@ -1221,15 +1343,36 @@
         ctx.fill();
         ctx.stroke();
 
-        // Draw selected pigment pins
+        // Draw selected pigment pins (interpolated at active previewL)
         PIGMENT_DATABASE.forEach(pigment => {
           if (state.selectedPigmentIds.has(pigment.id)) {
-            const nx = pigment.oklab.a / OKLAB_CHROMA_MAX;
-            const ny = pigment.oklab.b / OKLAB_CHROMA_MAX;
+            // Peak coordinates (faint anchor ghost)
+            const peakNx = pigment.oklab.a / OKLAB_CHROMA_MAX;
+            const peakNy = pigment.oklab.b / OKLAB_CHROMA_MAX;
+            const peakPx = cx + peakNx * radius;
+            const peakPy = cy + peakNy * radius;
+
+            // Active slice coordinates
+            const activeChroma = interpolatePigmentAtL(pigment.oklab, state.previewL);
+            const nx = activeChroma.a / OKLAB_CHROMA_MAX;
+            const ny = activeChroma.b / OKLAB_CHROMA_MAX;
             const px = cx + nx * radius;
             const py = cy + ny * radius;
 
             state.activePigmentPins.push({ px, py, pigment });
+
+            // Faint ray connecting slice point to peak point
+            if (Math.hypot(px - peakPx, py - peakPy) > 3) {
+              ctx.save();
+              ctx.setLineDash([2, 2]);
+              ctx.strokeStyle = 'rgba(255, 255, 255, 0.25)';
+              ctx.lineWidth = 1;
+              ctx.beginPath();
+              ctx.moveTo(px, py);
+              ctx.lineTo(peakPx, peakPy);
+              ctx.stroke();
+              ctx.restore();
+            }
 
             // Pin shadow and border
             ctx.save();
@@ -1264,8 +1407,8 @@
           }
         });
       } else {
-        // Geometric Mode: Vertex handles and center anchor
-        activePolygon.forEach((v, i) => {
+        // Geometric Mode: Vertex handles on active slice
+        slicePolygon.forEach((v) => {
           const px = cx + v.x * radius;
           const py = cy + v.y * radius;
           ctx.save();
@@ -1478,6 +1621,9 @@
       const activePolygon = (state.maskMode === 'pigments') ? state.hullVertices : state.geometricVertices;
       if (activePolygon.length < 3) return;
 
+      const maskMode = state.maskMode;
+      const sliceHulls = state.sliceHulls;
+
       for (let i = 0; i < srcData.length; i += 4) {
         const r = srcData[i];
         const g = srcData[i + 1];
@@ -1495,18 +1641,28 @@
         const bL = srgbToLinear(b);
         const [L_orig, a_ok, b_ok] = linearRgbToOklab(rL, gL, bL);
 
-        // 2. Map chromaticity (a, b) to normalized polygon coordinates [-1, 1]
+        // 2. Fetch the physical 3D biconic slice polygon at this exact luminance L_orig
+        let slicePolygon;
+        if (maskMode === 'pigments') {
+          const bin = Math.min(255, Math.max(0, Math.round(L_orig * 255)));
+          slicePolygon = sliceHulls[bin] || activePolygon;
+        } else {
+          // Geometric tapered slice
+          slicePolygon = computeSlicePolygonAtL(L_orig);
+        }
+
+        // 3. Map chromaticity (a, b) to normalized polygon coordinates [-1, 1]
         const nx = a_ok / OKLAB_CHROMA_MAX;
         const ny = b_ok / OKLAB_CHROMA_MAX;
 
-        // 3. Project to allowed hull / polygon perimeter if outside
-        const proj = projectPointToPolygon(nx, ny, activePolygon);
+        // 4. Project onto this slice polygon if outside physical mixing envelope
+        const proj = projectPointToPolygon(nx, ny, slicePolygon);
 
-        // 4. Restore projected chromaticity (a', b')
+        // 5. Restore projected chromaticity (a', b')
         const clampedA = proj.x * OKLAB_CHROMA_MAX;
         const clampedB = proj.y * OKLAB_CHROMA_MAX;
 
-        // 5. Strictly preserve 100% original perceptual luminance L_orig!
+        // 6. Strictly preserve 100% original perceptual luminance L_orig!
         const [outR, outG, outB] = oklabToRgbClamped(L_orig, clampedA, clampedB);
 
         dstData[i]     = outR;
@@ -1761,6 +1917,16 @@
         renderPigmentSelector();
         updatePigmentHull();
       });
+
+      // 3D Biconic Value / Lightness Slice Slider
+      if (DOM.sliderValueL) {
+        DOM.sliderValueL.addEventListener('input', (e) => {
+          const valPct = parseInt(e.target.value, 10);
+          state.previewL = valPct / 100.0;
+          DOM.lblValueL.textContent = `${valPct}%`;
+          renderWheel();
+        });
+      }
 
       // Geometric Controls: Rotation & Presets
       DOM.sliderRotation.addEventListener('input', (e) => {
