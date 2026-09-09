@@ -45,6 +45,48 @@
     .diet-fish { background-color: #f0f9ff !important; color: #075985 !important; border-color: #bae6fd !important; }
     .diet-seafood { background-color: #f0fdfa !important; color: #115e59 !important; border-color: #99f6e4 !important; }
 
+    .diet-tag {
+      font-size: 9px !important;
+      line-height: 1.1 !important;
+      padding: 1px 4.5px !important;
+      border-radius: 4px !important;
+      font-weight: 600 !important;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;
+      letter-spacing: 0.02em !important;
+      display: inline-flex !important;
+      align-items: center !important;
+      gap: 2.5px !important;
+      border-width: 1px !important;
+    }
+    .diet-tag .diet-icon {
+      font-size: 8.5px !important;
+      line-height: 1 !important;
+    }
+    .meta-tag {
+      font-size: 9px !important;
+      line-height: 1.1 !important;
+      padding: 1px 4px !important;
+      border-radius: 4px !important;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;
+      display: inline-flex !important;
+      align-items: center !important;
+      gap: 2px !important;
+      background-color: #f1f5f9 !important;
+      color: #475569 !important;
+      border: 1px solid #e2e8f0 !important;
+    }
+    .recipe-hash-tag {
+      font-size: 9px !important;
+      line-height: 1.1 !important;
+      padding: 1px 3.5px !important;
+      border-radius: 3px !important;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;
+      background-color: #f8fafc !important;
+      color: #64748b !important;
+      border: 1px solid #e2e8f0 !important;
+      display: inline-block !important;
+    }
+
     /* Tap feedback */
     .btn-tap {
       touch-action: manipulation;
@@ -1843,7 +1885,7 @@
 
         // Tag Pills
         const tagsArr = (m.tags || '').split(/[;,]+/).map(t => t.trim()).filter(Boolean);
-        const tagsHtml = tagsArr.slice(0, 3).map(t => `<span class="text-[10px] text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded">#${t}</span>`).join(' ');
+        const tagsHtml = tagsArr.slice(0, 3).map(t => `<span class="recipe-hash-tag">#${t}</span>`).join(' ');
 
         card.innerHTML = `
           <div>
@@ -1855,19 +1897,19 @@
                 ${m.name}
               </h3>
 
-              <!-- Badges Row (Subordinate / Smaller) -->
-              <div class="flex items-center gap-1.5 flex-wrap text-xs">
-                <span class="px-2 py-0.5 rounded-md font-mono text-[10px] font-medium border ${diet.class}">
-                  ${diet.icon} ${diet.label}
+              <!-- Badges Row (Ultra-compact & Discrete) -->
+              <div class="flex items-center gap-1 flex-wrap">
+                <span class="diet-tag ${diet.class}">
+                  <span class="diet-icon">${diet.icon}</span><span>${diet.label}</span>
                 </span>
-                <span class="px-2 py-0.5 rounded-md font-mono text-[10px] bg-slate-100 text-slate-600" title="Saison">
-                  ${season.icon} ${season.label}
+                <span class="meta-tag" title="Saison">
+                  <span class="text-[8.5px]">${season.icon}</span><span>${season.label}</span>
                 </span>
-                <span class="px-1.5 py-0.5 rounded font-mono text-[10px] bg-slate-100 text-slate-600 font-bold" title="Calories: ${cal.label}">
+                <span class="meta-tag font-bold" title="Calories: ${cal.label}">
                   ${cal.tag}
                 </span>
-                <span class="px-1.5 py-0.5 rounded font-mono text-[10px] bg-slate-100 text-slate-600" title="Temps: ${prep.label}">
-                  ${prep.icon}
+                <span class="meta-tag" title="Temps: ${prep.label}">
+                  <span class="text-[8.5px]">${prep.icon}</span>
                 </span>
               </div>
 
@@ -2200,9 +2242,9 @@
             <h4 class="text-[13px] sm:text-sm font-bold text-slate-900 truncate group-hover:text-blue-600 transition-colors">
               ${meal.name}
             </h4>
-            <div class="flex items-center gap-1.5 mt-0.5">
-              <span class="text-[9px] font-mono font-medium px-1.5 py-0.5 rounded border ${diet.class}">
-                ${diet.label}
+            <div class="flex items-center gap-1 mt-0.5">
+              <span class="diet-tag ${diet.class}">
+                <span class="diet-icon">${diet.icon}</span><span>${diet.label}</span>
               </span>
             </div>
           </div>
@@ -2353,7 +2395,11 @@
             <span class="text-base">${diet.icon}</span>
             <div class="min-w-0">
               <h4 class="text-xs font-bold text-slate-800 truncate">${m.name}</h4>
-              <span class="text-[10px] text-slate-400 font-mono">${diet.label}</span>
+              <div class="mt-0.5">
+                <span class="diet-tag ${diet.class}">
+                  <span class="diet-icon">${diet.icon}</span><span>${diet.label}</span>
+                </span>
+              </div>
             </div>
           </div>
           <span class="text-xs font-mono font-semibold text-slate-400 hover:text-slate-900">Choisir &rarr;</span>
