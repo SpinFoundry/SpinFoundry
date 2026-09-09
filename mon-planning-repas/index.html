@@ -100,6 +100,10 @@
     .pb-safe-nav {
       padding-bottom: 6rem !important;
     }
+    html, body {
+      max-width: 100vw !important;
+      overflow-x: hidden !important;
+    }
 
     /* Custom scrollbars */
     .no-scrollbar::-webkit-scrollbar {
@@ -291,14 +295,14 @@
       justify-content: center !important;
     }
     .nav-bottom-content {
-      display: flex !important;
+      display: grid !important;
+      grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
       align-items: center !important;
-      justify-content: space-around !important;
       width: 100% !important;
-      max-width: 28rem !important;
+      max-width: 32rem !important;
       height: 100% !important;
-      padding: 0 1.25rem !important;
-      gap: 0.5rem !important;
+      padding: 0 0.35rem !important;
+      gap: 0.25rem !important;
     }
     .btn-nav {
       display: flex !important;
@@ -308,8 +312,9 @@
       background: transparent !important;
       border: none !important;
       cursor: pointer !important;
-      flex: 1 !important;
-      padding: 0.35rem 0.5rem !important;
+      width: 100% !important;
+      min-width: 0 !important;
+      padding: 0.35rem 0.15rem !important;
       border-radius: 0.75rem !important;
       gap: 0.15rem !important;
       color: #94a3b8 !important;
@@ -329,10 +334,14 @@
     }
     .btn-nav-label {
       font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;
-      font-size: 9.5px !important;
+      font-size: 9px !important;
       font-weight: 700 !important;
       text-transform: uppercase !important;
-      letter-spacing: 0.04em !important;
+      letter-spacing: 0.02em !important;
+      white-space: nowrap !important;
+      overflow: hidden !important;
+      text-overflow: ellipsis !important;
+      max-width: 100% !important;
     }
 
     /* Floating Action Button (+) */
@@ -501,6 +510,54 @@
       font-weight: 700 !important;
     }
 
+    /* Segmented Option Buttons (AI Screen & Slot Picker) */
+    .btn-ai-course, .btn-ai-diet, .btn-ai-slot-choice {
+      background-color: #ffffff !important;
+      border: 1px solid #e2e8f0 !important;
+      color: #475569 !important;
+      cursor: pointer !important;
+      touch-action: manipulation !important;
+      user-select: none !important;
+      font-size: 0.75rem !important;
+      line-height: 1rem !important;
+      transition: all 0.12s ease !important;
+    }
+    .btn-ai-course:hover, .btn-ai-diet:hover, .btn-ai-slot-choice:hover {
+      background-color: #f8fafc !important;
+      border-color: #cbd5e1 !important;
+    }
+    .btn-ai-course.active, .btn-ai-diet.active, .btn-ai-slot-choice.active {
+      background-color: #0f172a !important;
+      color: #ffffff !important;
+      border-color: #0f172a !important;
+      font-weight: 700 !important;
+      box-shadow: 0 1px 3px rgba(15, 23, 42, 0.12) !important;
+    }
+    .btn-ai-diet.active[data-value="veggie"] {
+      background-color: #ecfdf5 !important;
+      color: #065f46 !important;
+      border-color: #10b981 !important;
+      font-weight: 700 !important;
+    }
+    .btn-ai-diet.active[data-value="meat"] {
+      background-color: #fff1f2 !important;
+      color: #9f1239 !important;
+      border-color: #f43f5e !important;
+      font-weight: 700 !important;
+    }
+    .btn-ai-diet.active[data-value="fish"] {
+      background-color: #f0f9ff !important;
+      color: #075985 !important;
+      border-color: #0284c7 !important;
+      font-weight: 700 !important;
+    }
+    .btn-ai-diet.active[data-value="seafood"] {
+      background-color: #f0fdfa !important;
+      color: #115e59 !important;
+      border-color: #14b8a6 !important;
+      font-weight: 700 !important;
+    }
+
     /* Color, Border & Background Utilities */
     .bg-white { background-color: #ffffff !important; }
     .bg-slate-50 { background-color: #f8fafc !important; }
@@ -543,34 +600,35 @@
 <body class="bg-[#F8F9FA] text-slate-800 font-sans min-h-screen flex flex-col justify-between antialiased">
 
   <!-- Top Navigation Chrome -->
-  <header class="border-b border-slate-200/80 bg-white/95 backdrop-blur-sm sticky top-0 z-30 select-none">
-    <div class="max-w-5xl mx-auto px-4 h-13 py-2.5 flex items-center justify-between">
-      <div class="flex items-center gap-3">
-        <a href="/" class="text-xs font-medium text-slate-500 hover:text-slate-900 transition-colors flex items-center gap-1">
-          <span>&larr;</span> SpinFoundry Hub
+  <header class="border-b border-slate-200/80 bg-white/95 backdrop-blur-sm sticky top-0 z-30 select-none overflow-x-hidden">
+    <div class="max-w-5xl mx-auto px-3 sm:px-4 h-13 py-2.5 flex items-center justify-between gap-2">
+      <div class="flex items-center gap-2 sm:gap-3 min-w-0 shrink">
+        <a href="/" class="text-xs font-medium text-slate-500 hover:text-slate-900 transition-colors flex items-center gap-1 shrink-0">
+          <span>&larr;</span> <span class="hidden sm:inline">SpinFoundry </span>Hub
         </a>
-        <span class="text-slate-300">/</span>
-        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-mono badge-nutrition">
+        <span class="text-slate-300 hidden xs:inline">/</span>
+        <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-mono badge-nutrition shrink-0">
           <span class="w-1.5 h-1.5 rounded-full badge-nutrition-dot"></span>
-          Nutrition &amp; Cuisine
+          <span class="hidden sm:inline">Nutrition &amp; Cuisine</span>
+          <span class="sm:hidden">Repas</span>
         </span>
       </div>
 
       <!-- Cloudflare D1 SQL Status Badge, User Account & CSV Action -->
-      <div class="flex items-center gap-2">
+      <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
         <button type="button" id="btnAccountHeader" class="btn-tap inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-mono border border-slate-200 bg-white hover:bg-slate-50 text-slate-700" title="Gérer votre compte utilisateur / Connexion">
           <span class="w-2 h-2 rounded-full bg-slate-400" id="headerUserDot"></span>
           <span id="lblHeaderUser" class="text-[11px]">👤 Connexion</span>
         </button>
 
-        <div id="d1StatusBadge" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-mono border border-slate-200 bg-slate-50 text-slate-600" title="Statut de la base SQL Cloudflare D1">
+        <div id="d1StatusBadge" class="hidden md:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-mono border border-slate-200 bg-slate-50 text-slate-600" title="Statut de la base SQL Cloudflare D1">
           <span id="d1StatusDot" class="w-2 h-2 rounded-full bg-slate-400"></span>
-          <span id="d1StatusText" class="hidden sm:inline text-[11px]">Vérification D1...</span>
+          <span id="d1StatusText" class="text-[11px]">Vérification D1...</span>
         </div>
 
-        <button type="button" id="btnQuickImportCsv" class="btn-tap inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-mono text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 transition-colors" title="Importer un fichier CSV de recettes">
+        <button type="button" id="btnQuickImportCsv" class="hidden sm:inline-flex btn-tap items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-mono text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 transition-colors" title="Importer un fichier CSV de recettes">
           <svg class="w-3.5 h-3.5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
-          <span class="hidden sm:inline">CSV</span>
+          <span>CSV</span>
         </button>
         <input type="file" id="fileInputCsv" accept=".csv" class="hidden">
       </div>
@@ -906,6 +964,38 @@
         </div>
       </div>
 
+      <!-- AI Worker Configuration Card -->
+      <div class="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-sm space-y-3">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <div class="w-8 h-8 rounded-lg bg-purple-50 border border-purple-200 flex items-center justify-center text-purple-600 font-bold text-sm">
+              ✨
+            </div>
+            <div>
+              <h2 class="text-sm font-bold text-slate-900">Worker IA (Llama 3.1 8B Instruct)</h2>
+              <p class="text-xs text-slate-500">Service Cloudflare Workers AI pour les suggestions intelligentes.</p>
+            </div>
+          </div>
+          <span id="badgeAiStatus" class="text-xs font-mono font-medium px-2.5 py-1 rounded-full bg-slate-100 text-slate-600">
+            Défaut
+          </span>
+        </div>
+
+        <div class="p-3 bg-slate-50 rounded-xl border border-slate-200/60 space-y-2">
+          <label for="inputAiWorkerUrl" class="block text-xs font-mono font-semibold uppercase text-slate-700">URL du Worker IA</label>
+          <div class="flex items-center gap-2">
+            <input type="url" id="inputAiWorkerUrl" placeholder="https://steep-poetry-3150.spinfoundry.workers.dev" class="flex-1 px-3 py-2 rounded-xl border border-slate-200 focus:border-purple-600 focus:outline-none text-xs font-mono bg-white">
+            <button type="button" id="btnSaveAiWorkerUrl" class="btn-tap px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-mono font-bold tracking-wider uppercase shadow-sm">
+              Enregistrer
+            </button>
+            <button type="button" id="btnTestAiWorker" class="btn-tap px-3 py-2 rounded-xl bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-mono font-medium">
+              Tester
+            </button>
+          </div>
+          <div id="aiWorkerTestResult" class="hidden text-[11px] font-mono p-2 rounded-lg"></div>
+        </div>
+      </div>
+
       <!-- CSV & ZIP Tools Grid -->
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         
@@ -981,6 +1071,209 @@
 
     </section>
 
+    <!-- ═════════════════════════════════════════════
+         SCREEN 4: IDEES IA (AI MEAL SUGGESTIONS)
+         ═════════════════════════════════════════════ -->
+    <section id="screenAiSuggestions" class="hidden space-y-6">
+
+      <!-- AI Header -->
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div>
+          <h1 class="text-xl sm:text-2xl font-extrabold tracking-tight text-slate-900 flex items-center gap-2">
+            <span>✨ Suggestions Culinaires IA</span>
+            <span class="text-xs font-mono font-semibold px-2 py-0.5 rounded-full bg-purple-50 text-purple-700 border border-purple-200/80">Llama 3.1</span>
+          </h1>
+          <p class="text-xs text-slate-500 mt-0.5">
+            Des idées de repas équilibrées et créatives, inspirées par vos recettes existantes.
+          </p>
+        </div>
+
+        <!-- Inspiration database pill -->
+        <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white border border-slate-200/80 text-xs font-mono text-slate-600 shadow-2xs self-start sm:self-auto">
+          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+          <span>Inspiré de <strong id="lblAiMealsCount" class="text-slate-900">0 recettes</strong></span>
+        </div>
+      </div>
+
+      <!-- Generator Control Card -->
+      <div class="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-sm space-y-4">
+        
+        <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+          <h2 class="text-xs font-mono font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
+            <span>🎯 Vos Préférences pour cette Suggestion</span>
+          </h2>
+          <span class="text-[11px] font-mono text-slate-400">Optionnel</span>
+        </div>
+
+        <!-- Course Category Filter -->
+        <div class="space-y-1.5">
+          <label class="block text-xs font-mono font-semibold uppercase text-slate-700">Type de plat</label>
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs" id="aiCourseButtonGroup">
+            <button type="button" data-value="all" class="btn-ai-course flex-1 py-2 px-3 rounded-xl border text-center font-medium transition-all active">
+              🎲 Surprise
+            </button>
+            <button type="button" data-value="starter" class="btn-ai-course flex-1 py-2 px-3 rounded-xl border text-center font-medium transition-all">
+              🥗 Entrée
+            </button>
+            <button type="button" data-value="main" class="btn-ai-course flex-1 py-2 px-3 rounded-xl border text-center font-medium transition-all">
+              🍲 Plat
+            </button>
+            <button type="button" data-value="dessert" class="btn-ai-course flex-1 py-2 px-3 rounded-xl border text-center font-medium transition-all">
+              🍰 Dessert
+            </button>
+          </div>
+        </div>
+
+        <!-- Diet / Protein Preference -->
+        <div class="space-y-1.5">
+          <label class="block text-xs font-mono font-semibold uppercase text-slate-700">Régime / Protéine</label>
+          <div class="grid grid-cols-2 sm:grid-cols-5 gap-2 text-xs" id="aiDietButtonGroup">
+            <button type="button" data-value="all" class="btn-ai-diet flex-1 py-2 px-2.5 rounded-xl border text-center font-medium transition-all active">
+              🍽️ Tous
+            </button>
+            <button type="button" data-value="veggie" class="btn-ai-diet flex-1 py-2 px-2.5 rounded-xl border text-center font-medium transition-all">
+              🌱 Végé
+            </button>
+            <button type="button" data-value="meat" class="btn-ai-diet flex-1 py-2 px-2.5 rounded-xl border text-center font-medium transition-all">
+              🥩 Viande
+            </button>
+            <button type="button" data-value="fish" class="btn-ai-diet flex-1 py-2 px-2.5 rounded-xl border text-center font-medium transition-all">
+              🐟 Poisson
+            </button>
+            <button type="button" data-value="seafood" class="btn-ai-diet flex-1 py-2 px-2.5 rounded-xl border text-center font-medium transition-all">
+              🦐 Mer
+            </button>
+          </div>
+        </div>
+
+        <!-- Free Prompt Input (Ingredients on hand, mood, constraints) -->
+        <div class="space-y-1.5">
+          <label for="inputAiPrompt" class="block text-xs font-mono font-semibold uppercase text-slate-700">Envie spécifique ou ingrédient à utiliser</label>
+          <div class="relative">
+            <input type="text" id="inputAiPrompt" placeholder="Ex: avec des courgettes, rapide et réconfortant, sans four, cuisine italienne..." class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:border-purple-600 focus:outline-none text-xs sm:text-sm bg-slate-50/50">
+          </div>
+        </div>
+
+        <!-- Submit Button -->
+        <div class="pt-2 flex items-center justify-end">
+          <button type="button" id="btnGenerateAiSuggestion" class="btn-tap w-full sm:w-auto px-6 py-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-mono font-bold text-xs tracking-wider uppercase transition-all flex items-center justify-center gap-2 shadow-sm">
+            <span id="btnAiSpinner" class="hidden w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+            <span id="btnAiIcon">✨</span>
+            <span id="btnAiText">Générer une idée avec l'IA</span>
+          </button>
+        </div>
+
+      </div>
+
+      <!-- AI Status / Error Alert Banner -->
+      <div id="aiErrorBanner" class="hidden p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-xs space-y-2">
+        <div class="flex items-start gap-2.5">
+          <span class="text-base shrink-0">⚠️</span>
+          <div class="flex-1 space-y-1">
+            <p class="font-bold font-mono text-rose-900" id="aiErrorTitle">Erreur du Worker IA</p>
+            <p class="text-rose-700 leading-relaxed text-[11px]" id="aiErrorDetail"></p>
+          </div>
+          <button type="button" id="btnDismissAiError" class="text-rose-400 hover:text-rose-800 text-base leading-none p-1">&times;</button>
+        </div>
+        <div class="flex items-center gap-2 pt-1">
+          <button type="button" id="btnRetryAiSuggestion" class="btn-tap px-3 py-1.5 rounded-lg bg-rose-900 text-white font-mono text-[11px] font-bold">
+            🔄 Réessayer
+          </button>
+          <button type="button" id="btnGoToAiSettings" class="btn-tap px-3 py-1.5 rounded-lg bg-white border border-rose-300 text-rose-900 font-mono text-[11px]">
+            ⚙️ Vérifier l'URL du Worker
+          </button>
+        </div>
+      </div>
+
+      <!-- AI Suggestion Result Card -->
+      <div id="aiResultContainer" class="hidden space-y-4">
+        <div class="bg-white border border-purple-200/90 rounded-2xl p-5 shadow-sm space-y-4 relative overflow-hidden">
+          
+          <div class="absolute top-0 right-0 left-0 h-1 bg-gradient-to-r from-purple-500 via-indigo-500 to-sky-500"></div>
+
+          <!-- Header / Title -->
+          <div class="flex items-start justify-between gap-3 pt-1">
+            <div class="space-y-1 flex-1">
+              <div class="flex items-center gap-2">
+                <span id="aiResultCourseBadge" class="course-badge relative! top-auto! right-auto! left-auto!">Plat</span>
+                <span id="aiResultDietBadge" class="diet-tag">🌱 Végétarien</span>
+                <span id="aiResultCalBadge" class="meta-tag font-bold">M</span>
+                <span id="aiResultPrepBadge" class="meta-tag">⚡ Rapide</span>
+              </div>
+              <h2 id="aiResultTitle" class="text-lg sm:text-xl font-extrabold text-slate-900 tracking-tight leading-snug">
+                <!-- Recipe Name -->
+              </h2>
+            </div>
+            <span id="aiResultEmoji" class="text-3xl shrink-0">🍲</span>
+          </div>
+
+          <!-- Why this dish? / Story -->
+          <div class="p-3.5 bg-purple-50/50 rounded-xl border border-purple-100 space-y-1">
+            <h4 class="text-[11px] font-mono font-bold uppercase tracking-wider text-purple-900 flex items-center gap-1.5">
+              <span>💡 Pourquoi cette idée ?</span>
+            </h4>
+            <p id="aiResultInspiration" class="text-xs text-purple-950 leading-relaxed">
+              <!-- Inspiration narrative -->
+            </p>
+          </div>
+
+          <!-- Ingredients & Steps Grid -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            
+            <!-- Ingredients -->
+            <div class="p-3.5 bg-slate-50/70 rounded-xl border border-slate-100 space-y-2">
+              <h4 class="text-xs font-mono font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
+                <span>🛒 Ingrédients suggérés</span>
+              </h4>
+              <ul id="aiResultIngredients" class="text-xs text-slate-600 space-y-1 list-disc list-inside">
+                <!-- Ingredients list -->
+              </ul>
+            </div>
+
+            <!-- Steps -->
+            <div class="p-3.5 bg-slate-50/70 rounded-xl border border-slate-100 space-y-2">
+              <h4 class="text-xs font-mono font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
+                <span>👩‍🍳 Préparation rapide</span>
+              </h4>
+              <ol id="aiResultSteps" class="text-xs text-slate-600 space-y-1 list-decimal list-inside">
+                <!-- Steps list -->
+              </ol>
+            </div>
+
+          </div>
+
+          <!-- Actions Strip -->
+          <div class="pt-3 border-t border-slate-100 flex items-center justify-between flex-wrap gap-2">
+            <div class="flex items-center gap-2">
+              <button type="button" id="btnAiAddToMeals" class="btn-tap px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-mono font-bold text-xs flex items-center gap-1.5 shadow-sm">
+                <span>+ Ajouter à mon carnet</span>
+              </button>
+              <button type="button" id="btnAiPlanDirectly" class="btn-tap px-3.5 py-2 rounded-xl bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-mono font-medium text-xs flex items-center gap-1.5">
+                <span>📅 Planifier</span>
+              </button>
+            </div>
+
+            <button type="button" id="btnAiRegenerate" class="btn-tap px-3 py-2 text-xs font-mono text-slate-500 hover:text-slate-900 font-medium flex items-center gap-1">
+              <span>🔄 Autre idée</span>
+            </button>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Empty / Placeholder State -->
+      <div id="aiPlaceholderState" class="text-center py-12 px-4 bg-white border border-slate-200/80 rounded-2xl space-y-3">
+        <div class="w-12 h-12 rounded-full bg-purple-50 border border-purple-100 flex items-center justify-center mx-auto text-2xl">
+          ✨
+        </div>
+        <h3 class="text-base font-bold text-slate-800">Besoin d'inspiration culinaire ?</h3>
+        <p class="text-xs text-slate-500 max-w-md mx-auto leading-relaxed">
+          Cliquez sur <strong>« Générer une idée avec l'IA »</strong> ci-dessus. L'intelligence artificielle analysera votre carnet de recettes pour vous proposer un plat équilibré et inédit.
+        </p>
+      </div>
+
+    </section>
+
   </main>
 
   <!-- ═════════════════════════════════════════════
@@ -1001,7 +1294,13 @@
         <span class="btn-nav-label">Planning</span>
       </button>
 
-      <!-- Tab 3: Paramètres -->
+      <!-- Tab 3: Idées IA -->
+      <button type="button" id="navTabAi" class="btn-nav inactive">
+        <span class="btn-nav-icon">✨</span>
+        <span class="btn-nav-label">Idées IA</span>
+      </button>
+
+      <!-- Tab 4: Paramètres -->
       <button type="button" id="navTabSettings" class="btn-nav inactive">
         <span class="btn-nav-icon">⚙️</span>
         <span class="btn-nav-label">Paramètres</span>
@@ -1196,6 +1495,58 @@
         </button>
         <button type="button" id="btnSlotPickerCancel" class="btn-tap px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-mono text-slate-600">
           Fermer
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═════════════════════════════════════════════
+       AI SUGGESTION SLOT CHOOSER MODAL
+       ═════════════════════════════════════════════ -->
+  <div id="modalAiSlotPicker" class="hidden modal-overlay">
+    <div class="modal-box space-y-4 max-w-sm">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-2">
+        <h3 class="text-sm font-bold font-mono text-slate-900 flex items-center gap-1.5">
+          <span>📅</span>
+          <span>Planifier cette idée IA</span>
+        </h3>
+        <button type="button" id="btnCloseAiSlotPicker" class="text-slate-400 hover:text-slate-700 text-lg leading-none">&times;</button>
+      </div>
+      <p class="text-xs text-slate-600 leading-relaxed">
+        Sélectionnez le jour et le créneau pour ajouter immédiatement cette recette suggérée à votre carnet et à votre planning.
+      </p>
+      <div class="space-y-3 text-xs">
+        <div>
+          <label for="selectAiPlanDay" class="block font-mono font-semibold uppercase text-slate-700 mb-1">Jour de la semaine</label>
+          <select id="selectAiPlanDay" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white text-xs font-medium focus:border-slate-900 focus:outline-none">
+            <option value="0">Lundi</option>
+            <option value="1">Mardi</option>
+            <option value="2">Mercredi</option>
+            <option value="3">Jeudi</option>
+            <option value="4">Vendredi</option>
+            <option value="5">Samedi</option>
+            <option value="6">Dimanche</option>
+          </select>
+        </div>
+        <div>
+          <label class="block font-mono font-semibold uppercase text-slate-700 mb-1">Créneau</label>
+          <div class="grid grid-cols-2 gap-2" id="aiSlotChoiceGroup">
+            <button type="button" data-slot="lunch" class="btn-ai-slot-choice py-2 px-3 rounded-xl border text-center font-medium active">
+              ☀️ Déjeuner
+            </button>
+            <button type="button" data-slot="dinner" class="btn-ai-slot-choice py-2 px-3 rounded-xl border text-center font-medium">
+              🌙 Dîner
+            </button>
+          </div>
+          <input type="hidden" id="inputAiPlanSlot" value="lunch">
+        </div>
+      </div>
+      <div class="pt-3 border-t border-slate-100 flex justify-end gap-2">
+        <button type="button" id="btnCancelAiSlotPicker" class="btn-tap px-3.5 py-2 rounded-xl border border-slate-200 text-xs font-mono text-slate-600 hover:bg-slate-50">
+          Annuler
+        </button>
+        <button type="button" id="btnConfirmAiPlanSlot" class="btn-tap px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-mono font-bold tracking-wider uppercase shadow-sm">
+          Confirmer
         </button>
       </div>
     </div>
@@ -2087,7 +2438,7 @@
        ═════════════════════════════════════════════ */
     let currentEditorPhotoBase64 = '';
 
-    function openMealEditor(mealId = null) {
+    function openMealEditor(mealId = null, initialData = null) {
       currentEditingMealId = mealId;
       const modal = document.getElementById('modalMealEditor');
       const title = document.getElementById('modalEditorTitle');
@@ -2123,16 +2474,16 @@
           }
         }
       } else {
-        title.textContent = 'Nouveau repas';
+        title.textContent = initialData ? 'Ajouter l\'idée IA au carnet' : 'Nouveau repas';
         btnDelete.classList.add('hidden');
-        document.getElementById('inputMealName').value = '';
-        setMealType('veggie');
-        document.getElementById('selectMealSeason').value = 'all';
-        document.getElementById('selectMealCalorie').value = 'medium';
-        document.getElementById('selectMealPrepTime').value = 'medium';
-        setMealCategory('main');
-        document.getElementById('inputMealTags').value = '';
-        document.getElementById('inputMealUrl').value = '';
+        document.getElementById('inputMealName').value = initialData?.name || '';
+        setMealType(initialData?.type || 'veggie');
+        document.getElementById('selectMealSeason').value = initialData?.season || 'all';
+        document.getElementById('selectMealCalorie').value = initialData?.calorieLevel || 'medium';
+        document.getElementById('selectMealPrepTime').value = initialData?.prepTime || 'medium';
+        setMealCategory(initialData?.category || 'main');
+        document.getElementById('inputMealTags').value = (initialData?.tags || '').replace(/;/g, ', ');
+        document.getElementById('inputMealUrl').value = initialData?.recipeUrl || '';
 
         currentEditorPhotoBase64 = '';
         preview.classList.add('hidden');
@@ -2878,6 +3229,418 @@
     }
 
     /* ═════════════════════════════════════════════
+       12. AI MEAL SUGGESTION CONTROLLER (LLAMA 3.1)
+       ═════════════════════════════════════════════ */
+    const KEY_AI_WORKER_URL = 'spinfoundry_mpr_ai_worker_url';
+    const DEFAULT_AI_WORKER_URL = 'https://steep-poetry-3150.spinfoundry.workers.dev';
+
+    let currentAiSuggestion = null;
+    let activeAiCourse = 'all'; // 'all' | 'starter' | 'main' | 'dessert'
+    let activeAiDiet = 'all';   // 'all' | 'veggie' | 'meat' | 'fish' | 'seafood'
+
+    window.__setAiSuggestionForTest = function(recipe) {
+      currentAiSuggestion = recipe;
+      if (recipe) {
+        renderAiSuggestionResult(recipe);
+        document.getElementById('aiResultContainer')?.classList.remove('hidden');
+        document.getElementById('aiPlaceholderState')?.classList.add('hidden');
+      }
+    };
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    function getAiWorkerUrl() {
+      const stored = localStorage.getItem(KEY_AI_WORKER_URL);
+      return (stored && stored.trim()) ? stored.trim() : DEFAULT_AI_WORKER_URL;
+    }
+
+    function setAiWorkerUrl(url) {
+      if (url && url.trim()) {
+        localStorage.setItem(KEY_AI_WORKER_URL, url.trim());
+      } else {
+        localStorage.removeItem(KEY_AI_WORKER_URL);
+      }
+    }
+
+    function updateAiUI() {
+      // Counter pill in AI screen
+      const lblCount = document.getElementById('lblAiMealsCount');
+      if (lblCount) {
+        const count = meals.length;
+        lblCount.textContent = `${count} recette${count > 1 ? 's' : ''}`;
+      }
+
+      // Settings screen input & badge
+      const inputUrl = document.getElementById('inputAiWorkerUrl');
+      if (inputUrl && !inputUrl.value) {
+        inputUrl.value = getAiWorkerUrl();
+      }
+
+      const badgeStatus = document.getElementById('badgeAiStatus');
+      if (badgeStatus) {
+        const isCustom = Boolean(localStorage.getItem(KEY_AI_WORKER_URL));
+        badgeStatus.textContent = isCustom ? 'Personnalisé' : 'Défaut';
+        badgeStatus.className = isCustom
+          ? 'text-xs font-mono font-medium px-2.5 py-1 rounded-full bg-purple-50 text-purple-700 border border-purple-200'
+          : 'text-xs font-mono font-medium px-2.5 py-1 rounded-full bg-slate-100 text-slate-600';
+      }
+    }
+
+    function buildAiPrompt(filterCourse, filterDiet, userNotes) {
+      const courseLabels = {
+        starter: 'Entrée',
+        main: 'Plat principal',
+        dessert: 'Dessert',
+        all: 'Plat principal ou au choix'
+      };
+
+      const dietLabels = {
+        veggie: 'Végétarien (aucun produit animal carné)',
+        meat: 'À base de Viande',
+        fish: 'À base de Poisson',
+        seafood: 'À base de Fruits de mer',
+        all: 'Tous régimes acceptés'
+      };
+
+      const mealsCatalogSummary = meals.length > 0
+        ? meals.slice(0, 40).map(m => `- ${m.name} (${m.type}, ${m.category}, saison: ${m.season}, tags: ${m.tags})`).join('\n')
+        : '- Spaghetti Bolognaise (viande, plat)\n- Salade Grecque (végétarien, entrée)\n- Saumon rôti (poisson, plat)\n- Ratatouille (végétarien, plat)';
+
+      const excluded = (settings.excludedTags && settings.excludedTags.length > 0)
+        ? `\nALIMENTS STRICTEMENT EXCLUS / ALLERGIES : ${settings.excludedTags.join(', ')}`
+        : '';
+
+      const proportions = `\nPROPORTIONS NUTRITIONNELLES DU FOYER : Végétarien ${settings.dietProportions.veggie}%, Viande ${settings.dietProportions.meat}%, Poisson ${settings.dietProportions.fish}%, Fruits de mer ${settings.dietProportions.seafood}%.`;
+
+      return `Tu es un chef cuisinier gastronomique et nutritionniste bienveillant.
+L'utilisateur gère son planning de repas avec MonPlanningRepas.
+Voici son carnet de recettes existant :
+${mealsCatalogSummary}
+${proportions}${excluded}
+
+L'utilisateur te demande une NOUVELLE IDÉE de repas originale, saine et savoureuse qui s'accorde avec ses goûts ou complète logiquement son carnet.
+Contraintes de la demande :
+- Type de plat demandé : ${courseLabels[filterCourse] || 'Plat'}
+- Régime / Ingrédient principal demandé : ${dietLabels[filterDiet] || 'Au choix'}
+${userNotes ? `- Note spécifique / envie de l'utilisateur : "${userNotes}"` : ''}
+
+Consigne stricte de format :
+Tu dois répondre EXCLUSIVEMENT avec un document JSON valide (aucun texte d'accompagnement avant ou après le JSON).
+Le JSON doit respecter scrupuleusement la structure suivante :
+{
+  "name": "Nom gourmand et précis de la recette",
+  "type": "veggie" | "meat" | "fish" | "seafood",
+  "category": "starter" | "main" | "dessert",
+  "season": "all" | "summer" | "winter" | "spring" | "autumn",
+  "calorieLevel": "low" | "medium" | "high",
+  "prepTime": "quick" | "medium" | "long",
+  "tags": "mot-clé1; mot-clé2; mot-clé3",
+  "emoji": "🍲",
+  "inspiration": "1 à 2 phrases expliquant pourquoi ce plat s'intègre harmonieusement dans son carnet et comment il équilibre ses repas récents.",
+  "ingredients": [
+    "200g de courgettes en rondelles",
+    "1 gousse d'ail émincée",
+    "Huile d'olive et herbes de Provence"
+  ],
+  "steps": [
+    "Faire revenir l'ail dans l'huile d'olive à feu moyen.",
+    "Ajouter les courgettes et laisser dorer 10 minutes.",
+    "Assaisonner et servir bien chaud."
+  ]
+}`;
+    }
+
+    async function fetchAiSuggestionFromWorker(promptText) {
+      const url = getAiWorkerUrl();
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 35000);
+
+      try {
+        const response = await fetch(url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
+          body: JSON.stringify({ prompt: promptText }),
+          signal: controller.signal
+        });
+
+        clearTimeout(timeoutId);
+
+        if (!response.ok) {
+          const errText = await response.text();
+          let parsedTitle = '';
+          try {
+            const errObj = JSON.parse(errText);
+            parsedTitle = errObj.title || errObj.error || errObj.message || '';
+          } catch (_) {}
+
+          const statusMsg = parsedTitle ? `${parsedTitle} (HTTP ${response.status})` : `HTTP ${response.status} ${response.statusText}`;
+          throw new Error(`Le Worker IA a renvoyé : ${statusMsg}`);
+        }
+
+        const rawData = await response.json();
+        return parseAiResponsePayload(rawData);
+      } catch (err) {
+        clearTimeout(timeoutId);
+        if (err.name === 'AbortError') {
+          throw new Error('Délai d\'attente dépassé (35s). Le modèle Llama 3.1 sur Workers AI n\'a pas répondu à temps.');
+        }
+        throw err;
+      }
+    }
+
+    function parseAiResponsePayload(rawData) {
+      let textContent = '';
+      if (typeof rawData === 'string') {
+        textContent = rawData;
+      } else if (rawData && typeof rawData === 'object') {
+        // If already structured JSON
+        if (rawData.name && (rawData.type || rawData.ingredients)) {
+          return sanitizeAiRecipe(rawData);
+        }
+        if (typeof rawData.response === 'string') {
+          textContent = rawData.response;
+        } else if (rawData.result && typeof rawData.result.response === 'string') {
+          textContent = rawData.result.response;
+        } else if (typeof rawData.output === 'string') {
+          textContent = rawData.output;
+        } else {
+          textContent = JSON.stringify(rawData);
+        }
+      }
+
+      // Clean markdown code fence if wrapped in ```json ... ```
+      let clean = (textContent || '').trim();
+      const fenceMatch = clean.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
+      if (fenceMatch) {
+        clean = fenceMatch[1].trim();
+      }
+
+      // Extract JSON bounds if surrounded by intro/outro text
+      const firstBrace = clean.indexOf('{');
+      const lastBrace = clean.lastIndexOf('}');
+      if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+        clean = clean.substring(firstBrace, lastBrace + 1);
+      }
+
+      try {
+        const parsed = JSON.parse(clean);
+        return sanitizeAiRecipe(parsed);
+      } catch (parseErr) {
+        console.error('Raw unparsable LLM response:', textContent);
+        throw new Error('La réponse du modèle Llama 3.1 n\'a pas pu être convertie en recette JSON valide : ' + parseErr.message);
+      }
+    }
+
+    function sanitizeAiRecipe(obj) {
+      return {
+        name: String(obj.name || 'Recette Inspirée par l\'IA').trim(),
+        type: ['veggie', 'meat', 'fish', 'seafood'].includes(obj.type) ? obj.type : 'veggie',
+        category: ['starter', 'main', 'dessert'].includes(obj.category) ? obj.category : 'main',
+        season: ['summer', 'winter', 'spring', 'autumn', 'all'].includes(obj.season) ? obj.season : 'all',
+        calorieLevel: ['low', 'medium', 'high'].includes(obj.calorieLevel) ? obj.calorieLevel : 'medium',
+        prepTime: ['quick', 'medium', 'long'].includes(obj.prepTime) ? obj.prepTime : 'medium',
+        tags: typeof obj.tags === 'string' ? obj.tags : (Array.isArray(obj.tags) ? obj.tags.join(';') : 'ia;gourmand'),
+        emoji: obj.emoji || (obj.category === 'dessert' ? '🍰' : obj.category === 'starter' ? '🥗' : '🍲'),
+        inspiration: String(obj.inspiration || 'Une suggestion équilibrée et adaptée à votre carnet.').trim(),
+        ingredients: Array.isArray(obj.ingredients) ? obj.ingredients.map(String) : [],
+        steps: Array.isArray(obj.steps) ? obj.steps.map(String) : []
+      };
+    }
+
+    async function generateAiSuggestion() {
+      const btn = document.getElementById('btnGenerateAiSuggestion');
+      const spinner = document.getElementById('btnAiSpinner');
+      const icon = document.getElementById('btnAiIcon');
+      const txt = document.getElementById('btnAiText');
+      const errorBanner = document.getElementById('aiErrorBanner');
+      const resultContainer = document.getElementById('aiResultContainer');
+      const placeholder = document.getElementById('aiPlaceholderState');
+      const inputPrompt = document.getElementById('inputAiPrompt');
+
+      // Hide previous errors
+      if (errorBanner) errorBanner.classList.add('hidden');
+
+      // UI Loading state
+      if (btn) btn.disabled = true;
+      if (spinner) spinner.classList.remove('hidden');
+      if (icon) icon.classList.add('hidden');
+      if (txt) txt.textContent = 'Création de la recette avec Llama 3.1...';
+
+      try {
+        const userPrompt = inputPrompt ? inputPrompt.value.trim() : '';
+        const promptText = buildAiPrompt(activeAiCourse, activeAiDiet, userPrompt);
+        
+        // Strictly invoke AI Worker — NO FALLBACK on error!
+        const recipe = await fetchAiSuggestionFromWorker(promptText);
+
+        currentAiSuggestion = recipe;
+        renderAiSuggestionResult(recipe);
+
+        if (resultContainer) resultContainer.classList.remove('hidden');
+        if (placeholder) placeholder.classList.add('hidden');
+
+        // Scroll result card into view smoothly
+        resultContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+      } catch (err) {
+        console.error('AI Suggestion Error:', err);
+        showAiError(err.message || 'Impossible de joindre le Worker IA.');
+      } finally {
+        if (btn) btn.disabled = false;
+        if (spinner) spinner.classList.add('hidden');
+        if (icon) icon.classList.remove('hidden');
+        if (txt) txt.textContent = 'Générer une idée avec l\'IA';
+      }
+    }
+
+    function showAiError(detailMessage) {
+      const banner = document.getElementById('aiErrorBanner');
+      const detail = document.getElementById('aiErrorDetail');
+      const resultContainer = document.getElementById('aiResultContainer');
+      const placeholder = document.getElementById('aiPlaceholderState');
+
+      if (detail) {
+        detail.textContent = `${detailMessage} — (Mode strict IA : aucune simulation locale)`;
+      }
+      if (banner) {
+        banner.classList.remove('hidden');
+        banner.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+      if (resultContainer) resultContainer.classList.add('hidden');
+      if (placeholder) placeholder.classList.remove('hidden');
+    }
+
+    function renderAiSuggestionResult(recipe) {
+      const title = document.getElementById('aiResultTitle');
+      const emoji = document.getElementById('aiResultEmoji');
+      const inspiration = document.getElementById('aiResultInspiration');
+      const courseBadge = document.getElementById('aiResultCourseBadge');
+      const dietBadge = document.getElementById('aiResultDietBadge');
+      const calBadge = document.getElementById('aiResultCalBadge');
+      const prepBadge = document.getElementById('aiResultPrepBadge');
+      const ingList = document.getElementById('aiResultIngredients');
+      const stepsList = document.getElementById('aiResultSteps');
+
+      if (title) title.textContent = recipe.name;
+      if (emoji) emoji.textContent = recipe.emoji;
+      if (inspiration) inspiration.textContent = recipe.inspiration;
+
+      if (courseBadge) {
+        const catMap = { starter: 'Entrée', main: 'Plat principal', dessert: 'Dessert' };
+        courseBadge.textContent = catMap[recipe.category] || 'Plat principal';
+      }
+
+      if (dietBadge) {
+        const dietMap = {
+          veggie: '🌱 Végétarien',
+          meat: '🥩 Viande',
+          fish: '🐟 Poisson',
+          seafood: '🦐 Fruits de mer'
+        };
+        dietBadge.textContent = dietMap[recipe.type] || '🌱 Végétarien';
+        dietBadge.className = `diet-tag diet-${recipe.type || 'veggie'}`;
+      }
+
+      if (calBadge) {
+        const calMap = { low: 'L (Léger)', medium: 'M (Équilibré)', high: 'H (Gourmand)' };
+        calBadge.textContent = calMap[recipe.calorieLevel] || 'M';
+      }
+
+      if (prepBadge) {
+        const prepMap = { quick: '⚡ Rapide (<20m)', medium: '⏱️ Moyen (~30m)', long: '⏳ Mijoté (>45m)' };
+        prepBadge.textContent = prepMap[recipe.prepTime] || '⏱️ Moyen';
+      }
+
+      if (ingList) {
+        ingList.innerHTML = recipe.ingredients.length > 0
+          ? recipe.ingredients.map(ing => `<li class="leading-relaxed text-slate-700">${escapeHtml(ing)}</li>`).join('')
+          : '<li class="text-slate-400 italic">Ingrédients non spécifiés</li>';
+      }
+
+      if (stepsList) {
+        stepsList.innerHTML = recipe.steps.length > 0
+          ? recipe.steps.map(step => `<li class="leading-relaxed text-slate-700">${escapeHtml(step)}</li>`).join('')
+          : '<li class="text-slate-400 italic">Étapes non spécifiées</li>';
+      }
+    }
+
+    function openAiSlotPickerModal() {
+      if (!currentAiSuggestion) return;
+      const modal = document.getElementById('modalAiSlotPicker');
+      if (modal) {
+        document.querySelectorAll('#aiSlotChoiceGroup .btn-ai-slot-choice').forEach(btn => {
+          btn.classList.toggle('active', btn.dataset.slot === 'lunch');
+        });
+        document.getElementById('inputAiPlanSlot').value = 'lunch';
+        modal.classList.remove('hidden');
+      }
+    }
+
+    function closeAiSlotPickerModal() {
+      const modal = document.getElementById('modalAiSlotPicker');
+      if (modal) modal.classList.add('hidden');
+    }
+
+    async function confirmAiPlanSlot() {
+      if (!currentAiSuggestion) return;
+
+      const daySelect = document.getElementById('selectAiPlanDay');
+      const dayIndex = parseInt(daySelect ? daySelect.value : '0', 10);
+      const slot = document.getElementById('inputAiPlanSlot').value || 'lunch';
+
+      // 1. Add to meals catalog if not already present
+      let mealInCatalog = meals.find(m => m.name.toLowerCase() === currentAiSuggestion.name.toLowerCase());
+      if (!mealInCatalog) {
+        mealInCatalog = {
+          id: 'meal_ai_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7),
+          name: currentAiSuggestion.name,
+          type: currentAiSuggestion.type,
+          season: currentAiSuggestion.season,
+          calorieLevel: currentAiSuggestion.calorieLevel,
+          prepTime: currentAiSuggestion.prepTime,
+          category: currentAiSuggestion.category,
+          tags: currentAiSuggestion.tags,
+          recipeUrl: '',
+          photo: ''
+        };
+        meals.unshift(mealInCatalog);
+        await persistMealRemote(mealInCatalog);
+      }
+
+      // 2. Assign to weekly plan slot
+      const existingSlot = weeklyPlans.find(p => p.dayIndex === dayIndex && p.slot === slot);
+      if (existingSlot) {
+        existingSlot.mealId = mealInCatalog.id;
+      } else {
+        weeklyPlans.push({
+          id: 'plan_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7),
+          dayIndex,
+          slot,
+          mealId: mealInCatalog.id,
+          isLocked: false
+        });
+      }
+
+      await persistPlannerRemote();
+      renderMeals();
+      renderPlanning();
+      closeAiSlotPickerModal();
+
+      // Navigate to planning tab
+      window.location.hash = 'planning';
+    }
+
+    /* ═════════════════════════════════════════════
        13. EVENTS & INITIALIZATION
        ═════════════════════════════════════════════ */
     function setupEvents() {
@@ -2885,6 +3648,7 @@
       const tabs = [
         { btn: document.getElementById('navTabMeals'), screen: 'screenMeals', hash: 'meals' },
         { btn: document.getElementById('navTabPlanning'), screen: 'screenPlanning', hash: 'planning' },
+        { btn: document.getElementById('navTabAi'), screen: 'screenAiSuggestions', hash: 'suggestions' },
         { btn: document.getElementById('navTabSettings'), screen: 'screenSettings', hash: 'settings' }
       ];
 
@@ -2901,6 +3665,11 @@
 
         const fab = document.getElementById('fabAddMeal');
         if (fab) fab.classList.toggle('hidden', screenId !== 'screenMeals');
+
+        if (screenId === 'screenAiSuggestions' || screenId === 'screenSettings') {
+          updateAiUI();
+        }
+
         window.scrollTo({ top: 0, behavior: 'instant' });
       }
 
@@ -2921,6 +3690,7 @@
         const h = (window.location.hash || '').replace('#', '').toLowerCase();
         if (h === 'planning') switchScreen('screenPlanning');
         else if (h === 'settings') switchScreen('screenSettings');
+        else if (h === 'suggestions' || h === 'ai') switchScreen('screenAiSuggestions');
         else switchScreen('screenMeals');
       }
 
@@ -3326,6 +4096,147 @@ CREATE TABLE IF NOT EXISTS user_settings (
           });
         });
       }
+
+      // AI Suggestions Screen Listeners
+      document.querySelectorAll('#aiCourseButtonGroup .btn-ai-course').forEach(btn => {
+        btn.addEventListener('click', () => {
+          activeAiCourse = btn.dataset.value;
+          document.querySelectorAll('#aiCourseButtonGroup .btn-ai-course').forEach(b => {
+            b.classList.toggle('active', b.dataset.value === activeAiCourse);
+          });
+        });
+      });
+
+      document.querySelectorAll('#aiDietButtonGroup .btn-ai-diet').forEach(btn => {
+        btn.addEventListener('click', () => {
+          activeAiDiet = btn.dataset.value;
+          document.querySelectorAll('#aiDietButtonGroup .btn-ai-diet').forEach(b => {
+            b.classList.toggle('active', b.dataset.value === activeAiDiet);
+          });
+        });
+      });
+
+      const btnGenerateAi = document.getElementById('btnGenerateAiSuggestion');
+      if (btnGenerateAi) btnGenerateAi.addEventListener('click', generateAiSuggestion);
+
+      const inputAiPrompt = document.getElementById('inputAiPrompt');
+      if (inputAiPrompt) {
+        inputAiPrompt.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') generateAiSuggestion();
+        });
+      }
+
+      const btnRetryAi = document.getElementById('btnRetryAiSuggestion');
+      if (btnRetryAi) btnRetryAi.addEventListener('click', generateAiSuggestion);
+
+      const btnDismissAiErr = document.getElementById('btnDismissAiError');
+      if (btnDismissAiErr) {
+        btnDismissAiErr.addEventListener('click', () => {
+          const banner = document.getElementById('aiErrorBanner');
+          if (banner) banner.classList.add('hidden');
+        });
+      }
+
+      const btnGoToAiSettings = document.getElementById('btnGoToAiSettings');
+      if (btnGoToAiSettings) {
+        btnGoToAiSettings.addEventListener('click', () => {
+          window.location.hash = 'settings';
+          setTimeout(() => {
+            const input = document.getElementById('inputAiWorkerUrl');
+            if (input) {
+              input.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              input.focus();
+            }
+          }, 100);
+        });
+      }
+
+      const btnAiAddToMeals = document.getElementById('btnAiAddToMeals');
+      if (btnAiAddToMeals) {
+        btnAiAddToMeals.addEventListener('click', () => {
+          if (currentAiSuggestion) {
+            openMealEditor(null, currentAiSuggestion);
+          }
+        });
+      }
+
+      const btnAiPlanDirectly = document.getElementById('btnAiPlanDirectly');
+      if (btnAiPlanDirectly) {
+        btnAiPlanDirectly.addEventListener('click', openAiSlotPickerModal);
+      }
+
+      const btnAiRegen = document.getElementById('btnAiRegenerate');
+      if (btnAiRegen) {
+        btnAiRegen.addEventListener('click', generateAiSuggestion);
+      }
+
+      // AI Slot Chooser Modal Listeners
+      const btnCloseAiSlot = document.getElementById('btnCloseAiSlotPicker');
+      if (btnCloseAiSlot) btnCloseAiSlot.addEventListener('click', closeAiSlotPickerModal);
+
+      const btnCancelAiSlot = document.getElementById('btnCancelAiSlotPicker');
+      if (btnCancelAiSlot) btnCancelAiSlot.addEventListener('click', closeAiSlotPickerModal);
+
+      const btnConfirmAiSlot = document.getElementById('btnConfirmAiPlanSlot');
+      if (btnConfirmAiSlot) btnConfirmAiSlot.addEventListener('click', confirmAiPlanSlot);
+
+      document.querySelectorAll('#aiSlotChoiceGroup .btn-ai-slot-choice').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('#aiSlotChoiceGroup .btn-ai-slot-choice').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          const inputSlot = document.getElementById('inputAiPlanSlot');
+          if (inputSlot) inputSlot.value = btn.dataset.slot;
+        });
+      });
+
+      // Settings AI Worker URL configuration
+      const btnSaveAiUrl = document.getElementById('btnSaveAiWorkerUrl');
+      if (btnSaveAiUrl) {
+        btnSaveAiUrl.addEventListener('click', () => {
+          const input = document.getElementById('inputAiWorkerUrl');
+          const val = input ? input.value.trim() : '';
+          setAiWorkerUrl(val);
+          updateAiUI();
+          alert('URL du Worker IA enregistrée !');
+        });
+      }
+
+      const btnTestAi = document.getElementById('btnTestAiWorker');
+      if (btnTestAi) {
+        btnTestAi.addEventListener('click', async () => {
+          const resDiv = document.getElementById('aiWorkerTestResult');
+          if (!resDiv) return;
+          resDiv.classList.remove('hidden');
+          resDiv.className = 'text-[11px] font-mono p-2.5 rounded-xl border bg-slate-50 border-slate-200 text-slate-600';
+          resDiv.textContent = 'Connexion au Worker IA en cours...';
+
+          const targetUrl = (document.getElementById('inputAiWorkerUrl')?.value || getAiWorkerUrl()).trim();
+          try {
+            const ctrl = new AbortController();
+            const timer = setTimeout(() => ctrl.abort(), 12000);
+            const resp = await fetch(targetUrl, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ prompt: 'Ping: réponds simplement OK' }),
+              signal: ctrl.signal
+            });
+            clearTimeout(timer);
+            if (resp.ok) {
+              resDiv.className = 'text-[11px] font-mono p-2.5 rounded-xl border bg-emerald-50 border-emerald-200 text-emerald-800';
+              resDiv.textContent = `✅ Worker connecté avec succès (HTTP ${resp.status}).`;
+            } else {
+              const errTxt = await resp.text();
+              let title = '';
+              try { title = JSON.parse(errTxt).title || ''; } catch(_) {}
+              resDiv.className = 'text-[11px] font-mono p-2.5 rounded-xl border bg-rose-50 border-rose-200 text-rose-800';
+              resDiv.textContent = `⚠️ Erreur HTTP ${resp.status} : ${title || resp.statusText || 'Erreur du service'}`;
+            }
+          } catch (err) {
+            resDiv.className = 'text-[11px] font-mono p-2.5 rounded-xl border bg-rose-50 border-rose-200 text-rose-800';
+            resDiv.textContent = `❌ Échec du test : ${err.message}`;
+          }
+        });
+      }
     }
 
     /* ═════════════════════════════════════════════
@@ -3335,6 +4246,7 @@ CREATE TABLE IF NOT EXISTS user_settings (
       try {
         initEmptyState();
         updateUserUI();
+        updateAiUI();
         setupEvents();
         renderMeals();
         renderPlanning();
@@ -3348,6 +4260,7 @@ CREATE TABLE IF NOT EXISTS user_settings (
           renderMeals();
           renderPlanning();
         }
+        updateAiUI();
 
         // Deep linking via query params
         const params = new URLSearchParams(window.location.search);
@@ -3360,6 +4273,35 @@ CREATE TABLE IF NOT EXISTS user_settings (
             inputModal.value = currentUsername || '';
             modalAccount.classList.remove('hidden');
           }
+        } else if (params.get('demo') === 'ai_result') {
+          window.location.hash = 'suggestions';
+          window.__setAiSuggestionForTest({
+            name: 'Risotto Crémeux aux Champignons des Bois',
+            type: 'veggie',
+            category: 'main',
+            season: 'autumn',
+            calorieLevel: 'medium',
+            prepTime: 'quick',
+            tags: 'champignons;italien;crémeux;automne',
+            emoji: '🍄',
+            inspiration: 'Une recette savoureuse qui équilibre votre semaine et met à profit vos herbes fraîches.',
+            ingredients: [
+              '250g de riz Arborio',
+              '300g de champignons des bois',
+              '1 échalote et 1 gousse d\'ail',
+              '75cl de bouillon de légumes chaud',
+              '40g de parmesan râpé'
+            ],
+            steps: [
+              'Faire suer l\'échalote et l\'ail dans l\'huile d\'olive.',
+              'Nacrer le riz 2 minutes puis mouiller au bouillon chaud louche par louche.',
+              'Faire poêler les champignons séparément.',
+              'Mélanger les champignons et le parmesan au riz crémeux hors du feu.'
+            ]
+          });
+        } else if (params.get('demo') === 'ai_error') {
+          window.location.hash = 'suggestions';
+          showAiError('Error 1042: Cloudflare Workers AI incident (HTTP 404/500)');
         }
       } catch (err) {
         console.error('MPR Init Error:', err);
