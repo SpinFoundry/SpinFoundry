@@ -1,0 +1,1070 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Minimalist Interval Timer | Zero Drift Workout Clock | SpinFoundry</title>
+  <meta name="description" content="Precision, zero-drift interval timer for HIIT, Tabata, Boxing, and EMOM workouts. Uses an inline Web Worker to eliminate tab background throttling, Screen Wake Lock, and synthesized Web Audio cues visible from 3-5 meters.">
+  <meta name="keywords" content="interval timer, hiit timer, tabata timer, emom clock, boxing rounds timer, web worker timer, zero drift timer, gym clock, workout timer, screen wake lock">
+  <link rel="canonical" href="https://spinfoundry.pages.dev/interval-timer/">
+
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://spinfoundry.pages.dev/interval-timer/">
+  <meta property="og:title" content="Minimalist Interval Timer | Zero Drift Workout Clock | SpinFoundry">
+  <meta property="og:description" content="Drift-free HIIT, Tabata, and EMOM interval timer with inline Web Worker precision, Screen Wake Lock, and high-visibility perceptual gym UI.">
+  <meta name="twitter:card" content="summary_large_image">
+
+  <link rel="stylesheet" href="/assets/styles.css">
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "Minimalist Interval Timer",
+    "url": "https://spinfoundry.pages.dev/interval-timer/",
+    "description": "High-precision, zero-drift interval timer with background Web Worker timing, Screen Wake Lock API, and Web Audio cues designed for 3-5 meter gym visibility.",
+    "applicationCategory": "HealthApplication",
+    "operatingSystem": "All"
+  }
+  </script>
+
+  <style>
+    /* Category Badge: Measures & Conversions */
+    .badge-conversions {
+      background-color: rgba(59, 130, 246, 0.15);
+      color: #93c5fd;
+      border: 1px solid rgba(59, 130, 246, 0.3);
+    }
+    .badge-conversions-dot {
+      background-color: #60a5fa;
+    }
+
+    /* Giant Perceptual Typography */
+    .timer-clock {
+      font-size: clamp(4.5rem, 19vw, 13.5rem);
+      line-height: 0.95;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: -0.04em;
+    }
+
+    /* State Themes (Phase-driven background and accent shifts) */
+    body.phase-idle {
+      background-color: #090d16;
+      color: #f8fafc;
+    }
+    body.phase-prepare {
+      background-color: #1a1205;
+      color: #fef08a;
+    }
+    body.phase-work {
+      background-color: #0b1a10;
+      color: #86efac;
+    }
+    body.phase-rest {
+      background-color: #111827;
+      color: #93c5fd;
+    }
+    body.phase-complete {
+      background-color: #062419;
+      color: #6ee7b7;
+    }
+    body.phase-paused {
+      background-color: #171717;
+      color: #e2e8f0;
+    }
+
+    /* Animated Progress Glow Bar */
+    .progress-bar-fill {
+      transition: width 0.1s linear, background-color 0.3s ease;
+    }
+
+    /* Interactive Inputs & Buttons */
+    .btn-tap {
+      touch-action: manipulation;
+      transition: all 0.12s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .btn-tap:active {
+      transform: scale(0.96);
+    }
+
+    /* Pulse effect on final 3 seconds */
+    @keyframes urgentPulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.04); }
+    }
+    .urgent-pulse {
+      animation: urgentPulse 0.8s ease-in-out infinite;
+    }
+
+    /* Fullscreen Viewport Mode */
+    :root {
+      color-scheme: dark;
+    }
+
+    input[type="number"] {
+      background-color: rgba(15, 23, 42, 0.8) !important;
+      color: #ffffff !important;
+      border: 1px solid rgba(255, 255, 255, 0.2) !important;
+      border-radius: 0.375rem;
+      padding: 0.25rem 0.5rem;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+
+    :fullscreen {
+      background-color: #090d16;
+    }
+
+    /* Utility Fallbacks */
+    .flex { display: flex; }
+    .flex-col { flex-direction: column; }
+    .items-center { align-items: center; }
+    .justify-between { justify-content: space-between; }
+    .justify-center { justify-content: center; }
+    .gap-1 { gap: 0.25rem; }
+    .gap-2 { gap: 0.5rem; }
+    .gap-3 { gap: 0.75rem; }
+    .gap-4 { gap: 1rem; }
+    .w-full { width: 100%; }
+    .max-w-4xl { max-width: 56rem; }
+    .mx-auto { margin-left: auto; margin-right: auto; }
+    .text-center { text-align: center; }
+    .font-mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
+    .font-sans { font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    .font-bold { font-weight: 700; }
+    .font-extrabold { font-weight: 800; }
+    .font-semibold { font-weight: 600; }
+    .font-medium { font-weight: 500; }
+    .uppercase { text-transform: uppercase; }
+    .tracking-wider { letter-spacing: 0.05em; }
+    .tracking-widest { letter-spacing: 0.1em; }
+    .rounded-lg { border-radius: 0.5rem; }
+    .rounded-xl { border-radius: 0.75rem; }
+    .rounded-2xl { border-radius: 1rem; }
+    .rounded-full { border-radius: 9999px; }
+    .border { border-width: 1px; }
+    .border-b { border-bottom-width: 1px; }
+    .border-t { border-top-width: 1px; }
+    .hidden { display: none !important; }
+    .select-none { user-select: none; -webkit-user-select: none; }
+  </style>
+</head>
+<body class="phase-idle font-sans min-h-screen flex flex-col justify-between antialiased transition-colors duration-300">
+
+  <!-- Top Navigation Chrome -->
+  <header class="border-b border-white/10 bg-black/40 backdrop-blur-md sticky top-0 z-30 select-none">
+    <div class="max-w-4xl mx-auto px-4 h-14 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <a href="/" class="text-xs font-mono text-slate-400 hover:text-white transition-colors flex items-center gap-1.5">
+          <span>&larr;</span> SpinFoundry Hub
+        </a>
+        <span class="text-white/20">/</span>
+        <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-xs font-medium badge-conversions">
+          <span class="w-1.5 h-1.5 rounded-full badge-conversions-dot"></span>
+          Measures &amp; Conversions
+        </span>
+      </div>
+
+      <!-- Quick Toggles: Wake Lock, Sound, Fullscreen -->
+      <div class="flex items-center gap-2">
+        <!-- Screen Wake Lock Status Badge -->
+        <button type="button" id="btnToggleWakeLock" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-mono border border-white/15 bg-white/5 text-slate-300 hover:text-white hover:bg-white/10 transition-all" title="Keep screen active (prevents lock & dimming)">
+          <svg id="iconWakeLockOn" class="w-3.5 h-3.5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+          <svg id="iconWakeLockOff" class="w-3.5 h-3.5 text-slate-500 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"/></svg>
+          <span id="lblWakeLock" class="hidden sm:inline text-[11px]">Screen Awake</span>
+        </button>
+
+        <!-- Sound Toggle -->
+        <button type="button" id="btnToggleSound" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-mono border border-white/15 bg-white/5 text-slate-300 hover:text-white hover:bg-white/10 transition-all" title="Toggle audio beeps and bells">
+          <svg id="iconSoundOn" class="w-3.5 h-3.5 text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"/></svg>
+          <svg id="iconSoundOff" class="w-3.5 h-3.5 text-slate-500 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15zM17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2"/></svg>
+          <span id="lblSound" class="hidden sm:inline text-[11px]">Sound On</span>
+        </button>
+
+        <!-- Fullscreen Button -->
+        <button type="button" id="btnFullscreen" class="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition-all" title="Toggle Fullscreen (F)">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Top Phase Progress Bar -->
+    <div class="w-full h-1.5 bg-white/10 overflow-hidden">
+      <div id="phaseProgressBar" class="h-full bg-emerald-400 progress-bar-fill" style="width: 0%;"></div>
+    </div>
+  </header>
+
+  <!-- Main Viewport Workspace -->
+  <main class="max-w-4xl mx-auto px-4 py-6 flex-1 w-full flex flex-col justify-between items-center text-center">
+
+    <!-- WORKOUT PRESETS CHIPS BAR -->
+    <div class="w-full flex items-center justify-center gap-1.5 sm:gap-2 flex-wrap mb-4 select-none">
+      <span class="text-[11px] font-mono uppercase tracking-widest text-white/40 mr-1 hidden sm:inline">Presets:</span>
+      <button type="button" data-preset="tabata" class="btn-preset btn-tap px-3 py-1 rounded-lg text-xs font-mono font-bold bg-white/20 border border-white/40 text-white shadow-sm transition-all">
+        Tabata (20/10 × 8)
+      </button>
+      <button type="button" data-preset="hiit30" class="btn-preset btn-tap px-3 py-1 rounded-lg text-xs font-mono font-medium bg-white/5 border border-white/10 text-white/70 hover:bg-white/15 hover:text-white transition-all">
+        HIIT (30/30 × 10)
+      </button>
+      <button type="button" data-preset="boxing" class="btn-preset btn-tap px-3 py-1 rounded-lg text-xs font-mono font-medium bg-white/5 border border-white/10 text-white/70 hover:bg-white/15 hover:text-white transition-all">
+        Boxing (3m/1m × 5)
+      </button>
+      <button type="button" data-preset="emom" class="btn-preset btn-tap px-3 py-1 rounded-lg text-xs font-mono font-medium bg-white/5 border border-white/10 text-white/70 hover:bg-white/15 hover:text-white transition-all">
+        EMOM (60s × 10)
+      </button>
+      <button type="button" id="btnOpenConfig" class="btn-tap px-3 py-1 rounded-lg text-xs font-mono font-medium bg-sky-500/20 border border-sky-400/30 text-sky-300 hover:bg-sky-500/30 transition-all flex items-center gap-1">
+        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
+        <span>Custom</span>
+      </button>
+    </div>
+
+    <!-- HERO DISPLAY CLOCK AREA (Optimized for 3-5m visibility) -->
+    <div class="my-auto py-4 flex flex-col items-center justify-center select-none w-full">
+      
+      <!-- Phase Indicator Banner -->
+      <div id="phaseBadge" class="inline-flex items-center gap-2 px-6 py-1.5 rounded-full text-sm sm:text-base font-mono font-extrabold uppercase tracking-widest bg-amber-500/20 border border-amber-400/40 text-amber-300 shadow-lg mb-2">
+        <span id="phaseDot" class="w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse"></span>
+        <span id="phaseLabel">GET READY</span>
+      </div>
+
+      <!-- Giant Digital Clock Display -->
+      <div id="clockDisplay" class="timer-clock font-mono font-extrabold my-1 transition-all">
+        00:05
+      </div>
+
+      <!-- Set Counter & Total Elapsed Time Row -->
+      <div class="flex items-center justify-center gap-4 sm:gap-8 font-mono text-sm sm:text-lg mt-2 text-white/70">
+        <div class="flex items-center gap-1.5">
+          <span class="text-white/40 uppercase text-xs">Set</span>
+          <span id="setCounter" class="font-extrabold text-white text-base sm:text-xl">1 / 8</span>
+        </div>
+        <span class="text-white/20">•</span>
+        <div class="flex items-center gap-1.5">
+          <span class="text-white/40 uppercase text-xs">Total</span>
+          <span id="totalTimeDisplay" class="font-bold text-white/90">04:00</span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- PRIMARY ACTION CONTROLS (Giant Tap Targets) -->
+    <div class="w-full max-w-lg space-y-4 mb-2 select-none">
+      
+      <div class="flex items-center justify-center gap-3">
+        <!-- Reset Button -->
+        <button type="button" id="btnReset" class="btn-tap flex-1 py-4 rounded-2xl bg-white/10 hover:bg-white/15 active:bg-white/20 border border-white/15 text-white font-mono font-bold text-sm tracking-wider uppercase transition-all flex items-center justify-center gap-2">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+          <span>Reset (R)</span>
+        </button>
+
+        <!-- Main Start / Pause Giant Button -->
+        <button type="button" id="btnMainAction" class="btn-tap flex-[2] py-4 rounded-2xl bg-white text-slate-900 hover:bg-slate-100 active:bg-slate-200 font-mono font-extrabold text-lg sm:text-xl tracking-wider uppercase shadow-xl transition-all flex items-center justify-center gap-2">
+          <svg id="iconPlay" class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+          <svg id="iconPause" class="w-6 h-6 hidden" fill="currentColor" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+          <span id="lblMainAction">Start (Space)</span>
+        </button>
+
+        <!-- Skip Interval Button -->
+        <button type="button" id="btnSkip" class="btn-tap flex-1 py-4 rounded-2xl bg-white/10 hover:bg-white/15 active:bg-white/20 border border-white/15 text-white font-mono font-bold text-sm tracking-wider uppercase transition-all flex items-center justify-center gap-2">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 5l7 7-7 7M5 5l7 7-7 7"/></svg>
+          <span>Skip (S)</span>
+        </button>
+      </div>
+
+      <!-- Keyboard Shortcuts Hint -->
+      <div class="text-[11px] font-mono text-white/40 text-center">
+        Keyboard: <kbd class="px-1.5 py-0.5 rounded bg-white/10 text-white/70">Space</kbd> Start/Pause • <kbd class="px-1.5 py-0.5 rounded bg-white/10 text-white/70">R</kbd> Reset • <kbd class="px-1.5 py-0.5 rounded bg-white/10 text-white/70">S</kbd> Skip • <kbd class="px-1.5 py-0.5 rounded bg-white/10 text-white/70">F</kbd> Fullscreen • <kbd class="px-1.5 py-0.5 rounded bg-white/10 text-white/70">M</kbd> Mute
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- CUSTOM INTERVAL CONFIGURATION MODAL -->
+  <div id="modalConfig" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+    <div class="bg-neutral-900 border border-white/15 rounded-2xl max-w-md w-full p-6 text-white space-y-5 shadow-2xl">
+      
+      <div class="flex items-center justify-between border-b border-white/10 pb-3">
+        <h3 class="text-base font-bold font-mono uppercase tracking-wider text-white">Custom Intervals</h3>
+        <button type="button" id="btnCloseConfig" class="text-slate-400 hover:text-white p-1">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <!-- Config Inputs Grid -->
+      <div class="space-y-3 font-mono text-xs">
+        
+        <!-- Prepare Time -->
+        <div class="flex items-center justify-between p-3 rounded-xl bg-white/5 border border-white/10">
+          <span class="text-slate-300">Get Ready (Prepare)</span>
+          <div class="flex items-center gap-2">
+            <button type="button" class="btn-step px-2.5 py-1 rounded bg-white/10 hover:bg-white/20 text-sm font-bold" data-target="inputPrepare" data-delta="-5">-5</button>
+            <input type="number" id="inputPrepare" min="0" max="60" value="5" class="w-14 text-center bg-black/50 border border-white/20 rounded py-1 text-white font-bold">
+            <span class="text-white/50">s</span>
+            <button type="button" class="btn-step px-2.5 py-1 rounded bg-white/10 hover:bg-white/20 text-sm font-bold" data-target="inputPrepare" data-delta="5">+5</button>
+          </div>
+        </div>
+
+        <!-- Work Time -->
+        <div class="flex items-center justify-between p-3 rounded-xl bg-emerald-950/30 border border-emerald-500/20">
+          <span class="text-emerald-300 font-semibold">Work Interval</span>
+          <div class="flex items-center gap-2">
+            <button type="button" class="btn-step px-2.5 py-1 rounded bg-white/10 hover:bg-white/20 text-sm font-bold" data-target="inputWork" data-delta="-5">-5</button>
+            <input type="number" id="inputWork" min="5" max="3600" value="20" class="w-14 text-center bg-black/50 border border-emerald-500/30 rounded py-1 text-emerald-300 font-bold">
+            <span class="text-white/50">s</span>
+            <button type="button" class="btn-step px-2.5 py-1 rounded bg-white/10 hover:bg-white/20 text-sm font-bold" data-target="inputWork" data-delta="5">+5</button>
+          </div>
+        </div>
+
+        <!-- Rest Time -->
+        <div class="flex items-center justify-between p-3 rounded-xl bg-sky-950/30 border border-sky-500/20">
+          <span class="text-sky-300 font-semibold">Rest Interval</span>
+          <div class="flex items-center gap-2">
+            <button type="button" class="btn-step px-2.5 py-1 rounded bg-white/10 hover:bg-white/20 text-sm font-bold" data-target="inputRest" data-delta="-5">-5</button>
+            <input type="number" id="inputRest" min="0" max="3600" value="10" class="w-14 text-center bg-black/50 border border-sky-500/30 rounded py-1 text-sky-300 font-bold">
+            <span class="text-white/50">s</span>
+            <button type="button" class="btn-step px-2.5 py-1 rounded bg-white/10 hover:bg-white/20 text-sm font-bold" data-target="inputRest" data-delta="5">+5</button>
+          </div>
+        </div>
+
+        <!-- Total Sets -->
+        <div class="flex items-center justify-between p-3 rounded-xl bg-white/5 border border-white/10">
+          <span class="text-slate-300">Total Sets (Rounds)</span>
+          <div class="flex items-center gap-2">
+            <button type="button" class="btn-step px-2.5 py-1 rounded bg-white/10 hover:bg-white/20 text-sm font-bold" data-target="inputSets" data-delta="-1">-1</button>
+            <input type="number" id="inputSets" min="1" max="99" value="8" class="w-14 text-center bg-black/50 border border-white/20 rounded py-1 text-white font-bold">
+            <button type="button" class="btn-step px-2.5 py-1 rounded bg-white/10 hover:bg-white/20 text-sm font-bold" data-target="inputSets" data-delta="1">+1</button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Save & Apply Button -->
+      <div class="pt-2">
+        <button type="button" id="btnSaveConfig" class="btn-tap w-full py-3 rounded-xl bg-emerald-500 hover:bg-emerald-600 font-mono font-bold text-sm tracking-wider uppercase text-black shadow-lg transition-all">
+          Apply &amp; Set Timer
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Educational Article & Architecture Notes -->
+  <article class="max-w-4xl mx-auto px-4 mt-8 pb-10 border-t border-white/10 text-slate-400 space-y-5 text-xs leading-relaxed">
+    <div class="space-y-1.5 pt-6">
+      <h2 class="text-sm font-bold font-mono uppercase text-white">Why Standard JavaScript Timers Drift in Gyms</h2>
+      <p>
+        Most web timers use <code>setInterval()</code> or <code>setTimeout()</code> on the browser's main thread. When your phone's screen dims, the tab is put in the background, or an operating system enters low-power mode, modern mobile browsers aggressively throttle main-thread timers down to once every 1–60 seconds. A 20-second sprint can easily stretch into 45 seconds of actual time.
+      </p>
+      <p>
+        SpinFoundry's Interval Timer executes inside an isolated <strong>inline Web Worker</strong> running on a background execution thread. The clock continuously synchronizes against monotonic timestamps (<code>performance.now()</code>), ensuring exact millisecond precision and <strong>absolute zero drift</strong>, even when the browser tab is hidden or minimized.
+      </p>
+    </div>
+
+    <div class="space-y-1.5">
+      <h2 class="text-sm font-bold font-mono uppercase text-white">Screen Wake Lock &amp; Zero External Assets</h2>
+      <p>
+        During active intervals, the <strong>Screen Wake Lock API</strong> automatically prevents mobile screens and laptops from falling asleep or dimming across your training floor. Audio countdown cues and start/stop bells are synthesized procedurally in client-side <strong>Web Audio API</strong> with zero external audio assets or network requests.
+      </p>
+    </div>
+
+    <!-- Contextual Affiliate / Monetization Module -->
+    <div class="pt-6 border-t border-white/10 space-y-3">
+      <h3 class="text-xs font-semibold uppercase tracking-wider font-mono text-slate-300">Precision Training Gear</h3>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+        <a href="https://www.amazon.com/dp/B0047242G8?tag=spinfoundry-20" target="_blank" rel="noopener noreferrer sponsored"
+          class="p-3 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 hover:border-white/20 transition-all block group">
+          <span class="font-medium text-white group-hover:text-amber-300 transition-colors">Gymboss Interval Timer &amp; Stopwatch</span>
+          <p class="text-slate-400 mt-1">Rugged clip-on tactile vibration timer used by combat athletes and CrossFit coaches worldwide.</p>
+        </a>
+        <a href="https://www.amazon.com/dp/B07PM54P4N?tag=spinfoundry-20" target="_blank" rel="noopener noreferrer sponsored"
+          class="p-3 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 hover:border-white/20 transition-all block group">
+          <span class="font-medium text-white group-hover:text-amber-300 transition-colors">Polar H10 Heart Rate Monitor Chest Strap</span>
+          <p class="text-slate-400 mt-1">Medical-grade ECG heart rate monitoring for tracking zone 4/5 thresholds during intense HIIT rounds.</p>
+        </a>
+        <a href="https://www.amazon.com/dp/B075SGB3BG?tag=spinfoundry-20" target="_blank" rel="noopener noreferrer sponsored"
+          class="p-3 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 hover:border-white/20 transition-all block group">
+          <span class="font-medium text-white group-hover:text-amber-300 transition-colors">WOD Nation Speed Jump Rope</span>
+          <p class="text-slate-400 mt-1">Adjustable bearing steel-cable jump rope built specifically for high-speed Tabata and double-unders.</p>
+        </a>
+        <a href="https://www.amazon.com/dp/B08V577457?tag=spinfoundry-20" target="_blank" rel="noopener noreferrer sponsored"
+          class="p-3 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 hover:border-white/20 transition-all block group">
+          <span class="font-medium text-white group-hover:text-amber-300 transition-colors">Magnetic Gym Phone Mount</span>
+          <p class="text-slate-400 mt-1">Mounts smartphones directly to squat racks and machines to keep this timer right at eye-level.</p>
+        </a>
+      </div>
+      <p class="text-[11px] text-slate-500 italic">SpinFoundry may earn an affiliate commission on qualifying purchases.</p>
+    </div>
+  </article>
+
+  <!-- SpinFoundry Footer -->
+  <footer class="border-t border-white/10 py-5 bg-black/40 text-center text-xs font-mono text-slate-500 select-none">
+    <div class="max-w-4xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
+      <span>SpinFoundry — Zero-overhead, 100% client-side hub.</span>
+      <div class="flex items-center gap-4">
+        <a href="/" class="hover:text-white transition-colors">Catalog Hub</a>
+        <a href="/dough-hydration-calculator/" class="hover:text-white transition-colors">Baker's Calc</a>
+        <a href="/gamut-masking-tool/" class="hover:text-white transition-colors">Gamut Mask</a>
+        <a href="https://github.com/SpinFoundry/SpinFoundry" target="_blank" rel="noopener noreferrer" class="hover:text-white transition-colors">GitHub</a>
+        <a href="/sitemap.xml" class="hover:text-white transition-colors">Sitemap</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- SCRIPT: ZERO-DRIFT PRECISION ENGINE -->
+  <script>
+  (function() {
+    'use strict';
+
+    /* ═════════════════════════════════════════════
+       1. INLINE WEB WORKER (DRIFT-FREE CLOCK TICKER)
+       ═════════════════════════════════════════════ */
+    const workerScript = `
+      let timer = null;
+      self.onmessage = function(e) {
+        if (e.data === 'start') {
+          if (!timer) {
+            timer = setInterval(() => self.postMessage('tick'), 100);
+          }
+        } else if (e.data === 'stop') {
+          if (timer) {
+            clearInterval(timer);
+            timer = null;
+          }
+        }
+      };
+    `;
+
+    let worker = null;
+    try {
+      const blob = new Blob([workerScript], { type: 'application/javascript' });
+      worker = new Worker(URL.createObjectURL(blob));
+    } catch (e) {
+      console.warn('Web Worker creation failed, falling back to window interval:', e);
+    }
+
+    /* ═════════════════════════════════════════════
+       2. PROCEDURAL WEB AUDIO SYNTHESIZER
+       ═════════════════════════════════════════════ */
+    let audioCtx = null;
+    let isMuted = false;
+
+    function initAudio() {
+      if (!audioCtx) {
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        if (AudioContextClass) {
+          audioCtx = new AudioContextClass();
+        }
+      }
+      if (audioCtx && audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+    }
+
+    function playTone(freq, type, durationMs, gainLevel) {
+      if (isMuted) return;
+      if (gainLevel === undefined) gainLevel = 0.15;
+      initAudio();
+      if (!audioCtx) return;
+
+      try {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+
+        gain.gain.setValueAtTime(gainLevel, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + durationMs / 1000);
+
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+
+        osc.start();
+        osc.stop(audioCtx.currentTime + durationMs / 1000);
+      } catch (err) {
+        console.warn('Audio tone error:', err);
+      }
+    }
+
+    // Audio Cue Patterns
+    function playBeepShort() {
+      playTone(880, 'sine', 90, 0.18); // Crisp countdown beep
+    }
+    function playWorkStartBell() {
+      // High-energy energetic chord
+      playTone(880, 'triangle', 200, 0.25);
+      setTimeout(() => playTone(1320, 'sine', 350, 0.3), 60);
+    }
+    function playRestStartBell() {
+      // Calming low chord
+      playTone(440, 'sine', 250, 0.2);
+      setTimeout(() => playTone(330, 'sine', 400, 0.2), 80);
+    }
+    function playCompleteFanfare() {
+      // Triad celebratory finish
+      playTone(523.25, 'triangle', 200, 0.2); // C5
+      setTimeout(() => playTone(659.25, 'triangle', 200, 0.2), 150); // E5
+      setTimeout(() => playTone(783.99, 'triangle', 250, 0.25), 300); // G5
+      setTimeout(() => playTone(1046.50, 'sine', 600, 0.3), 450); // C6
+    }
+
+    /* ═════════════════════════════════════════════
+       3. SCREEN WAKE LOCK API
+       ═════════════════════════════════════════════ */
+    let wakeLock = null;
+    let wakeLockEnabled = true;
+
+    async function requestWakeLock() {
+      if (!wakeLockEnabled || !('wakeLock' in navigator)) return;
+      try {
+        wakeLock = await navigator.wakeLock.request('screen');
+        wakeLock.addEventListener('release', () => {
+          wakeLock = null;
+          updateWakeLockUI();
+        });
+        updateWakeLockUI();
+      } catch (err) {
+        console.warn('Wake Lock request error:', err);
+        updateWakeLockUI();
+      }
+    }
+
+    function releaseWakeLock() {
+      if (wakeLock) {
+        wakeLock.release().catch(() => {});
+        wakeLock = null;
+        updateWakeLockUI();
+      }
+    }
+
+    function updateWakeLockUI() {
+      const isLocked = !!wakeLock;
+      DOM.iconWakeLockOn.classList.toggle('hidden', !isLocked);
+      DOM.iconWakeLockOff.classList.toggle('hidden', isLocked);
+      DOM.lblWakeLock.textContent = isLocked ? 'Screen Awake' : 'Screen Auto';
+    }
+
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible' && state.status === 'running') {
+        requestWakeLock();
+      }
+    });
+
+    /* ═════════════════════════════════════════════
+       4. TIMER STATE MACHINE & PRESETS
+       ═════════════════════════════════════════════ */
+    const PRESETS = {
+      tabata: { prepare: 5, work: 20, rest: 10, sets: 8 },
+      hiit30: { prepare: 5, work: 30, rest: 30, sets: 10 },
+      boxing: { prepare: 10, work: 180, rest: 60, sets: 5 },
+      emom:   { prepare: 5, work: 60, rest: 0, sets: 10 }
+    };
+
+    const state = {
+      status: 'idle', // 'idle' | 'running' | 'paused' | 'complete'
+      phase: 'prepare', // 'prepare' | 'work' | 'rest' | 'complete'
+      currentSet: 1,
+      config: {
+        prepare: 5,
+        work: 20,
+        rest: 10,
+        sets: 8
+      },
+      phaseDurationMs: 5000,
+      phaseEndTime: 0,
+      remainingMs: 5000,
+      lastBeepSecond: -1
+    };
+
+    /* ═════════════════════════════════════════════
+       5. DOM REFERENCES
+       ═════════════════════════════════════════════ */
+    const DOM = {
+      phaseBadge: document.getElementById('phaseBadge'),
+      phaseDot: document.getElementById('phaseDot'),
+      phaseLabel: document.getElementById('phaseLabel'),
+      clockDisplay: document.getElementById('clockDisplay'),
+      setCounter: document.getElementById('setCounter'),
+      totalTimeDisplay: document.getElementById('totalTimeDisplay'),
+      phaseProgressBar: document.getElementById('phaseProgressBar'),
+
+      btnMainAction: document.getElementById('btnMainAction'),
+      lblMainAction: document.getElementById('lblMainAction'),
+      iconPlay: document.getElementById('iconPlay'),
+      iconPause: document.getElementById('iconPause'),
+      btnReset: document.getElementById('btnReset'),
+      btnSkip: document.getElementById('btnSkip'),
+
+      btnToggleWakeLock: document.getElementById('btnToggleWakeLock'),
+      iconWakeLockOn: document.getElementById('iconWakeLockOn'),
+      iconWakeLockOff: document.getElementById('iconWakeLockOff'),
+      lblWakeLock: document.getElementById('lblWakeLock'),
+
+      btnToggleSound: document.getElementById('btnToggleSound'),
+      iconSoundOn: document.getElementById('iconSoundOn'),
+      iconSoundOff: document.getElementById('iconSoundOff'),
+      lblSound: document.getElementById('lblSound'),
+
+      btnFullscreen: document.getElementById('btnFullscreen'),
+      btnOpenConfig: document.getElementById('btnOpenConfig'),
+      btnCloseConfig: document.getElementById('btnCloseConfig'),
+      btnSaveConfig: document.getElementById('btnSaveConfig'),
+      modalConfig: document.getElementById('modalConfig'),
+
+      inputPrepare: document.getElementById('inputPrepare'),
+      inputWork: document.getElementById('inputWork'),
+      inputRest: document.getElementById('inputRest'),
+      inputSets: document.getElementById('inputSets')
+    };
+
+    /* ═════════════════════════════════════════════
+       6. TIMING ENGINE: TICK & PHASE TRANSITIONS
+       ═════════════════════════════════════════════ */
+    function formatTime(totalSeconds) {
+      const m = Math.floor(totalSeconds / 60);
+      const s = totalSeconds % 60;
+      return `${m < 10 ? '0' : ''}${m}:${s < 10 ? '0' : ''}${s}`;
+    }
+
+    function calculateTotalWorkoutDuration() {
+      const cfg = state.config;
+      let totalSec = cfg.prepare;
+      for (let i = 1; i <= cfg.sets; i++) {
+        totalSec += cfg.work;
+        if (i < cfg.sets) totalSec += cfg.rest;
+      }
+      return totalSec;
+    }
+
+    function updateDisplay() {
+      const secRemaining = Math.max(0, Math.ceil(state.remainingMs / 1000));
+      DOM.clockDisplay.textContent = formatTime(secRemaining);
+
+      // Urgency pulse in last 3 seconds of Work or Prepare
+      if (state.status === 'running' && secRemaining <= 3 && secRemaining > 0) {
+        DOM.clockDisplay.classList.add('urgent-pulse');
+      } else {
+        DOM.clockDisplay.classList.remove('urgent-pulse');
+      }
+
+      // Progress bar percentage
+      const elapsed = state.phaseDurationMs - state.remainingMs;
+      const pct = Math.min(100, Math.max(0, (elapsed / state.phaseDurationMs) * 100));
+      DOM.phaseProgressBar.style.width = `${pct}%`;
+
+      // Set indicator
+      DOM.setCounter.textContent = `${state.currentSet} / ${state.config.sets}`;
+
+      // Update Phase Badge and Body Theme
+      document.body.className = `phase-${state.phase} font-sans min-h-screen flex flex-col justify-between antialiased transition-colors duration-300`;
+
+      if (state.phase === 'prepare') {
+        DOM.phaseLabel.textContent = 'GET READY';
+        DOM.phaseBadge.className = 'inline-flex items-center gap-2 px-6 py-1.5 rounded-full text-sm sm:text-base font-mono font-extrabold uppercase tracking-widest bg-amber-500/20 border border-amber-400/40 text-amber-300 shadow-lg mb-2';
+        DOM.phaseDot.className = 'w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse';
+        DOM.phaseProgressBar.className = 'h-full bg-amber-400 progress-bar-fill';
+      } else if (state.phase === 'work') {
+        DOM.phaseLabel.textContent = 'WORK';
+        DOM.phaseBadge.className = 'inline-flex items-center gap-2 px-6 py-1.5 rounded-full text-sm sm:text-base font-mono font-extrabold uppercase tracking-widest bg-emerald-500/20 border border-emerald-400/40 text-emerald-300 shadow-lg mb-2';
+        DOM.phaseDot.className = 'w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse';
+        DOM.phaseProgressBar.className = 'h-full bg-emerald-400 progress-bar-fill';
+      } else if (state.phase === 'rest') {
+        DOM.phaseLabel.textContent = 'REST';
+        DOM.phaseBadge.className = 'inline-flex items-center gap-2 px-6 py-1.5 rounded-full text-sm sm:text-base font-mono font-extrabold uppercase tracking-widest bg-sky-500/20 border border-sky-400/40 text-sky-300 shadow-lg mb-2';
+        DOM.phaseDot.className = 'w-2.5 h-2.5 rounded-full bg-sky-400 animate-pulse';
+        DOM.phaseProgressBar.className = 'h-full bg-sky-400 progress-bar-fill';
+      } else if (state.phase === 'complete') {
+        DOM.phaseLabel.textContent = 'FINISHED!';
+        DOM.phaseBadge.className = 'inline-flex items-center gap-2 px-6 py-1.5 rounded-full text-sm sm:text-base font-mono font-extrabold uppercase tracking-widest bg-emerald-500/30 border border-emerald-300 text-emerald-200 shadow-lg mb-2';
+        DOM.phaseDot.className = 'w-2.5 h-2.5 rounded-full bg-emerald-300';
+        DOM.phaseProgressBar.style.width = '100%';
+        DOM.phaseProgressBar.className = 'h-full bg-emerald-400 progress-bar-fill';
+      }
+
+      if (state.status === 'paused') {
+        DOM.phaseLabel.textContent = 'PAUSED';
+      }
+    }
+
+    function onClockTick() {
+      if (state.status !== 'running') return;
+
+      const now = performance.now();
+      state.remainingMs = Math.max(0, state.phaseEndTime - now);
+
+      const secRemaining = Math.ceil(state.remainingMs / 1000);
+
+      // Audible countdown in last 3 seconds
+      if (secRemaining <= 3 && secRemaining > 0 && secRemaining !== state.lastBeepSecond) {
+        state.lastBeepSecond = secRemaining;
+        playBeepShort();
+      }
+
+      if (state.remainingMs <= 0) {
+        transitionToNextPhase();
+      } else {
+        updateDisplay();
+      }
+    }
+
+    function transitionToNextPhase() {
+      state.lastBeepSecond = -1;
+
+      if (state.phase === 'prepare') {
+        // Transition to first Work interval
+        state.phase = 'work';
+        state.phaseDurationMs = state.config.work * 1000;
+        state.phaseEndTime = performance.now() + state.phaseDurationMs;
+        state.remainingMs = state.phaseDurationMs;
+        playWorkStartBell();
+      } else if (state.phase === 'work') {
+        if (state.currentSet < state.config.sets) {
+          if (state.config.rest > 0) {
+            state.phase = 'rest';
+            state.phaseDurationMs = state.config.rest * 1000;
+            state.phaseEndTime = performance.now() + state.phaseDurationMs;
+            state.remainingMs = state.phaseDurationMs;
+            playRestStartBell();
+          } else {
+            // Instant next set (e.g. EMOM 0s rest)
+            state.currentSet++;
+            state.phase = 'work';
+            state.phaseDurationMs = state.config.work * 1000;
+            state.phaseEndTime = performance.now() + state.phaseDurationMs;
+            state.remainingMs = state.phaseDurationMs;
+            playWorkStartBell();
+          }
+        } else {
+          // Workout Complete
+          completeWorkout();
+          return;
+        }
+      } else if (state.phase === 'rest') {
+        // Next Work Interval
+        state.currentSet++;
+        state.phase = 'work';
+        state.phaseDurationMs = state.config.work * 1000;
+        state.phaseEndTime = performance.now() + state.phaseDurationMs;
+        state.remainingMs = state.phaseDurationMs;
+        playWorkStartBell();
+      }
+
+      updateDisplay();
+    }
+
+    function completeWorkout() {
+      state.status = 'complete';
+      state.phase = 'complete';
+      state.remainingMs = 0;
+      state.phaseDurationMs = 1;
+
+      stopTicker();
+      releaseWakeLock();
+      playCompleteFanfare();
+
+      DOM.iconPlay.classList.remove('hidden');
+      DOM.iconPause.classList.add('hidden');
+      DOM.lblMainAction.textContent = 'Restart';
+
+      updateDisplay();
+    }
+
+    /* ═════════════════════════════════════════════
+       7. CONTROL ACTIONS: START, PAUSE, RESET, SKIP
+       ═════════════════════════════════════════════ */
+    function startTicker() {
+      if (worker) {
+        worker.postMessage('start');
+      } else {
+        if (!state.fallbackInterval) {
+          state.fallbackInterval = setInterval(onClockTick, 100);
+        }
+      }
+    }
+
+    function stopTicker() {
+      if (worker) {
+        worker.postMessage('stop');
+      }
+      if (state.fallbackInterval) {
+        clearInterval(state.fallbackInterval);
+        state.fallbackInterval = null;
+      }
+    }
+
+    if (worker) {
+      worker.onmessage = () => onClockTick();
+    }
+
+    function startTimer() {
+      initAudio();
+      requestWakeLock();
+
+      if (state.status === 'idle' || state.status === 'complete') {
+        state.currentSet = 1;
+        state.lastBeepSecond = -1;
+
+        if (state.config.prepare > 0) {
+          state.phase = 'prepare';
+          state.phaseDurationMs = state.config.prepare * 1000;
+        } else {
+          state.phase = 'work';
+          state.phaseDurationMs = state.config.work * 1000;
+          playWorkStartBell();
+        }
+        state.remainingMs = state.phaseDurationMs;
+        state.phaseEndTime = performance.now() + state.phaseDurationMs;
+      } else if (state.status === 'paused') {
+        // Resume from remaining milliseconds
+        state.phaseEndTime = performance.now() + state.remainingMs;
+      }
+
+      state.status = 'running';
+      startTicker();
+
+      DOM.iconPlay.classList.add('hidden');
+      DOM.iconPause.classList.remove('hidden');
+      DOM.lblMainAction.textContent = 'Pause (Space)';
+
+      updateDisplay();
+    }
+
+    function pauseTimer() {
+      if (state.status !== 'running') return;
+
+      stopTicker();
+      releaseWakeLock();
+
+      // Capture exact remaining time
+      state.remainingMs = Math.max(0, state.phaseEndTime - performance.now());
+      state.status = 'paused';
+
+      DOM.iconPlay.classList.remove('hidden');
+      DOM.iconPause.classList.add('hidden');
+      DOM.lblMainAction.textContent = 'Resume (Space)';
+
+      updateDisplay();
+    }
+
+    function toggleTimer() {
+      if (state.status === 'running') {
+        pauseTimer();
+      } else {
+        startTimer();
+      }
+    }
+
+    function resetTimer() {
+      stopTicker();
+      releaseWakeLock();
+
+      state.status = 'idle';
+      state.currentSet = 1;
+      state.lastBeepSecond = -1;
+
+      if (state.config.prepare > 0) {
+        state.phase = 'prepare';
+        state.phaseDurationMs = state.config.prepare * 1000;
+      } else {
+        state.phase = 'work';
+        state.phaseDurationMs = state.config.work * 1000;
+      }
+      state.remainingMs = state.phaseDurationMs;
+
+      DOM.iconPlay.classList.remove('hidden');
+      DOM.iconPause.classList.add('hidden');
+      DOM.lblMainAction.textContent = 'Start (Space)';
+      DOM.totalTimeDisplay.textContent = formatTime(calculateTotalWorkoutDuration());
+
+      updateDisplay();
+    }
+
+    function skipInterval() {
+      if (state.status === 'idle') {
+        startTimer();
+        return;
+      }
+      transitionToNextPhase();
+    }
+
+    function applyPreset(presetKey) {
+      const p = PRESETS[presetKey];
+      if (!p) return;
+
+      document.querySelectorAll('.btn-preset').forEach(btn => {
+        if (btn.dataset.preset === presetKey) {
+          btn.className = 'btn-preset btn-tap px-3 py-1 rounded-lg text-xs font-mono font-bold bg-white/20 border border-white/40 text-white shadow-sm transition-all';
+        } else {
+          btn.className = 'btn-preset btn-tap px-3 py-1 rounded-lg text-xs font-mono font-medium bg-white/5 border border-white/10 text-white/70 hover:bg-white/15 hover:text-white transition-all';
+        }
+      });
+
+      state.config = { ...p };
+      saveConfigToStorage();
+      resetTimer();
+    }
+
+    /* ═════════════════════════════════════════════
+       8. STORAGE & SETTINGS
+       ═════════════════════════════════════════════ */
+    const STORAGE_KEY = 'spinfoundry_interval_timer_v1';
+
+    function saveConfigToStorage() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({
+          config: state.config,
+          isMuted: isMuted,
+          wakeLockEnabled: wakeLockEnabled
+        }));
+      } catch (e) {}
+    }
+
+    function loadConfigFromStorage() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (parsed.config) state.config = { ...state.config, ...parsed.config };
+          if (parsed.isMuted !== undefined) isMuted = parsed.isMuted;
+          if (parsed.wakeLockEnabled !== undefined) wakeLockEnabled = parsed.wakeLockEnabled;
+        }
+      } catch (e) {}
+    }
+
+    /* ═════════════════════════════════════════════
+       9. INTERACTION LISTENERS & SHORTCUTS
+       ═════════════════════════════════════════════ */
+    function setupEvents() {
+      // Main Actions
+      DOM.btnMainAction.addEventListener('click', toggleTimer);
+      DOM.btnReset.addEventListener('click', resetTimer);
+      DOM.btnSkip.addEventListener('click', skipInterval);
+
+      // Presets
+      document.querySelectorAll('.btn-preset').forEach(btn => {
+        btn.addEventListener('click', () => applyPreset(btn.dataset.preset));
+      });
+
+      // Wake Lock Toggle Button
+      DOM.btnToggleWakeLock.addEventListener('click', () => {
+        wakeLockEnabled = !wakeLockEnabled;
+        if (wakeLockEnabled && state.status === 'running') {
+          requestWakeLock();
+        } else {
+          releaseWakeLock();
+        }
+        saveConfigToStorage();
+      });
+
+      // Sound Toggle Button
+      DOM.btnToggleSound.addEventListener('click', () => {
+        isMuted = !isMuted;
+        DOM.iconSoundOn.classList.toggle('hidden', isMuted);
+        DOM.iconSoundOff.classList.toggle('hidden', !isMuted);
+        DOM.lblSound.textContent = isMuted ? 'Muted' : 'Sound On';
+        if (!isMuted) playTone(880, 'sine', 80, 0.15);
+        saveConfigToStorage();
+      });
+
+      // Fullscreen Toggle
+      DOM.btnFullscreen.addEventListener('click', () => {
+        if (!document.fullscreenElement) {
+          document.documentElement.requestFullscreen().catch(() => {});
+        } else {
+          document.exitFullscreen().catch(() => {});
+        }
+      });
+
+      // Custom Config Modal Open / Close
+      DOM.btnOpenConfig.addEventListener('click', () => {
+        DOM.inputPrepare.value = state.config.prepare;
+        DOM.inputWork.value = state.config.work;
+        DOM.inputRest.value = state.config.rest;
+        DOM.inputSets.value = state.config.sets;
+        DOM.modalConfig.classList.remove('hidden');
+      });
+
+      DOM.btnCloseConfig.addEventListener('click', () => {
+        DOM.modalConfig.classList.add('hidden');
+      });
+
+      // Quick Step Buttons in Modal
+      document.querySelectorAll('.btn-step').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const targetId = btn.dataset.target;
+          const delta = parseInt(btn.dataset.delta, 10);
+          const input = document.getElementById(targetId);
+          if (input) {
+            const min = parseInt(input.min, 10) || 0;
+            const max = parseInt(input.max, 10) || 3600;
+            const current = parseInt(input.value, 10) || 0;
+            input.value = Math.max(min, Math.min(max, current + delta));
+          }
+        });
+      });
+
+      // Save Custom Config
+      DOM.btnSaveConfig.addEventListener('click', () => {
+        const prepare = Math.max(0, parseInt(DOM.inputPrepare.value, 10) || 0);
+        const work = Math.max(5, parseInt(DOM.inputWork.value, 10) || 20);
+        const rest = Math.max(0, parseInt(DOM.inputRest.value, 10) || 0);
+        const sets = Math.max(1, parseInt(DOM.inputSets.value, 10) || 1);
+
+        state.config = { prepare, work, rest, sets };
+        saveConfigToStorage();
+
+        // Deselect preset buttons
+        document.querySelectorAll('.btn-preset').forEach(b => {
+          b.className = 'btn-preset btn-tap px-3 py-1 rounded-lg text-xs font-mono font-medium bg-white/5 border border-white/10 text-white/70 hover:bg-white/15 hover:text-white transition-all';
+        });
+
+        DOM.modalConfig.classList.add('hidden');
+        resetTimer();
+      });
+
+      // Global Keyboard Shortcuts
+      window.addEventListener('keydown', (e) => {
+        // Ignore shortcuts if input modal is active
+        if (!DOM.modalConfig.classList.contains('hidden') && e.target.tagName === 'INPUT') return;
+
+        if (e.code === 'Space') {
+          e.preventDefault();
+          toggleTimer();
+        } else if (e.code === 'KeyR') {
+          resetTimer();
+        } else if (e.code === 'KeyS') {
+          skipInterval();
+        } else if (e.code === 'KeyF') {
+          DOM.btnFullscreen.click();
+        } else if (e.code === 'KeyM') {
+          DOM.btnToggleSound.click();
+        }
+      });
+    }
+
+    /* ═════════════════════════════════════════════
+       10. INITIALIZATION
+       ═════════════════════════════════════════════ */
+    function init() {
+      loadConfigFromStorage();
+      setupEvents();
+
+      // Reflect loaded sound & wake lock states in UI
+      DOM.iconSoundOn.classList.toggle('hidden', isMuted);
+      DOM.iconSoundOff.classList.toggle('hidden', !isMuted);
+      DOM.lblSound.textContent = isMuted ? 'Muted' : 'Sound On';
+
+      // Default to Tabata if no config
+      resetTimer();
+
+      if (window.location.hash === '#config') {
+        DOM.btnOpenConfig.click();
+      }
+    }
+
+    init();
+
+  })();
+  </script>
+</body>
+</html>

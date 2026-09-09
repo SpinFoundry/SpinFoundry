@@ -58,6 +58,14 @@
       "category": "dev-tools",
       "path": "/gamut-masking-tool/",
       "dateAdded": "2026-09-09"
+    },
+    {
+      "id": "interval-timer",
+      "title": "Minimalist Interval Timer",
+      "description": "Zero-drift workout timer for HIIT, Tabata, Boxing, and EMOM. Uses inline Web Worker timing, Screen Wake Lock, and high-visibility 3-5m typography.",
+      "category": "conversions",
+      "path": "/interval-timer/",
+      "dateAdded": "2026-09-09"
     }
   ]
 }
