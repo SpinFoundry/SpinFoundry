@@ -123,42 +123,42 @@ Nombre de séances récentes : ${body.totalSessions || 0}
 Donne ton audit d'équilibre complet en JSON strict.`;
     }
 
-    // Call Google Gemini API (gemini-2.5-flash)
-    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+    // Call Google Gemini API (starting with gemini-3.8-flash as recommended by Google)
+    const candidateModels = ['gemini-3.8-flash', 'gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash'];
+    let lastErrorMsg = '';
+    let data = null;
 
-    const payload = {
-      contents: [
-        {
-          role: 'user',
-          parts: [
-            { text: `${systemPrompt}\n\n${userPrompt}` }
-          ]
-        }
-      ],
-      generationConfig: {
-        temperature: 0.4,
-        maxOutputTokens: 1500,
-        responseMimeType: "application/json"
+    for (const modelName of candidateModels) {
+      const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
+      const res = await fetch(geminiUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      if (res.ok) {
+        data = await res.json();
+        break;
       }
-    };
 
-    const res = await fetch(geminiUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
-
-    if (!res.ok) {
       const errTxt = await res.text();
-      let msg = `Erreur API Google Gemini (HTTP ${res.status})`;
       try {
         const errObj = JSON.parse(errTxt);
-        if (errObj.error?.message) msg = errObj.error.message;
-      } catch (_) {}
-      return jsonResponse({ error: msg }, res.status);
+        lastErrorMsg = errObj.error?.message || `HTTP ${res.status}`;
+      } catch (_) {
+        lastErrorMsg = errTxt || `HTTP ${res.status}`;
+      }
+
+      // If the error is not about model unavailability, stop trying next models
+      if (!lastErrorMsg.includes('no longer available') && !lastErrorMsg.includes('not found') && !lastErrorMsg.includes('404')) {
+        break;
+      }
     }
 
-    const data = await res.json();
+    if (!data) {
+      return jsonResponse({ error: `Erreur API Google Gemini : ${lastErrorMsg}` }, 500);
+    }
+
     const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text || '{}';
 
     // Parse structured JSON
