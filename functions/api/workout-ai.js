@@ -123,6 +123,22 @@ Nombre de séances récentes : ${body.totalSessions || 0}
 Donne ton audit d'équilibre complet en JSON strict.`;
     }
 
+    const payload = {
+      contents: [
+        {
+          role: 'user',
+          parts: [
+            { text: `${systemPrompt}\n\n${userPrompt}` }
+          ]
+        }
+      ],
+      generationConfig: {
+        temperature: 0.4,
+        maxOutputTokens: 1500,
+        responseMimeType: "application/json"
+      }
+    };
+
     // Call Google Gemini API (starting with gemini-3.8-flash as recommended by Google)
     const candidateModels = ['gemini-3.8-flash', 'gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash'];
     let lastErrorMsg = '';
