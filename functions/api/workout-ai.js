@@ -41,7 +41,8 @@ export async function onRequestPost(context) {
     if (action === 'suggest_workout') {
       systemPrompt = `Tu es un préparateur physique et coach de musculation expert, direct et motivant.
 Ta mission est de proposer une séance d'entraînement optimisée, équilibrée et réaliste (4 à 6 exercices maximum), adaptée aux muscles reposés de l'utilisateur.
-Tu dois répondre EXCLUSIVEMENT avec un objet JSON valide (sans texte d'introduction ni conclusion).
+Tu dois répondre EXCLUSIVEMENT avec un objet JSON valide (sans markdown de code, sans texte avant ou après).
+RÈGLE SYNTAXE JSON OBLIGATOIRE : N'utilise AUCUN guillemet double (") à l'intérieur des chaînes de texte (utilise des apostrophes ' ou des guillemets français « » si nécessaire). Tout guillemet double doit être strictement réservé à la structure JSON. Ne produis aucun saut de ligne non échappé.
 Schéma JSON strict attendu :
 {
   "workoutName": "Nom clair et motivant de la séance (ex: Séance Dos, Épaules & Biceps)",
@@ -55,7 +56,7 @@ Schéma JSON strict attendu :
       "targetSets": 4,
       "targetReps": "8-10",
       "restSeconds": 90,
-      "coachingTip": "Conseil technique d'exécution ou tempo (1 phrase)"
+      "coachingTip": "Conseil technique d'exécution ou tempo (1 phrase sans guillemets doubles)"
     }
   ],
   "estimatedDurationMinutes": 50,
@@ -134,7 +135,7 @@ Donne ton audit d'équilibre complet en JSON strict.`;
       ],
       generationConfig: {
         temperature: 0.4,
-        maxOutputTokens: 1500,
+        maxOutputTokens: 4000,
         responseMimeType: "application/json"
       }
     };
@@ -177,7 +178,7 @@ Donne ton audit d'équilibre complet en JSON strict.`;
 
     const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text || '{}';
 
-    // Parse structured JSON
+    // Parse structured JSON with multi-stage sanitization
     let clean = rawText.trim();
     const fenceMatch = clean.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
     if (fenceMatch) clean = fenceMatch[1].trim();
@@ -188,7 +189,20 @@ Donne ton audit d'équilibre complet en JSON strict.`;
       clean = clean.substring(firstBrace, lastBrace + 1);
     }
 
-    const parsedResult = JSON.parse(clean);
+    let parsedResult;
+    try {
+      parsedResult = JSON.parse(clean);
+    } catch (err1) {
+      // Recovery Attempt 1: Replace unescaped newlines inside strings
+      try {
+        const fixedNewlines = clean.replace(/([^\\])\r?\n/g, '$1\\n');
+        parsedResult = JSON.parse(fixedNewlines);
+      } catch (_) {
+        // Recovery Attempt 2: If Gemini cut off or unescaped quotes, throw with helpful message
+        throw new Error(`Réponse JSON malformée de Gemini: ${err1.message}`);
+      }
+    }
+
     return jsonResponse({ success: true, result: parsedResult });
 
   } catch (err) {
