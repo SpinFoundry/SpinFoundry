@@ -26,7 +26,8 @@ export async function onRequestGet(context) {
   }
 
   const envKeys = Object.keys(context.env || {}).filter(k => typeof context.env[k] === 'string' || typeof context.env[k] === 'object');
-  const hasGeminiKey = Boolean(context.env?.GEMINI_API_KEY);
+  const rawKey = context.env?.GEMINI_API_KEY;
+  const hasGeminiKey = typeof rawKey === 'string' && rawKey.trim().length > 0;
 
   return new Response(JSON.stringify({
     status: 'ok',
@@ -35,6 +36,9 @@ export async function onRequestGet(context) {
     tablesCreated: tablesExist,
     missingTables: missingTables,
     hasGeminiKey: hasGeminiKey,
+    geminiKeyType: typeof rawKey,
+    geminiKeyLength: typeof rawKey === 'string' ? rawKey.length : 0,
+    commitSha: context.env?.CF_PAGES_COMMIT_SHA,
     envKeysAvailable: envKeys,
     error: errorMsg,
     timestamp: new Date().toISOString()
