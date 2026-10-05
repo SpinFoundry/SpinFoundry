@@ -82,6 +82,14 @@
       "category": "nutrition",
       "path": "/mon-planning-repas/",
       "dateAdded": "2026-09-09"
+    },
+    {
+      "id": "mon-carnet-muscu",
+      "title": "MonCarnetMuscu: Séances & Coach IA",
+      "description": "Carnet de musculation ultra-fluide pour la salle : répétitions et charges précédentes en filigrane, chrono automatique, analyse d'équilibre et suggestions coach IA Gemini.",
+      "category": "conversions",
+      "path": "/mon-carnet-muscu/",
+      "dateAdded": "2026-10-05"
     }
   ]
 }
