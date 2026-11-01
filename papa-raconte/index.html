@@ -557,9 +557,13 @@
               </div>
             </div>
             <div class="flex items-center gap-2">
+              <button type="button" onclick="app.openLiveCamera('cover')"
+                class="btn-tap px-3 py-1.5 rounded-lg text-xs font-semibold bg-neutral-900 hover:bg-neutral-800 text-white">
+                📷 Caméra Couverture
+              </button>
               <label class="btn-tap cursor-pointer px-3 py-1.5 rounded-lg text-xs font-semibold bg-neutral-100 hover:bg-neutral-200 text-neutral-800 border border-neutral-300">
-                <span>📷 Photo de couverture dédiée</span>
-                <input type="file" accept="image/*" capture="environment" class="hidden" onchange="app.handleDedicatedCoverInput(event)">
+                <span>🖼️ Galerie</span>
+                <input type="file" accept="image/*" class="hidden" onchange="app.handleDedicatedCoverInput(event)">
               </label>
               <button id="btnClearCustomCover" type="button" onclick="app.clearDedicatedCover()"
                 class="hidden btn-tap px-2.5 py-1.5 rounded-lg text-xs font-medium text-red-600 hover:bg-red-50">
@@ -620,9 +624,35 @@
                 </div>
               </div>
 
-              <!-- Large Page Preview Box (ideal to read the book text while recording voice!) -->
+              <!-- Large Page Preview & In-App WebRTC Camera Box (Zero External Camera Memory Crash!) -->
               <div id="studioPhotoBox" class="relative w-full aspect-[4/3] rounded-2xl bg-neutral-100 border-2 border-dashed border-neutral-300 overflow-hidden flex flex-col items-center justify-center">
                 <img id="studioPhotoPreview" src="" alt="Aperçu de la page" class="hidden w-full h-full object-contain bg-neutral-900">
+
+                <!-- LIVE WEBRTC CAMERA VIEWFINDER OVERLAY -->
+                <div id="studioCameraViewfinder" class="hidden absolute inset-0 bg-black flex flex-col justify-between z-20">
+                  <div class="p-2.5 bg-black/60 flex items-center justify-between text-white text-xs">
+                    <span id="studioCameraTargetLabel" class="font-bold text-amber-300 px-2">📷 Viser la page du livre</span>
+                    <div class="flex items-center gap-2">
+                      <button type="button" onclick="app.switchCameraFacing()"
+                        class="btn-tap px-2.5 py-1 rounded-lg bg-white/20 text-white font-semibold">
+                        🔄 Objectif
+                      </button>
+                      <button type="button" onclick="app.closeLiveCamera()"
+                        class="btn-tap px-2.5 py-1 rounded-lg bg-red-600 text-white font-bold">
+                        ✕ Fermer
+                      </button>
+                    </div>
+                  </div>
+
+                  <video id="studioLiveVideo" autoplay playsinline muted class="w-full flex-1 object-contain bg-black"></video>
+
+                  <div class="p-3 bg-black/75 flex items-center justify-center">
+                    <button type="button" onclick="app.captureLiveCameraFrame()"
+                      class="btn-tap px-6 py-3 rounded-2xl bg-amber-500 hover:bg-amber-400 text-neutral-950 font-extrabold text-sm sm:text-base flex items-center gap-2 shadow-xl">
+                      <span>📸</span> <span>Capturer cette page</span>
+                    </button>
+                  </div>
+                </div>
 
                 <div id="studioPhotoPlaceholder" class="text-center p-6">
                   <div class="text-4xl mb-2">📸</div>
@@ -630,13 +660,13 @@
                     Photographiez la page du livre
                   </p>
                   <p class="text-xs text-neutral-500 max-w-xs mx-auto mb-4">
-                    L'image s'affichera ici en grand pour que vous puissiez lire le texte tout en enregistrant votre voix.
+                    Caméra intégrée ultra-légère (sans quitter l'application) pour éviter toute saturation mémoire sur mobile.
                   </p>
                   <div class="flex flex-wrap items-center justify-center gap-2">
-                    <label class="btn-tap cursor-pointer inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-neutral-900 hover:bg-neutral-800 text-white font-bold text-sm shadow">
+                    <button type="button" onclick="app.openLiveCamera('page')"
+                      class="btn-tap inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-neutral-900 hover:bg-neutral-800 text-white font-bold text-sm shadow">
                       <span>📷 Prendre la photo</span>
-                      <input type="file" accept="image/*" capture="environment" class="hidden" onchange="app.handlePagePhotoInput(event)">
-                    </label>
+                    </button>
                     <label class="btn-tap cursor-pointer inline-flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-white hover:bg-neutral-50 text-neutral-800 font-semibold text-sm border border-neutral-300">
                       <span>🖼️ Galerie</span>
                       <input type="file" accept="image/*" class="hidden" onchange="app.handlePagePhotoInput(event)">
@@ -648,10 +678,10 @@
               <!-- Retake photo buttons when photo already exists -->
               <div id="studioPhotoActions" class="hidden flex flex-wrap items-center justify-between gap-2">
                 <div class="flex items-center gap-2">
-                  <label class="btn-tap cursor-pointer inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-neutral-100 hover:bg-neutral-200 text-neutral-800 text-xs font-semibold border border-neutral-300">
+                  <button type="button" onclick="app.openLiveCamera('page')"
+                    class="btn-tap inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-neutral-900 hover:bg-neutral-800 text-white text-xs font-semibold">
                     <span>📷 Reprendre photo</span>
-                    <input type="file" accept="image/*" capture="environment" class="hidden" onchange="app.handlePagePhotoInput(event)">
-                  </label>
+                  </button>
                   <label class="btn-tap cursor-pointer inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white hover:bg-neutral-50 text-neutral-700 text-xs font-semibold border border-neutral-300">
                     <span>🖼️ Galerie</span>
                     <input type="file" accept="image/*" class="hidden" onchange="app.handlePagePhotoInput(event)">
@@ -1096,7 +1126,7 @@
   const app = (() => {
     const STORAGE_KEY_STATE = 'spinfoundry_papa_raconte_state_v1';
     const IDB_NAME = 'spinfoundry_papa_raconte_idb';
-    const IDB_VERSION = 1;
+    const IDB_VERSION = 2;
     const DEMO_BOOK_ID = 'demo_ours_etoiles_v1';
 
     let state = {
@@ -1129,6 +1159,11 @@
       pages: [] // [{ id, page_number, image_data, audio_data, audio_duration, caption }]
     };
     let studioPageIndex = 0;
+
+    // Live WebRTC Camera State (prevents Android external camera OOM crash)
+    let cameraStream = null;
+    let cameraFacingMode = 'environment'; // 'environment' | 'user'
+    let cameraTarget = 'page'; // 'page' | 'cover'
 
     // Audio Recording State
     let mediaRecorder = null;
@@ -1236,7 +1271,7 @@
     }
 
     // -------------------------------------------------------------
-    // 2. INDEXEDDB LOCAL CACHE (Offline Books + Pages)
+    // 2. INDEXEDDB LOCAL CACHE (Offline Books + Pages + Active Studio Draft)
     // -------------------------------------------------------------
     function openIDB() {
       return new Promise((resolve, reject) => {
@@ -1250,10 +1285,49 @@
             const pStore = db.createObjectStore('pages', { keyPath: 'id' });
             pStore.createIndex('by_book', 'book_id', { unique: false });
           }
+          if (!db.objectStoreNames.contains('drafts')) {
+            db.createObjectStore('drafts', { keyPath: 'id' });
+          }
         };
         req.onsuccess = () => resolve(req.result);
         req.onerror = () => reject(req.error);
       });
+    }
+
+    async function saveStudioDraftToIDB() {
+      if (!studioBook || !studioBook.id) return;
+      try {
+        const db = await openIDB();
+        const tx = db.transaction('drafts', 'readwrite');
+        tx.objectStore('drafts').put({
+          id: 'active_studio_draft',
+          studioBook,
+          studioPageIndex,
+          updatedAt: Date.now()
+        });
+      } catch (_) {}
+    }
+
+    async function loadStudioDraftFromIDB() {
+      try {
+        const db = await openIDB();
+        return new Promise((resolve) => {
+          const tx = db.transaction('drafts', 'readonly');
+          const req = tx.objectStore('drafts').get('active_studio_draft');
+          req.onsuccess = () => resolve(req.result || null);
+          req.onerror = () => resolve(null);
+        });
+      } catch (_) {
+        return null;
+      }
+    }
+
+    async function clearStudioDraftFromIDB() {
+      try {
+        const db = await openIDB();
+        const tx = db.transaction('drafts', 'readwrite');
+        tx.objectStore('drafts').delete('active_studio_draft');
+      } catch (_) {}
     }
 
     async function saveBookToIDB(bookMeta, pagesArray) {
@@ -1339,6 +1413,8 @@
         const raw = localStorage.getItem(STORAGE_KEY_STATE);
         if (raw) {
           const parsed = JSON.parse(raw);
+          state.mode = parsed.mode || 'child';
+          state.parentTab = parsed.parentTab || 'books';
           state.familyCode = parsed.familyCode || 'famille_default';
           state.demoDeleted = !!parsed.demoDeleted;
           if (parsed.settings) {
@@ -1352,6 +1428,8 @@
     function saveLocalState() {
       try {
         localStorage.setItem(STORAGE_KEY_STATE, JSON.stringify({
+          mode: state.mode,
+          parentTab: state.parentTab,
           familyCode: state.familyCode,
           demoDeleted: state.demoDeleted,
           settings: state.settings
@@ -1441,16 +1519,30 @@
         booksList = [];
       }
 
-      // 2. Ensure Demo Book exists if no books and not explicitly deleted
+      // 2. Restore active Studio Draft if any (protects against mobile OS tab reloads)
+      try {
+        const savedDraft = await loadStudioDraftFromIDB();
+        if (savedDraft && savedDraft.studioBook && Array.isArray(savedDraft.studioBook.pages) && savedDraft.studioBook.pages.length > 0) {
+          studioBook = savedDraft.studioBook;
+          studioPageIndex = savedDraft.studioPageIndex || 0;
+        }
+      } catch (_) {}
+
+      // 3. Ensure Demo Book exists if no books and not explicitly deleted
       if (booksList.length === 0 && !state.demoDeleted) {
         const demo = createDemoCoverAndPages();
         await saveBookToIDB(demo.book, demo.pages);
         booksList = [demo.book];
       }
 
-      renderAll();
+      // 4. Restore previous mode (Parent vs Child) if reloaded by mobile browser
+      if (state.mode === 'parent') {
+        unlockParentMode();
+      } else {
+        renderAll();
+      }
 
-      // 3. Sync with Cloudflare D1 in background
+      // 5. Sync with Cloudflare D1 in background
       await syncFromCloud(false);
     }
 
@@ -1547,7 +1639,9 @@
     // -------------------------------------------------------------
     function switchToChildMode() {
       stopVoiceRecordingIfActive();
+      closeLiveCamera();
       state.mode = 'child';
+      saveLocalState();
       document.getElementById('viewChildLibrary').classList.remove('hidden');
       document.getElementById('viewParentMode').classList.add('hidden');
       document.getElementById('mainWrapper').classList.add('kid-bg');
@@ -1644,6 +1738,7 @@
 
     function unlockParentMode() {
       state.mode = 'parent';
+      saveLocalState();
       document.getElementById('viewChildLibrary').classList.add('hidden');
       document.getElementById('viewParentMode').classList.remove('hidden');
       document.getElementById('mainWrapper').classList.remove('kid-bg');
@@ -1656,7 +1751,9 @@
     }
 
     function setParentTab(tab) {
+      if (tab !== 'studio') closeLiveCamera();
       state.parentTab = tab;
+      saveLocalState();
       ['books', 'studio', 'settings'].forEach((t) => {
         const sec = document.getElementById('parentSection' + t.charAt(0).toUpperCase() + t.slice(1));
         const btn = document.getElementById('parentTab' + t.charAt(0).toUpperCase() + t.slice(1));
@@ -1856,10 +1953,12 @@
         pages: [createEmptyPage(1, bookId)]
       };
       studioPageIndex = 0;
+      saveStudioDraftToIDB();
     }
 
     function startNewBookWizard() {
       stopVoiceRecordingIfActive();
+      closeLiveCamera();
       initFreshStudioBook();
       setParentTab('studio');
       const titleInput = document.getElementById('studioBookTitle');
@@ -1868,6 +1967,7 @@
 
     async function editExistingBook(bookId) {
       stopVoiceRecordingIfActive();
+      closeLiveCamera();
       const meta = booksList.find((b) => b.id === bookId);
       if (!meta) return;
 
@@ -1882,6 +1982,7 @@
           pages: pages.length > 0 ? pages.map((p) => ({ ...p })) : [createEmptyPage(1, meta.id)]
         };
         studioPageIndex = 0;
+        await saveStudioDraftToIDB();
         setParentTab('studio');
       } catch (err) {
         showToast(err.message || 'Erreur lors du chargement du livre');
@@ -1891,6 +1992,7 @@
     function updateStudioMetadata() {
       studioBook.title = document.getElementById('studioBookTitle').value;
       studioBook.narrator = document.getElementById('studioBookNarrator').value;
+      saveStudioDraftToIDB();
     }
 
     function renderStudio() {
@@ -2009,20 +2111,25 @@
 
     function selectStudioPage(idx) {
       stopVoiceRecordingIfActive();
+      closeLiveCamera();
       studioPageIndex = idx;
+      saveStudioDraftToIDB();
       renderStudio();
     }
 
     function studioAddBlankPage() {
       stopVoiceRecordingIfActive();
+      closeLiveCamera();
       const nextNum = studioBook.pages.length + 1;
       studioBook.pages.push(createEmptyPage(nextNum, studioBook.id));
       studioPageIndex = studioBook.pages.length - 1;
+      saveStudioDraftToIDB();
       renderStudio();
     }
 
     function studioNextOrAddPage() {
       stopVoiceRecordingIfActive();
+      closeLiveCamera();
       if (studioPageIndex < studioBook.pages.length - 1) {
         studioPageIndex++;
       } else {
@@ -2030,12 +2137,14 @@
         studioBook.pages.push(createEmptyPage(nextNum, studioBook.id));
         studioPageIndex = studioBook.pages.length - 1;
       }
+      saveStudioDraftToIDB();
       renderStudio();
       showToast(`Page ${studioPageIndex + 1} prête`);
     }
 
     function studioMovePage(dir) {
       stopVoiceRecordingIfActive();
+      closeLiveCamera();
       const target = studioPageIndex + dir;
       if (target < 0 || target >= studioBook.pages.length) return;
       const temp = studioBook.pages[studioPageIndex];
@@ -2043,13 +2152,16 @@
       studioBook.pages[target] = temp;
       studioBook.pages.forEach((p, i) => { p.page_number = i + 1; });
       studioPageIndex = target;
+      saveStudioDraftToIDB();
       renderStudio();
     }
 
     function studioDeleteCurrentPage() {
       stopVoiceRecordingIfActive();
+      closeLiveCamera();
       if (studioBook.pages.length <= 1) {
         studioBook.pages[0] = createEmptyPage(1, studioBook.id);
+        saveStudioDraftToIDB();
         renderStudio();
         showToast('Page réinitialisée');
         return;
@@ -2059,52 +2171,184 @@
       if (studioPageIndex >= studioBook.pages.length) {
         studioPageIndex = studioBook.pages.length - 1;
       }
+      saveStudioDraftToIDB();
       renderStudio();
       showToast('Page supprimée');
     }
 
     function updateCurrentPageCaption() {
       const p = studioBook.pages[studioPageIndex];
-      if (p) p.caption = document.getElementById('studioPageCaption').value;
+      if (p) {
+        p.caption = document.getElementById('studioPageCaption').value;
+        saveStudioDraftToIDB();
+      }
     }
 
     // -------------------------------------------------------------
-    // 8. IMAGE COMPRESSION & ROTATION ON CANVAS
+    // 8. IN-APP LIVE WEBRTC CAMERA & LOW-MEMORY IMAGE COMPRESSION
     // -------------------------------------------------------------
-    function compressImageFile(file, maxDim = 1100, quality = 0.76) {
+    async function openLiveCamera(target = 'page') {
+      cameraTarget = target;
+      closeLiveCamera();
+
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        showToast("Caméra directe indisponible, utilisez le bouton Galerie.");
+        return;
+      }
+
+      const viewfinder = document.getElementById('studioCameraViewfinder');
+      const videoEl = document.getElementById('studioLiveVideo');
+      const targetLbl = document.getElementById('studioCameraTargetLabel');
+      if (targetLbl) {
+        targetLbl.textContent = target === 'cover'
+          ? '📷 Viser la couverture du livre'
+          : `📷 Viser la Page ${studioPageIndex + 1}`;
+      }
+
+      try {
+        await requestWakeLock();
+        cameraStream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            facingMode: { ideal: cameraFacingMode },
+            width: { ideal: 1280, max: 1600 },
+            height: { ideal: 960, max: 1200 }
+          },
+          audio: false
+        });
+        videoEl.srcObject = cameraStream;
+        viewfinder.classList.remove('hidden');
+        await videoEl.play().catch(() => {});
+      } catch (err) {
+        showToast("Autorisez l'accès à la caméra ou utilisez le bouton Galerie.");
+      }
+    }
+
+    async function switchCameraFacing() {
+      cameraFacingMode = cameraFacingMode === 'environment' ? 'user' : 'environment';
+      await openLiveCamera(cameraTarget);
+    }
+
+    function closeLiveCamera() {
+      if (cameraStream) {
+        try {
+          cameraStream.getTracks().forEach((t) => t.stop());
+        } catch (_) {}
+        cameraStream = null;
+      }
+      const videoEl = document.getElementById('studioLiveVideo');
+      if (videoEl) videoEl.srcObject = null;
+      const viewfinder = document.getElementById('studioCameraViewfinder');
+      if (viewfinder) viewfinder.classList.add('hidden');
+    }
+
+    async function captureLiveCameraFrame() {
+      const videoEl = document.getElementById('studioLiveVideo');
+      if (!videoEl || !videoEl.videoWidth) {
+        showToast('Caméra pas encore prête...');
+        return;
+      }
+
+      const maxDim = cameraTarget === 'cover' ? 720 : 1000;
+      let w = videoEl.videoWidth;
+      let h = videoEl.videoHeight;
+      if (w > maxDim || h > maxDim) {
+        if (w > h) {
+          h = Math.round((h * maxDim) / w);
+          w = maxDim;
+        } else {
+          w = Math.round((w * maxDim) / h);
+          h = maxDim;
+        }
+      }
+
+      const canvas = document.createElement('canvas');
+      canvas.width = w;
+      canvas.height = h;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(videoEl, 0, 0, w, h);
+
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.74);
+      // Free canvas backing store immediately
+      canvas.width = 0;
+      canvas.height = 0;
+
+      closeLiveCamera();
+
+      if (cameraTarget === 'cover') {
+        studioBook.custom_cover = dataUrl;
+        await saveStudioDraftToIDB();
+        renderStudio();
+        showToast('Couverture capturée ✓');
+      } else {
+        studioBook.pages[studioPageIndex].image_data = dataUrl;
+        await saveStudioDraftToIDB();
+        renderStudio();
+        showToast('Photo capturée ! Enregistrez maintenant votre voix 🎙️');
+      }
+    }
+
+    // Memory-safe gallery file compressor (uses createImageBitmap / ObjectURL instead of FileReader base64)
+    async function compressImageFile(file, maxDim = 960, quality = 0.72) {
+      // Method 1: Hardware-accelerated createImageBitmap (lowest RAM footprint on Android Chrome)
+      if ('createImageBitmap' in window) {
+        try {
+          const bitmap = await createImageBitmap(file);
+          let w = bitmap.width;
+          let h = bitmap.height;
+          if (w > maxDim || h > maxDim) {
+            if (w > h) {
+              h = Math.round((h * maxDim) / w);
+              w = maxDim;
+            } else {
+              w = Math.round((w * maxDim) / h);
+              h = maxDim;
+            }
+          }
+          const canvas = document.createElement('canvas');
+          canvas.width = w;
+          canvas.height = h;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(bitmap, 0, 0, w, h);
+          if (bitmap.close) bitmap.close();
+          const dataUrl = canvas.toDataURL('image/jpeg', quality);
+          canvas.width = 0;
+          canvas.height = 0;
+          return dataUrl;
+        } catch (_) {}
+      }
+
+      // Method 2: ObjectURL fallback (zero base64 input string allocation)
       return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          const img = new Image();
-          img.onload = () => {
-            let w = img.width;
-            let h = img.height;
-            if (w > maxDim || h > maxDim) {
-              if (w > h) {
-                h = Math.round((h * maxDim) / w);
-                w = maxDim;
-              } else {
-                w = Math.round((w * maxDim) / h);
-                h = maxDim;
-              }
+        const objUrl = URL.createObjectURL(file);
+        const img = new Image();
+        img.onload = () => {
+          URL.revokeObjectURL(objUrl);
+          let w = img.width;
+          let h = img.height;
+          if (w > maxDim || h > maxDim) {
+            if (w > h) {
+              h = Math.round((h * maxDim) / w);
+              w = maxDim;
+            } else {
+              w = Math.round((w * maxDim) / h);
+              h = maxDim;
             }
-            const canvas = document.createElement('canvas');
-            canvas.width = w;
-            canvas.height = h;
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(img, 0, 0, w, h);
-            // Prefer webp if supported, fallback to jpeg
-            let dataUrl = canvas.toDataURL('image/webp', quality);
-            if (!dataUrl.startsWith('data:image/webp')) {
-              dataUrl = canvas.toDataURL('image/jpeg', quality);
-            }
-            resolve(dataUrl);
-          };
-          img.onerror = reject;
-          img.src = e.target.result;
+          }
+          const canvas = document.createElement('canvas');
+          canvas.width = w;
+          canvas.height = h;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, w, h);
+          const dataUrl = canvas.toDataURL('image/jpeg', quality);
+          canvas.width = 0;
+          canvas.height = 0;
+          resolve(dataUrl);
         };
-        reader.onerror = reject;
-        reader.readAsDataURL(file);
+        img.onerror = (err) => {
+          URL.revokeObjectURL(objUrl);
+          reject(err);
+        };
+        img.src = objUrl;
       });
     }
 
@@ -2113,8 +2357,9 @@
       if (!file) return;
       try {
         showToast('Optimisation de la photo...');
-        const compressed = await compressImageFile(file, 1100, 0.76);
+        const compressed = await compressImageFile(file, 960, 0.72);
         studioBook.pages[studioPageIndex].image_data = compressed;
+        await saveStudioDraftToIDB();
         renderStudio();
         showToast('Photo ajoutée ! Vous pouvez enregistrer votre voix 🎙️');
       } catch (_) {
@@ -2128,8 +2373,9 @@
       const file = event.target.files && event.target.files[0];
       if (!file) return;
       try {
-        const compressed = await compressImageFile(file, 700, 0.75);
+        const compressed = await compressImageFile(file, 700, 0.72);
         studioBook.custom_cover = compressed;
+        await saveStudioDraftToIDB();
         renderStudio();
         showToast('Photo de couverture mise à jour ✓');
       } catch (_) {}
@@ -2138,6 +2384,7 @@
 
     function clearDedicatedCover() {
       studioBook.custom_cover = '';
+      saveStudioDraftToIDB();
       renderStudio();
     }
 
@@ -2153,7 +2400,10 @@
         ctx.translate(canvas.width / 2, canvas.height / 2);
         ctx.rotate(Math.PI / 2);
         ctx.drawImage(img, -img.width / 2, -img.height / 2);
-        p.image_data = canvas.toDataURL('image/jpeg', 0.8);
+        p.image_data = canvas.toDataURL('image/jpeg', 0.76);
+        canvas.width = 0;
+        canvas.height = 0;
+        saveStudioDraftToIDB();
         renderStudio();
       };
       img.src = p.image_data;
@@ -2241,6 +2491,7 @@
             if (p) {
               p.audio_data = reader.result;
               p.audio_duration = Math.round(durationSec * 10) / 10;
+              saveStudioDraftToIDB();
               renderStudio();
               showToast(`Voix enregistrée (${p.audio_duration}s) ✓`);
             }
@@ -2337,6 +2588,7 @@
       if (!p) return;
       p.audio_data = '';
       p.audio_duration = 0;
+      saveStudioDraftToIDB();
       renderStudio();
     }
 
@@ -2403,8 +2655,9 @@
         updated_at: new Date().toISOString()
       };
 
-      // 1. Save locally to IndexedDB immediately
+      // 1. Save locally to IndexedDB immediately and clear active draft
       await saveBookToIDB(bookMeta, validPages);
+      await clearStudioDraftFromIDB();
 
       const existingIdx = booksList.findIndex((b) => b.id === bookMeta.id);
       if (existingIdx >= 0) {
@@ -2412,6 +2665,7 @@
       } else {
         booksList.unshift(bookMeta);
       }
+      initFreshStudioBook();
       renderAll();
       setParentTab('books');
       showToast(`Livre "${title}" enregistré (${validPages.length} pages) ✓`);
@@ -2956,6 +3210,10 @@
       studioMovePage,
       studioDeleteCurrentPage,
       updateCurrentPageCaption,
+      openLiveCamera,
+      switchCameraFacing,
+      closeLiveCamera,
+      captureLiveCameraFrame,
       handlePagePhotoInput,
       handleDedicatedCoverInput,
       clearDedicatedCover,
