@@ -4,6 +4,13 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="theme-color" content="#FFF4DC">
+  <link rel="manifest" href="/papa-raconte/manifest.webmanifest">
+  <link rel="icon" href="/papa-raconte/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="/papa-raconte/icon.svg">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Papa Raconte">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <title>Papa Raconte — Livres Audio Illustrés & Histoires du Soir</title>
   <meta name="description" content="Photographiez les livres illustrés de votre enfant page après page, enregistrez votre voix sur mobile et lancez une lecture automatique synchronisée en Mode Enfant.">
   <link rel="canonical" href="https://spinfoundry.pages.dev/papa-raconte/">
@@ -340,6 +347,104 @@
     .foot-note { text-align: center; color: var(--ink-3); font-size: 12px; padding: 0 0 28px; }
     .foot-note a { color: var(--ink-2); }
     @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+
+    /* ============================================================
+       KIOSK MODE (child): no browser chrome, no selection, no pull-to-refresh
+       ============================================================ */
+    html, body { overscroll-behavior: none; }
+    body.in-child { user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+    body.in-child #chrome { display: none; }
+    .start {
+      position: fixed; inset: 0; z-index: 70; height: 100dvh; padding: 24px;
+      background: linear-gradient(160deg, #FFE9A8, #FFB86B);
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; text-align: center;
+    }
+    .start .big { font-size: 80px; line-height: 1; }
+    .start h1 { margin: 0; font-size: clamp(28px, 6vw, 44px); font-weight: 900; }
+    .start p { margin: 0 0 8px; color: var(--ink-2); font-weight: 700; }
+    .start .btn { min-height: 76px; font-size: 22px; padding: 0 44px; border-radius: 24px; }
+    .start .lock { position: absolute; right: 16px; top: calc(12px + var(--safe-t)); }
+
+    /* ============================================================
+       LANDSCAPE (native orientation of child mode)
+       ============================================================ */
+    .lib-head { flex-wrap: wrap; }
+    .lib-head .seg { order: 3; }
+    @media (orientation: landscape) and (max-height: 700px) {
+      body.in-child #viewLibrary { max-width: none; height: 100dvh; display: flex; flex-direction: column; padding: var(--safe-t) max(16px, env(safe-area-inset-right)) 0 max(16px, env(safe-area-inset-left)); }
+      .lib-head { flex-wrap: nowrap; padding: 10px 0 6px; }
+      .lib-head .seg { order: 0; }
+      .lib-title { font-size: 24px; }
+      .lib-sub { display: none; }
+      .parent-lock { width: 52px; height: 52px; border-radius: 16px; }
+      .parent-lock small { display: none; }
+      .shelf {
+        flex: 1; min-height: 0; display: flex; align-items: center; gap: 18px; padding: 6px 4px 14px;
+        overflow-x: auto; overflow-y: hidden; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch;
+      }
+      .shelf::-webkit-scrollbar { display: none; }
+      .book { flex: none; width: clamp(210px, 46dvh, 380px); scroll-snap-align: start; }
+      .book-body { padding: 8px 12px 10px; }
+      .book-title { font-size: 16px; }
+      .empty { padding: 12px; margin: auto; }
+      .empty .big { font-size: 44px; }
+
+      .reader { display: grid; grid-template-columns: minmax(0, 1fr) 132px; grid-template-rows: auto minmax(0, 1fr) auto; padding: var(--safe-t) env(safe-area-inset-right) 0 env(safe-area-inset-left); }
+      .r-prog { grid-area: 1 / 1; padding: 8px 12px 4px; }
+      .r-stage { grid-area: 2 / 1; padding: 2px 8px 8px; }
+      .r-pause { grid-area: 3 / 1; }
+      .r-top { grid-area: 1 / 2 / 2 / 3; grid-template-columns: 1fr; justify-items: center; gap: 6px; padding: 8px; }
+      .r-title { display: none; }
+      .r-bottom { grid-area: 2 / 2 / 4 / 3; display: flex; flex-direction: column; justify-content: center; gap: 10px; padding: 6px 10px calc(10px + var(--safe-b)); }
+      .r-bottom button { min-height: 0; flex: none; height: 66px; border-radius: 18px; }
+      .r-bottom button.main { height: 92px; }
+      .r-bottom button span { font-size: 22px; }
+      .r-hint { grid-area: 2 / 2 / 4 / 3; align-self: end; padding: 8px; font-size: 11px; }
+      .r-cap { font-size: 14px; padding: 6px 12px; bottom: 8px; }
+      .r-end .big { font-size: 48px; }
+      .r-end h2 { font-size: 24px; }
+      .r-end .row button { min-height: 84px; }
+    }
+    @media (orientation: landscape) and (max-height: 450px) {
+      .r-bottom button { height: 54px; }
+      .r-bottom button.main { height: 78px; }
+      .r-exit { width: 48px; height: 48px; }
+      .book { width: clamp(190px, 44dvh, 320px); }
+    }
+
+    /* ============================================================
+       PHOTO EDITOR
+       ============================================================ */
+    .ed { position: fixed; inset: 0; z-index: 85; height: 100dvh; background: #111; color: #fff; display: flex; flex-direction: column; padding-top: var(--safe-t); }
+    .ed-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 12px; }
+    .ed-top b { font-size: 16px; }
+    .ed-top .btn-ghost { color: #fff; }
+    .ed-stage { flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center; padding: 8px; }
+    .ed-wrap { position: relative; overflow: hidden; touch-action: none; background: #000; }
+    .ed-wrap canvas { display: block; width: 100%; height: 100%; }
+    .ed-crop {
+      position: absolute; border: 2px solid #fff; box-shadow: 0 0 0 9999px rgba(0, 0, 0, .62); touch-action: none; cursor: move;
+      background-image:
+        linear-gradient(to right, transparent calc(33.33% - .5px), rgba(255, 255, 255, .4) calc(33.33% - .5px), rgba(255, 255, 255, .4) calc(33.33% + .5px), transparent calc(33.33% + .5px), transparent calc(66.66% - .5px), rgba(255, 255, 255, .4) calc(66.66% - .5px), rgba(255, 255, 255, .4) calc(66.66% + .5px), transparent calc(66.66% + .5px)),
+        linear-gradient(to bottom, transparent calc(33.33% - .5px), rgba(255, 255, 255, .4) calc(33.33% - .5px), rgba(255, 255, 255, .4) calc(33.33% + .5px), transparent calc(33.33% + .5px), transparent calc(66.66% - .5px), rgba(255, 255, 255, .4) calc(66.66% - .5px), rgba(255, 255, 255, .4) calc(66.66% + .5px), transparent calc(66.66% + .5px));
+    }
+    .ed-h { position: absolute; width: 44px; height: 44px; margin: -22px 0 0 -22px; touch-action: none; }
+    .ed-h::after { content: ""; position: absolute; left: 50%; top: 50%; width: 18px; height: 18px; margin: -9px; border-radius: 50%; background: var(--sun); border: 2px solid #fff; }
+    .ed-crop.lock .ed-h.edge { display: none; }
+    .ed-tools { background: #1C1917; padding: 10px 12px calc(12px + var(--safe-b)); max-height: 44dvh; overflow-y: auto; }
+    .ed-row { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 10px; }
+    .ed-row::-webkit-scrollbar { display: none; }
+    .ed-row .btn { flex: none; color: #fff; background: rgba(255, 255, 255, .12); min-height: 44px; padding: 0 14px; font-size: 14px; border-radius: 12px; box-shadow: none; }
+    .ed-row .btn[aria-pressed="true"] { background: var(--sun); color: var(--ink); }
+    .ed-sl { display: grid; grid-template-columns: 96px 1fr 44px; align-items: center; gap: 8px; font-size: 13px; font-weight: 700; margin-top: 2px; }
+    .ed-sl output { text-align: right; font-variant-numeric: tabular-nums; color: #FCD34D; }
+    .ed-sl input { width: 100%; height: 36px; accent-color: var(--sun); }
+    @media (orientation: landscape) and (max-height: 600px) {
+      .ed { display: grid; grid-template-columns: minmax(0, 1fr) 300px; grid-template-rows: auto minmax(0, 1fr); }
+      .ed-top { grid-column: 1 / 3; }
+      .ed-tools { max-height: none; overflow-y: auto; grid-row: 2; grid-column: 2; }
+      .ed-row { flex-wrap: wrap; overflow: visible; }
+    }
   </style>
 </head>
 <body class="in-child">
@@ -359,13 +464,13 @@
           <h1 class="lib-title">📖 Quelle histoire ce soir&nbsp;?</h1>
           <p class="lib-sub">Touche un livre pour l'écouter.</p>
         </div>
+        <div class="seg" role="group" aria-label="Filtre">
+          <button type="button" id="fltAll" aria-pressed="true" onclick="app.setFilter('all')">📚 Tous</button>
+          <button type="button" id="fltFav" aria-pressed="false" onclick="app.setFilter('fav')">❤️ Favoris</button>
+        </div>
         <button class="parent-lock" type="button" onclick="app.requestParent()" aria-label="Espace parent">
           🔒<small>Parents</small>
         </button>
-      </div>
-      <div class="seg" role="group" aria-label="Filtre">
-        <button type="button" id="fltAll" aria-pressed="true" onclick="app.setFilter('all')">📚 Tous</button>
-        <button type="button" id="fltFav" aria-pressed="false" onclick="app.setFilter('fav')">❤️ Favoris</button>
       </div>
       <div id="shelf" class="shelf"></div>
       <div id="libEmpty" class="empty" hidden>
@@ -443,6 +548,7 @@
                     <div style="display:flex;gap:8px;flex-wrap:wrap">
                       <button class="btn btn-soft btn-sm" type="button" onclick="app.openCamera('cover')">📷 Photo</button>
                       <label class="btn btn-soft btn-sm">🖼️ Galerie<input type="file" accept="image/*" hidden onchange="app.onCoverFile(event)"></label>
+                      <button class="btn btn-soft btn-sm" id="btnCoverEdit" type="button" onclick="app.openEditor('cover')" hidden>✂️ Retoucher</button>
                       <button class="btn btn-ghost btn-sm" id="btnCoverReset" type="button" onclick="app.resetCover()" hidden>Page 1</button>
                     </div>
                   </div>
@@ -474,9 +580,9 @@
                 <div class="txt"><b>Photo de la page</b><span class="s" id="txtPhoto">À prendre</span></div>
               </div>
               <div class="acts-row" id="photoActs" hidden>
+                <button class="btn btn-dark btn-sm" type="button" onclick="app.openEditor('page')">✂️ Recadrer / retoucher</button>
                 <button class="btn btn-soft btn-sm" type="button" onclick="app.openCamera('page')">📷 Reprendre</button>
                 <label class="btn btn-soft btn-sm">🖼️ Galerie<input type="file" accept="image/*" hidden onchange="app.onPageFile(event)"></label>
-                <button class="btn btn-soft btn-sm" type="button" onclick="app.rotate()">↻ Pivoter</button>
               </div>
               <div class="acts-row" id="photoActsEmpty">
                 <label class="btn btn-soft btn-sm">🖼️ Choisir dans la galerie<input type="file" accept="image/*" hidden onchange="app.onPageFile(event)"></label>
@@ -556,6 +662,23 @@
                 <button type="button" data-v="library" onclick="app.setSeg('endOfBookAction','library')">Bibliothèque</button>
                 <button type="button" data-v="next_book" onclick="app.setSeg('endOfBookAction','next_book')">Livre suivant</button>
               </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <h2>📷 Photos</h2>
+            <div class="set-row">
+              <div><b>Retoucher après chaque photo</b><small>Ouvre l'éditeur (recadrage, redressement, lumière) automatiquement</small></div>
+              <label class="switch"><input type="checkbox" id="setEditAfter" onchange="app.saveSettings()"><i></i></label>
+            </div>
+          </div>
+
+          <div class="card">
+            <h2>🧸 Mode enfant plein écran</h2>
+            <p class="hint">Le mode enfant passe en plein écran paysage au premier toucher. Pour supprimer <b>totalement</b> le navigateur (barre d'adresse, boutons), installez l'app sur l'écran d'accueil.</p>
+            <div class="stack" style="font-size:14px">
+              <div><b>🤖 Android (Chrome)</b><br>Menu ⋮ → « Installer l'application » ou « Ajouter à l'écran d'accueil ».</div>
+              <div><b>🍎 iPhone / iPad (Safari)</b><br>Bouton Partager → « Sur l'écran d'accueil ». (Safari iPhone n'a pas de plein écran sans installation.)</div>
             </div>
           </div>
 
@@ -640,6 +763,48 @@
     <div class="r-hint" id="rHint" hidden>Maintiens ✕ appuyé pour quitter</div>
   </div>
 
+  <!-- ============ START SCREEN (needs a tap to enter fullscreen) ============ -->
+  <div id="start" class="start" hidden>
+    <button class="icon-btn lock" type="button" onclick="app.requestParent()" aria-label="Espace parent">🔒</button>
+    <div class="big">📖</div>
+    <h1>Papa Raconte</h1>
+    <p>Touche pour commencer</p>
+    <button class="btn btn-primary" type="button" onclick="app.startKid()">▶ Commencer</button>
+  </div>
+
+  <!-- ============ PHOTO EDITOR ============ -->
+  <div id="editor" class="ed" hidden>
+    <div class="ed-top">
+      <button class="btn btn-ghost btn-sm" type="button" onclick="app.edCancel()">✕ Annuler</button>
+      <b>Retoucher la photo</b>
+      <button class="btn btn-primary btn-sm" type="button" onclick="app.edApply()">✓ Appliquer</button>
+    </div>
+    <div class="ed-stage" id="edStage">
+      <div class="ed-wrap" id="edWrap">
+        <canvas id="edCanvas"></canvas>
+        <div class="ed-crop" id="edCrop"></div>
+      </div>
+    </div>
+    <div class="ed-tools">
+      <div class="ed-row">
+        <button class="btn" type="button" onclick="app.edRotate(-1)">↺ Gauche</button>
+        <button class="btn" type="button" onclick="app.edRotate(1)">↻ Droite</button>
+        <button class="btn" type="button" onclick="app.edAuto()">✨ Auto</button>
+        <button class="btn" type="button" onclick="app.edReset()">⟲ Réinitialiser</button>
+      </div>
+      <div class="ed-row" id="edRatios">
+        <button class="btn" type="button" data-r="0" aria-pressed="true" onclick="app.edRatio(0)">Libre</button>
+        <button class="btn" type="button" data-r="1.7778" aria-pressed="false" onclick="app.edRatio(1.7778)">16:9</button>
+        <button class="btn" type="button" data-r="1.3333" aria-pressed="false" onclick="app.edRatio(1.3333)">4:3</button>
+        <button class="btn" type="button" data-r="1" aria-pressed="false" onclick="app.edRatio(1)">1:1</button>
+        <button class="btn" type="button" data-r="0.75" aria-pressed="false" onclick="app.edRatio(0.75)">3:4</button>
+      </div>
+      <div class="ed-sl"><span>Redresser</span><input id="edStraight" type="range" min="-10" max="10" step="0.5" value="0" oninput="app.edSlider()"><output id="edStraightV">0°</output></div>
+      <div class="ed-sl"><span>Luminosité</span><input id="edBright" type="range" min="-30" max="50" step="1" value="0" oninput="app.edSlider()"><output id="edBrightV">0</output></div>
+      <div class="ed-sl"><span>Contraste</span><input id="edContrast" type="range" min="-30" max="50" step="1" value="0" oninput="app.edSlider()"><output id="edContrastV">0</output></div>
+    </div>
+  </div>
+
   <!-- ============ CAMERA ============ -->
   <div id="cam" class="cam" hidden>
     <div class="cam-top"><b id="camLabel">📷 Cadrez la page</b></div>
@@ -682,14 +847,20 @@ const app = (() => {
 
   const state = {
     mode: 'child', tab: 'books', filter: 'all', familyCode: 'famille_default', demoDeleted: false,
-    settings: { autoTurn: true, pauseAfterAudioSec: 3, pageChime: true, childControls: 'buttons', endOfBookAction: 'screen', parentGate: 'math' }
+    settings: { autoTurn: true, pauseAfterAudioSec: 3, pageChime: true, editAfterPhoto: true, childControls: 'buttons', endOfBookAction: 'screen', parentGate: 'math' }
   };
   let books = [];
   const offline = new Set();
+  let kidStarted = false;
 
   // Studio
   let studio = { id: '', title: '', narrator: 'Papa', custom_cover: '', is_favorite: 0, pages: [], step: 'setup' };
   let sIdx = 0;
+
+  // Photo Editor
+  let edTarget = 'page', edImg = null, edRot = 0, edStraight = 0, edBright = 0, edContrast = 0, edRatioVal = 0;
+  let edRect = { x: 0.03, y: 0.03, w: 0.94, h: 0.94 };
+  let edDrag = null;
 
   // Recording
   let rec = null, chunks = [], isRec = false, recStart = 0, recTimer = null, micStream = null, actx = null, analyser = null, meterRaf = null, prevAudio = null;
@@ -810,6 +981,7 @@ const app = (() => {
     $('setPause').value = s.pauseAfterAudioSec;
     $('setPauseVal').textContent = s.pauseAfterAudioSec + ' s';
     $('setChime').checked = !!s.pageChime;
+    if ($('setEditAfter')) $('setEditAfter').checked = s.editAfterPhoto !== false;
     $('setFam').value = state.familyCode;
     [['segControls', 'childControls'], ['segEnd', 'endOfBookAction'], ['segGate', 'parentGate']].forEach(([id, key]) => {
       $(id).querySelectorAll('button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.v === s[key])));
@@ -820,6 +992,7 @@ const app = (() => {
     s.autoTurn = $('setAuto').checked;
     s.pauseAfterAudioSec = parseInt($('setPause').value, 10) || 3;
     s.pageChime = $('setChime').checked;
+    if ($('setEditAfter')) s.editAfterPhoto = $('setEditAfter').checked;
     $('setPauseVal').textContent = s.pauseAfterAudioSec + ' s';
     saveLocal();
     pushSettings();
@@ -896,15 +1069,60 @@ const app = (() => {
     renderBooks(); toast('Livre de démo restauré ✓');
   }
 
+  /* ---------------- Fullscreen & Landscape Kiosk (Child Mode) ---------------- */
+  function isStandaloneOrFs() {
+    return !!(document.fullscreenElement || document.webkitFullscreenElement || window.navigator.standalone ||
+      (window.matchMedia && window.matchMedia('(display-mode: fullscreen), (display-mode: standalone)').matches));
+  }
+  async function enterChildKiosk() {
+    const el = document.documentElement;
+    try {
+      if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+        if (el.requestFullscreen) await el.requestFullscreen({ navigationUI: 'hide' }).catch(() => el.requestFullscreen());
+        else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+      }
+    } catch (_) {}
+    try {
+      if (screen.orientation && screen.orientation.lock) await screen.orientation.lock('landscape');
+    } catch (_) {}
+    try { history.pushState({ papaKid: 1 }, ''); } catch (_) {}
+  }
+  async function exitChildKiosk() {
+    try { if (screen.orientation && screen.orientation.unlock) screen.orientation.unlock(); } catch (_) {}
+    try {
+      if (document.fullscreenElement && document.exitFullscreen) await document.exitFullscreen();
+      else if (document.webkitFullscreenElement && document.webkitExitFullscreen) document.webkitExitFullscreen();
+    } catch (_) {}
+  }
+  function updateStartScreen() {
+    const st = $('start');
+    if (!st) return;
+    if (state.mode !== 'child') { st.hidden = true; return; }
+    if (isStandaloneOrFs() || kidStarted) { st.hidden = true; }
+    else { st.hidden = false; }
+  }
+  async function startKid() {
+    kidStarted = true;
+    $('start').hidden = true;
+    await enterChildKiosk();
+    await requestWake();
+  }
+
   /* ---------------- Navigation ---------------- */
   function setMode(mode) {
     state.mode = mode;
     document.body.classList.toggle('in-child', mode === 'child');
     $('viewLibrary').hidden = mode !== 'child';
     $('viewParent').hidden = mode !== 'parent';
-    $('chrome').hidden = false;
+    $('chrome').hidden = mode === 'child';
+    updateStartScreen();
   }
-  function exitParent() { stopRecording(); closeCamera(); flushDraft(); setMode('child'); renderBooks(); window.scrollTo(0, 0); }
+  function exitParent() {
+    stopRecording(); closeCamera(); edCancel(); flushDraft();
+    kidStarted = true;
+    setMode('child'); renderBooks(); window.scrollTo(0, 0);
+    enterChildKiosk();
+  }
   function requestParent() { openGate(); }
   function setTab(tab) {
     if (tab !== 'studio') closeCamera();
@@ -959,6 +1177,7 @@ const app = (() => {
   function cancelHold() { if (holdTimer) { clearInterval(holdTimer); holdTimer = null; } $('holdFill').style.width = '0'; }
   function closeGate() { cancelHold(); $('gate').hidden = true; }
   function unlockParent() {
+    exitChildKiosk();
     setMode('parent'); paintSettings();
     setTab(state.tab === 'studio' && hasContent() ? 'studio' : (state.tab === 'settings' ? 'settings' : 'books'));
   }
@@ -1071,6 +1290,7 @@ const app = (() => {
     const cov = studio.custom_cover || (studio.pages[0] && studio.pages[0].image_data) || '';
     $('coverThumb').innerHTML = cov ? `<img src="${esc(cov)}" alt="">` : '📕';
     $('coverHint').textContent = studio.custom_cover ? 'Couverture personnalisée.' : 'Par défaut : la photo de la page 1.';
+    if ($('btnCoverEdit')) $('btnCoverEdit').hidden = !cov;
     $('btnCoverReset').hidden = !studio.custom_cover;
   }
   function onMeta() { studio.title = $('inTitle').value; saveDraft(); }
@@ -1169,10 +1389,13 @@ const app = (() => {
     const k = Math.min(1, max / Math.max(v.videoWidth, v.videoHeight));
     const c = document.createElement('canvas'); c.width = Math.round(v.videoWidth * k); c.height = Math.round(v.videoHeight * k);
     c.getContext('2d').drawImage(v, 0, 0, c.width, c.height);
-    const data = c.toDataURL('image/jpeg', 0.74); c.width = c.height = 0;
+    const data = c.toDataURL('image/jpeg', 0.78); c.width = c.height = 0;
+    const target = camTarget;
     closeCamera();
-    if (camTarget === 'cover') { studio.custom_cover = data; saveDraft(); paintSetup(); toast('Couverture enregistrée ✓'); }
-    else { cur().image_data = data; saveDraft(); paintCapture(); toast('Photo prise ✓ Enregistrez maintenant votre voix'); }
+    if (target === 'cover') { studio.custom_cover = data; saveDraft(); paintSetup(); }
+    else { cur().image_data = data; saveDraft(); paintCapture(); }
+    if (state.settings.editAfterPhoto !== false) openEditor(target);
+    else toast(target === 'cover' ? 'Couverture enregistrée ✓' : 'Photo prise ✓ Enregistrez maintenant votre voix');
   }
   async function compress(file, max, q) {
     const draw = (src, w0, h0) => {
@@ -1193,12 +1416,22 @@ const app = (() => {
   }
   async function onPageFile(e) {
     const f = e.target.files && e.target.files[0]; if (!f) return;
-    try { toast('Optimisation de la photo…'); cur().image_data = await compress(f, 960, 0.72); saveDraft(); paintCapture(); toast('Photo ajoutée ✓'); }
-    catch (_) { toast('Image illisible'); } finally { e.target.value = ''; }
+    try {
+      toast('Optimisation de la photo…');
+      cur().image_data = await compress(f, 960, 0.76);
+      saveDraft(); paintCapture();
+      if (state.settings.editAfterPhoto !== false) openEditor('page');
+      else toast('Photo ajoutée ✓');
+    } catch (_) { toast('Image illisible'); } finally { e.target.value = ''; }
   }
   async function onCoverFile(e) {
     const f = e.target.files && e.target.files[0]; if (!f) return;
-    try { studio.custom_cover = await compress(f, 700, 0.72); saveDraft(); paintSetup(); toast('Couverture mise à jour ✓'); } catch (_) {}
+    try {
+      studio.custom_cover = await compress(f, 700, 0.76);
+      saveDraft(); paintSetup();
+      if (state.settings.editAfterPhoto !== false) openEditor('cover');
+      else toast('Couverture mise à jour ✓');
+    } catch (_) {}
     e.target.value = '';
   }
   function rotate() {
@@ -1210,6 +1443,185 @@ const app = (() => {
       p.image_data = c.toDataURL('image/jpeg', 0.76); c.width = c.height = 0; saveDraft(); paintCapture();
     };
     im.src = p.image_data;
+  }
+
+  /* ---------------- Photo Editor (Crop, Rotate, Straighten, Brightness, Contrast) ---------------- */
+  function initEditorHandles() {
+    const crop = $('edCrop');
+    if (!crop) return;
+    crop.innerHTML = ['nw', 'ne', 'sw', 'se', 'n', 's', 'e', 'w'].map((h) => `<i class="ed-h ${h}" data-h="${h}"></i>`).join('');
+    crop.addEventListener('pointerdown', (e) => {
+      e.preventDefault();
+      const wrap = $('edWrap'); if (!wrap) return;
+      const box = wrap.getBoundingClientRect();
+      if (!box.width || !box.height) return;
+      const h = e.target.dataset && e.target.dataset.h ? e.target.dataset.h : 'move';
+      edDrag = { h, sx: e.clientX, sy: e.clientY, bw: box.width, bh: box.height, r0: Object.assign({}, edRect) };
+      try { crop.setPointerCapture(e.pointerId); } catch (_) {}
+    });
+    crop.addEventListener('pointermove', (e) => {
+      if (!edDrag) return;
+      const dx = (e.clientX - edDrag.sx) / edDrag.bw;
+      const dy = (e.clientY - edDrag.sy) / edDrag.bh;
+      const r0 = edDrag.r0;
+      const minS = 0.14;
+      let { x, y, w, h } = r0;
+      const mode = edDrag.h;
+      if (mode === 'move') {
+        x = Math.max(0, Math.min(1 - w, r0.x + dx));
+        y = Math.max(0, Math.min(1 - h, r0.y + dy));
+      } else {
+        if (mode.includes('w')) { const nx = Math.max(0, Math.min(r0.x + r0.w - minS, r0.x + dx)); w = r0.x + r0.w - nx; x = nx; }
+        if (mode.includes('e')) { w = Math.max(minS, Math.min(1 - r0.x, r0.w + dx)); }
+        if (mode.includes('n')) { const ny = Math.max(0, Math.min(r0.y + r0.h - minS, r0.y + dy)); h = r0.y + r0.h - ny; y = ny; }
+        if (mode.includes('s')) { h = Math.max(minS, Math.min(1 - r0.y, r0.h + dy)); }
+        if (edRatioVal > 0) {
+          const c = $('edCanvas');
+          const cw = (c && c.width) || 1, ch = (c && c.height) || 1;
+          const targetNormRatio = edRatioVal * (ch / cw);
+          if (mode === 'n' || mode === 's') w = Math.min(1 - x, Math.max(minS, h * targetNormRatio));
+          else h = Math.min(1 - y, Math.max(minS, w / targetNormRatio));
+          if (x + w > 1) w = 1 - x;
+          if (y + h > 1) h = 1 - y;
+        }
+      }
+      edRect = { x, y, w, h };
+      paintCropBox();
+    });
+    const endDrag = () => { edDrag = null; };
+    crop.addEventListener('pointerup', endDrag);
+    crop.addEventListener('pointercancel', endDrag);
+  }
+  function paintCropBox() {
+    const crop = $('edCrop'); if (!crop) return;
+    crop.style.left = (edRect.x * 100).toFixed(2) + '%';
+    crop.style.top = (edRect.y * 100).toFixed(2) + '%';
+    crop.style.width = (edRect.w * 100).toFixed(2) + '%';
+    crop.style.height = (edRect.h * 100).toFixed(2) + '%';
+  }
+  function openEditor(target) {
+    edTarget = target || 'page';
+    const src = edTarget === 'cover'
+      ? (studio.custom_cover || (studio.pages[0] && studio.pages[0].image_data) || '')
+      : (cur() && cur().image_data) || '';
+    if (!src) { toast('Aucune photo à retoucher.'); return; }
+    const im = new Image();
+    im.onload = () => {
+      edImg = im;
+      $('editor').hidden = false;
+      edReset();
+    };
+    im.onerror = () => toast('Impossible d\'ouvrir cette image.');
+    im.src = src;
+  }
+  function edReset() {
+    edRot = 0; edStraight = 0; edBright = 0; edContrast = 0; edRatioVal = 0;
+    edRect = { x: 0.03, y: 0.03, w: 0.94, h: 0.94 };
+    $('edStraight').value = 0; $('edStraightV').textContent = '0°';
+    $('edBright').value = 0; $('edBrightV').textContent = '0';
+    $('edContrast').value = 0; $('edContrastV').textContent = '0';
+    $('edRatios').querySelectorAll('button').forEach((b) => b.setAttribute('aria-pressed', String(Number(b.dataset.r) === 0)));
+    drawEditorCanvas();
+    paintCropBox();
+  }
+  function edRotate(dir) {
+    edRot = (edRot + (dir > 0 ? 90 : 270)) % 360;
+    const old = edRect;
+    edRect = dir > 0
+      ? { x: 1 - old.y - old.h, y: old.x, w: old.h, h: old.w }
+      : { x: old.y, y: 1 - old.x - old.w, w: old.h, h: old.w };
+    drawEditorCanvas();
+    if (edRatioVal > 0) edRatio(edRatioVal); else paintCropBox();
+  }
+  function edRatio(r) {
+    edRatioVal = Number(r) || 0;
+    $('edRatios').querySelectorAll('button').forEach((b) => b.setAttribute('aria-pressed', String(Math.abs(Number(b.dataset.r) - edRatioVal) < 0.01)));
+    if (edRatioVal > 0 && edImg) {
+      const c = $('edCanvas');
+      const cw = c.width || 1, ch = c.height || 1;
+      const normR = edRatioVal * (ch / cw);
+      let w = 0.88, h = w / normR;
+      if (h > 0.88) { h = 0.88; w = h * normR; }
+      edRect = { x: (1 - w) / 2, y: (1 - h) / 2, w, h };
+    }
+    paintCropBox();
+  }
+  function edSlider() {
+    edStraight = parseFloat($('edStraight').value) || 0;
+    edBright = parseInt($('edBright').value, 10) || 0;
+    edContrast = parseInt($('edContrast').value, 10) || 0;
+    $('edStraightV').textContent = edStraight + '°';
+    $('edBrightV').textContent = (edBright > 0 ? '+' : '') + edBright;
+    $('edContrastV').textContent = (edContrast > 0 ? '+' : '') + edContrast;
+    drawEditorCanvas();
+  }
+  function edAuto() {
+    edBright = 10; edContrast = 18;
+    $('edBright').value = edBright; $('edBrightV').textContent = '+' + edBright;
+    $('edContrast').value = edContrast; $('edContrastV').textContent = '+' + edContrast;
+    if (edRect.x < 0.04 && edRect.w > 0.92) edRect = { x: 0.05, y: 0.05, w: 0.90, h: 0.90 };
+    drawEditorCanvas();
+    paintCropBox();
+    toast('✨ Couleurs et contraste optimisés');
+  }
+  function drawEditorCanvas() {
+    if (!edImg) return;
+    const c = $('edCanvas');
+    const swap = edRot === 90 || edRot === 270;
+    const baseW = swap ? edImg.height : edImg.width;
+    const baseH = swap ? edImg.width : edImg.height;
+    const maxPreview = 900;
+    const scale = Math.min(1, maxPreview / Math.max(baseW, baseH));
+    const w = Math.max(1, Math.round(baseW * scale));
+    const h = Math.max(1, Math.round(baseH * scale));
+    c.width = w; c.height = h;
+    const stage = $('edStage');
+    const stW = Math.max(220, (stage ? stage.clientWidth : window.innerWidth) - 28);
+    const stH = Math.max(180, (stage ? stage.clientHeight : window.innerHeight * 0.5) - 28);
+    const dispK = Math.min(stW / w, stH / h);
+    c.style.width = Math.round(w * dispK) + 'px';
+    c.style.height = Math.round(h * dispK) + 'px';
+    const ctx = c.getContext('2d');
+    ctx.save();
+    ctx.fillStyle = '#0f172a';
+    ctx.fillRect(0, 0, w, h);
+    const bPct = 100 + edBright;
+    const cPct = 100 + edContrast;
+    try { ctx.filter = `brightness(${bPct}%) contrast(${cPct}%)`; } catch (_) {}
+    ctx.translate(w / 2, h / 2);
+    const rad = (edRot + edStraight) * Math.PI / 180;
+    const zoom = edStraight !== 0 ? 1 + Math.abs(edStraight) * 0.018 : 1;
+    ctx.rotate(rad);
+    ctx.scale(scale * zoom, scale * zoom);
+    ctx.drawImage(edImg, -edImg.width / 2, -edImg.height / 2);
+    ctx.restore();
+  }
+  function edCancel() {
+    $('editor').hidden = true;
+    edImg = null;
+  }
+  function edApply() {
+    if (!edImg) return edCancel();
+    const srcC = $('edCanvas');
+    const sx = Math.round(edRect.x * srcC.width);
+    const sy = Math.round(edRect.y * srcC.height);
+    const sw = Math.max(16, Math.round(edRect.w * srcC.width));
+    const sh = Math.max(16, Math.round(edRect.h * srcC.height));
+    const out = document.createElement('canvas');
+    out.width = sw; out.height = sh;
+    out.getContext('2d').drawImage(srcC, sx, sy, sw, sh, 0, 0, sw, sh);
+    const data = out.toDataURL('image/jpeg', 0.78);
+    out.width = out.height = 0;
+    if (edTarget === 'cover') {
+      studio.custom_cover = data;
+      saveDraft(); paintSetup();
+      toast('Couverture retouchée ✓');
+    } else if (cur()) {
+      cur().image_data = data;
+      saveDraft(); paintCapture();
+      toast('Photo recadrée ✓ Enregistrez maintenant votre voix');
+    }
+    edCancel();
   }
 
   /* ---------------- Voice recording ---------------- */
@@ -1309,6 +1721,7 @@ const app = (() => {
   async function openBook(id) {
     stopRecording();
     const meta = books.find((b) => b.id === id); if (!meta) return;
+    if (state.mode === 'child') enterChildKiosk();
     try {
       const pages = await loadPages(id);
       if (!pages.length) { toast('Ce livre est vide.'); return; }
@@ -1451,6 +1864,7 @@ const app = (() => {
   /* ---------------- Init ---------------- */
   async function init() {
     loadLocal();
+    initEditorHandles();
     // Delegated events (safe against odd ids)
     $('shelf').addEventListener('click', onListClick);
     $('pList').addEventListener('click', onListClick);
@@ -1458,6 +1872,16 @@ const app = (() => {
     $('narrChips').addEventListener('click', (e) => { const c = e.target.closest('.chip'); if (!c) return; studio.narrator = c.dataset.n; saveDraft(); paintSetup(); });
     document.addEventListener('visibilitychange', () => { if (document.hidden) flushDraft(); else if (!$('reader').hidden || !$('cam').hidden || isRec) requestWake(); });
     window.addEventListener('pagehide', flushDraft);
+    window.addEventListener('resize', () => { if (!$('editor').hidden && edImg) { drawEditorCanvas(); paintCropBox(); } });
+    window.addEventListener('popstate', () => {
+      if (state.mode === 'child') {
+        if (!$('reader').hidden) closeReader();
+        try { history.pushState({ papaKid: 1 }, ''); } catch (_) {}
+      }
+    });
+    document.addEventListener('contextmenu', (e) => {
+      if (state.mode === 'child') e.preventDefault();
+    });
 
     try { books = sortBooks(await idbAllBooks()); books.forEach((b) => offline.add(b.id)); } catch (_) { books = []; }
     if (!books.length && !state.demoDeleted) { const d = demoBook(); await idbSaveBook(d.book, d.pages); books = [d.book]; }
@@ -1471,10 +1895,11 @@ const app = (() => {
   document.addEventListener('DOMContentLoaded', init);
 
   return {
-    requestParent, exitParent, closeGate, setTab, setFilter,
+    startKid, requestParent, exitParent, closeGate, setTab, setFilter,
     newBook, newBookOrResume, resumeDraft, onMeta, startPages, editInfos, resetCover,
     ctaMain, onCaption, movePage, deletePage, rotate, onPageFile, onCoverFile,
     openCamera, closeCamera, flipCamera, shoot,
+    openEditor, edCancel, edApply, edRotate, edAuto, edReset, edRatio, edSlider,
     playPreview, eraseVoice, finishBook,
     rPrev, rNext, rToggle, rRestart, closeReader,
     saveSettings, setSeg, chime, applyFamily, syncCloud, downloadAll, exportJSON, importJSON, copyCatalog, restoreDemo

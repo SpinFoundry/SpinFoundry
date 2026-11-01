@@ -1,0 +1,17 @@
+{
+  "name": "Papa Raconte",
+  "short_name": "Papa Raconte",
+  "description": "Les livres de ton enfant, lus avec ta voix.",
+  "lang": "fr",
+  "start_url": "/papa-raconte/",
+  "scope": "/papa-raconte/",
+  "display": "fullscreen",
+  "display_override": ["fullscreen", "standalone"],
+  "orientation": "any",
+  "background_color": "#FFF8EC",
+  "theme_color": "#FFF4DC",
+  "icons": [
+    { "src": "/papa-raconte/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "/papa-raconte/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "maskable" }
+  ]
+}
