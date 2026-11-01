@@ -89,3 +89,42 @@ CREATE TABLE IF NOT EXISTS workout_user_settings (
   custom_gemini_key TEXT DEFAULT '',
   updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
+
+-- ═════════════════════════════════════════════
+-- Cloudflare D1 SQL Schema for PapaRaconte
+-- ═════════════════════════════════════════════
+
+CREATE TABLE IF NOT EXISTS story_books (
+  id TEXT PRIMARY KEY,
+  user_id TEXT NOT NULL,
+  title TEXT NOT NULL,
+  narrator TEXT DEFAULT 'Papa',
+  cover_image TEXT DEFAULT '',
+  page_count INTEGER DEFAULT 0,
+  total_duration_sec REAL DEFAULT 0,
+  is_favorite INTEGER DEFAULT 0,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_story_books_user ON story_books(user_id, updated_at);
+
+CREATE TABLE IF NOT EXISTS story_pages (
+  id TEXT PRIMARY KEY,
+  book_id TEXT NOT NULL,
+  user_id TEXT NOT NULL,
+  page_number INTEGER NOT NULL,
+  image_data TEXT DEFAULT '',
+  audio_data TEXT DEFAULT '',
+  audio_duration REAL DEFAULT 0,
+  caption TEXT DEFAULT '',
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_story_pages_book ON story_pages(book_id, page_number);
+
+CREATE TABLE IF NOT EXISTS story_settings (
+  user_id TEXT PRIMARY KEY,
+  settings_json TEXT DEFAULT '{}',
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);

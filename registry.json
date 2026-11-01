@@ -90,6 +90,14 @@
       "category": "conversions",
       "path": "/mon-carnet-muscu/",
       "dateAdded": "2026-10-05"
+    },
+    {
+      "id": "papa-raconte",
+      "title": "Papa Raconte: Livres Audio Illustrés",
+      "description": "Photographiez les livres illustrés de votre enfant page après page, enregistrez votre voix sur mobile et lancez une lecture automatique synchronisée en Mode Enfant.",
+      "category": "games",
+      "path": "/papa-raconte/",
+      "dateAdded": "2026-11-01"
     }
   ]
 }

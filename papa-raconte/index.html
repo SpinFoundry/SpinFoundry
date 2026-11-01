@@ -1,0 +1,2989 @@
+<!DOCTYPE html>
+<html lang="fr" class="h-full bg-neutral-50">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Papa Raconte — Livres Audio Illustrés & Histoires du Soir</title>
+  <meta name="description" content="Photographiez les livres illustrés de votre enfant page après page, enregistrez votre voix sur mobile et lancez une lecture automatique synchronisée en Mode Enfant.">
+  <link rel="canonical" href="https://spinfoundry.pages.dev/papa-raconte/">
+
+  <!-- OpenGraph / Social -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Papa Raconte — Livres Audio Illustrés & Histoires du Soir">
+  <meta property="og:description" content="Transformez vos albums jeunesse papier en histoires animées lues par la voix de Papa, Maman ou Papy avec tourne-page automatique et synchronisation Cloud.">
+  <meta property="og:url" content="https://spinfoundry.pages.dev/papa-raconte/">
+  <meta name="twitter:card" content="summary">
+
+  <!-- Production Precompiled Tailwind Stylesheet -->
+  <link rel="stylesheet" href="/assets/styles.css">
+
+  <!-- JSON-LD WebApplication Schema -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "Papa Raconte",
+    "url": "https://spinfoundry.pages.dev/papa-raconte/",
+    "applicationCategory": "EntertainmentApplication",
+    "operatingSystem": "All",
+    "browserRequirements": "Requires JavaScript. Requires HTML5 Audio & MediaRecorder.",
+    "description": "Application familiale permettant de photographier ses livres pour enfants page par page et d'y associer sa voix pour une lecture automatique en Mode Enfant."
+  }
+  </script>
+
+  <style>
+    html, body {
+      max-width: 100vw !important;
+      overflow-x: hidden !important;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .btn-tap {
+      touch-action: manipulation;
+      transition: transform 0.1s ease, background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+      user-select: none;
+    }
+    .btn-tap:active {
+      transform: scale(0.96);
+    }
+
+    /* Warm Story Mode Styling */
+    .kid-bg {
+      background: linear-gradient(180deg, #fffbeb 0%, #fef3c7 55%, #fde68a 100%);
+    }
+    .kid-card {
+      background: #ffffff;
+      border: 3px solid #fde68a;
+      border-radius: 1.5rem;
+      box-shadow: 0 10px 25px -5px rgba(217, 119, 6, 0.12), 0 4px 10px -4px rgba(217, 119, 6, 0.08);
+      transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+    }
+    .kid-card:hover {
+      transform: translateY(-2px);
+      border-color: #f59e0b;
+      box-shadow: 0 14px 28px -5px rgba(217, 119, 6, 0.18);
+    }
+
+    /* Reader Fullscreen Overlay */
+    .reader-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 60;
+      background: #18181b;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      overflow: hidden;
+    }
+
+    /* Page Turn Animation */
+    @keyframes pageTurnIn {
+      0% {
+        opacity: 0;
+        transform: scale(0.97) translateX(18px);
+      }
+      100% {
+        opacity: 1;
+        transform: scale(1) translateX(0);
+      }
+    }
+    .page-animate {
+      animation: pageTurnIn 0.38s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    }
+
+    /* Recording Pulse */
+    @keyframes recPulse {
+      0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.55); }
+      50% { transform: scale(1.04); box-shadow: 0 0 0 14px rgba(239, 68, 68, 0); }
+    }
+    .rec-pulse {
+      animation: recPulse 1.5s infinite;
+    }
+
+    /* Hold Button Progress */
+    .hold-progress-ring {
+      transition: width 0.05s linear;
+    }
+
+    /* Zero-Runtime Static Utility Layer (Precompiled Fallback Guarantees) */
+    .hidden { display: none !important; }
+    .fixed { position: fixed; }
+    .sticky { position: sticky; }
+    .inset-0 { top: 0; right: 0; bottom: 0; left: 0; }
+    .inset-y-0 { top: 0; bottom: 0; }
+    .top-0 { top: 0; }
+    .top-3 { top: 0.75rem; }
+    .left-0 { left: 0; }
+    .left-3 { left: 0.75rem; }
+    .right-2\.5 { right: 0.625rem; }
+    .right-3 { right: 0.75rem; }
+    .right-5 { right: 1.25rem; }
+    .bottom-2\.5 { bottom: 0.625rem; }
+    .bottom-5 { bottom: 1.25rem; }
+    .z-10 { z-index: 10; }
+    .z-20 { z-index: 20; }
+    .z-30 { z-index: 30; }
+    .z-50 { z-index: 50; }
+    .flex-1 { flex: 1 1 0%; }
+    .flex-wrap { flex-wrap: wrap; }
+    .shrink-0 { flex-shrink: 0; }
+    .items-start { align-items: flex-start; }
+    .justify-center { justify-content: center; }
+    .min-w-0 { min-width: 0; }
+    .ml-1 { margin-left: 0.25rem; }
+    .ml-auto { margin-left: auto; }
+    .mb-0\.5 { margin-bottom: 0.125rem; }
+    .mb-1 { margin-bottom: 0.25rem; }
+    .mb-2 { margin-bottom: 0.5rem; }
+    .mb-5 { margin-bottom: 1.25rem; }
+    .mt-4 { margin-top: 1rem; }
+    .mt-10 { margin-top: 2.5rem; }
+    .my-6 { margin-top: 1.5rem; margin-bottom: 1.5rem; }
+    .h-3 { height: 0.75rem; }
+    .h-5 { height: 1.25rem; }
+    .h-8 { height: 2rem; }
+    .h-12 { height: 3rem; }
+    .h-14 { height: 3.5rem; }
+    .h-20 { height: 5rem; }
+    .h-full { height: 100%; }
+    .max-h-full { max-height: 100%; }
+    .w-3 { width: 0.75rem; }
+    .w-5 { width: 1.25rem; }
+    .w-8 { width: 2rem; }
+    .w-12 { width: 3rem; }
+    .w-20 { width: 5rem; }
+    .max-w-full { max-width: 100%; }
+    .max-w-xs { max-width: 20rem; }
+    .max-w-sm { max-width: 24rem; }
+    .max-w-md { max-width: 28rem; }
+    .max-w-lg { max-width: 32rem; }
+    .max-w-4xl { max-width: 56rem; }
+    .aspect-\[4\/3\] { aspect-ratio: 4 / 3; }
+    .object-cover { object-fit: cover; }
+    .object-contain { object-fit: contain; }
+    .truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .line-clamp-1 { display: -webkit-box; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 1; }
+    .select-none { user-select: none; }
+    .grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .col-span-full { grid-column: 1 / -1; }
+    .gap-1 { gap: 0.25rem; }
+    .gap-2\.5 { gap: 0.625rem; }
+    .gap-3\.5 { gap: 0.875rem; }
+    .space-y-2\.5 > :not([hidden]) ~ :not([hidden]) { margin-top: 0.625rem; }
+    .space-y-4 > :not([hidden]) ~ :not([hidden]) { margin-top: 1rem; }
+    .space-y-5 > :not([hidden]) ~ :not([hidden]) { margin-top: 1.25rem; }
+    .p-1 { padding: 0.25rem; }
+    .p-2 { padding: 0.5rem; }
+    .p-4 { padding: 1rem; }
+    .px-1\.5 { padding-left: 0.375rem; padding-right: 0.375rem; }
+    .px-2 { padding-left: 0.5rem; padding-right: 0.5rem; }
+    .px-3\.5 { padding-left: 0.875rem; padding-right: 0.875rem; }
+    .px-5 { padding-left: 1.25rem; padding-right: 1.25rem; }
+    .py-2\.5 { padding-top: 0.625rem; padding-bottom: 0.625rem; }
+    .py-3\.5 { padding-top: 0.875rem; padding-bottom: 0.875rem; }
+    .py-4 { padding-top: 1rem; padding-bottom: 1rem; }
+    .py-5 { padding-top: 1.25rem; padding-bottom: 1.25rem; }
+    .py-6 { padding-top: 1.5rem; padding-bottom: 1.5rem; }
+    .py-8 { padding-top: 2rem; padding-bottom: 2rem; }
+    .py-14 { padding-top: 3.5rem; padding-bottom: 3.5rem; }
+    .pb-3 { padding-bottom: 0.75rem; }
+    .pb-4 { padding-bottom: 1rem; }
+    .pt-1 { padding-top: 0.25rem; }
+    .pt-2 { padding-top: 0.5rem; }
+    .rounded { border-radius: 0.25rem; }
+    .rounded-md { border-radius: 0.375rem; }
+    .rounded-2xl { border-radius: 1rem; }
+    .rounded-3xl { border-radius: 1.5rem; }
+    .border-2 { border-width: 2px; }
+    .border-b-2 { border-bottom-width: 2px; }
+    .border-dashed { border-style: dashed; }
+    .shadow { box-shadow: 0 1px 3px 0 rgba(0,0,0,0.1), 0 1px 2px -1px rgba(0,0,0,0.1); }
+    .shadow-md { box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -2px rgba(0,0,0,0.1); }
+    .shadow-lg { box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -4px rgba(0,0,0,0.1); }
+    .shadow-xl { box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1); }
+    .shadow-2xl { box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); }
+    .shadow-inner { box-shadow: inset 0 2px 4px 0 rgba(0,0,0,0.05); }
+    .backdrop-blur { backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
+    .backdrop-blur-sm { backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); }
+    .backdrop-blur-md { backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
+
+    /* Palette Colors */
+    .bg-neutral-50 { background-color: #fafafa; }
+    .bg-neutral-100 { background-color: #f5f5f5; }
+    .bg-neutral-200 { background-color: #e5e5e5; }
+    .bg-neutral-300 { background-color: #d4d4d4; }
+    .bg-neutral-400 { background-color: #a3a3a3; }
+    .bg-neutral-800 { background-color: #262626; }
+    .bg-neutral-900 { background-color: #171717; }
+    .bg-neutral-900\/95 { background-color: rgba(23, 23, 23, 0.95); }
+    .bg-white\/90 { background-color: rgba(255, 255, 255, 0.9); }
+    .bg-white\/95 { background-color: rgba(255, 255, 255, 0.95); }
+    .bg-white\/10 { background-color: rgba(255, 255, 255, 0.1); }
+    .bg-white\/15 { background-color: rgba(255, 255, 255, 0.15); }
+    .bg-black\/50 { background-color: rgba(0, 0, 0, 0.5); }
+    .bg-black\/60 { background-color: rgba(0, 0, 0, 0.6); }
+    .bg-black\/70 { background-color: rgba(0, 0, 0, 0.7); }
+    .bg-black\/75 { background-color: rgba(0, 0, 0, 0.75); }
+    .bg-amber-50 { background-color: #fffbeb; }
+    .bg-amber-100 { background-color: #fef3c7; }
+    .bg-amber-400 { background-color: #fbbf24; }
+    .bg-amber-500 { background-color: #f59e0b; }
+    .bg-amber-500\/20 { background-color: rgba(245, 158, 11, 0.2); }
+    .bg-amber-500\/40 { background-color: rgba(245, 158, 11, 0.4); }
+    .bg-emerald-600 { background-color: #059669; }
+    .bg-red-50 { background-color: #fef2f2; }
+    .bg-red-600 { background-color: #dc2626; }
+
+    .hover\:bg-neutral-50:hover { background-color: #fafafa; }
+    .hover\:bg-neutral-100:hover { background-color: #f5f5f5; }
+    .hover\:bg-neutral-200:hover { background-color: #e5e5e5; }
+    .hover\:bg-neutral-800:hover { background-color: #262626; }
+    .hover\:bg-amber-50:hover { background-color: #fffbeb; }
+    .hover\:bg-amber-100:hover { background-color: #fef3c7; }
+    .hover\:bg-amber-400:hover { background-color: #fbbf24; }
+    .hover\:bg-amber-600:hover { background-color: #d97706; }
+    .hover\:bg-emerald-100:hover { background-color: #d1fae5; }
+    .hover\:bg-emerald-700:hover { background-color: #047857; }
+    .hover\:bg-red-50:hover { background-color: #fef2f2; }
+    .hover\:bg-red-100:hover { background-color: #fee2e2; }
+    .hover\:bg-red-700:hover { background-color: #b91c1c; }
+    .hover\:bg-white\/25:hover { background-color: rgba(255, 255, 255, 0.25); }
+
+    .text-neutral-300 { color: #d4d4d4; }
+    .text-neutral-400 { color: #a3a3a3; }
+    .text-neutral-500 { color: #737373; }
+    .text-neutral-600 { color: #525252; }
+    .text-neutral-700 { color: #404040; }
+    .text-neutral-800 { color: #262626; }
+    .text-neutral-900 { color: #171717; }
+    .text-neutral-950 { color: #0a0a0a; }
+    .text-amber-200 { color: #fde68a; }
+    .text-amber-300 { color: #fcd34d; }
+    .text-amber-700 { color: #b45309; }
+    .text-amber-800 { color: #92400e; }
+    .text-amber-900 { color: #78350f; }
+    .text-emerald-700 { color: #047857; }
+    .text-emerald-800 { color: #065f46; }
+    .text-red-600 { color: #dc2626; }
+    .text-red-700 { color: #b91c1c; }
+    .hover\:text-neutral-900:hover { color: #171717; }
+    .hover\:underline:hover { text-decoration: underline; }
+
+    .border-neutral-100 { border-color: #f5f5f5; }
+    .border-neutral-200 { border-color: #e5e5e5; }
+    .border-neutral-300 { border-color: #d4d4d4; }
+    .border-neutral-700 { border-color: #404040; }
+    .border-neutral-900 { border-color: #171717; }
+    .border-amber-100 { border-color: #fef3c7; }
+    .border-amber-200 { border-color: #fde68a; }
+    .border-amber-300 { border-color: #fcd34d; }
+    .border-amber-400 { border-color: #fbbf24; }
+    .border-amber-400\/40 { border-color: rgba(251, 191, 36, 0.4); }
+    .border-emerald-200 { border-color: #a7f3d0; }
+    .border-red-200 { border-color: #fecaca; }
+    .border-white\/10 { border-color: rgba(255, 255, 255, 0.1); }
+    .border-white\/15 { border-color: rgba(255, 255, 255, 0.15); }
+    .hover\:border-neutral-400:hover { border-color: #a3a3a3; }
+    .hover\:border-neutral-900:hover { border-color: #171717; }
+    .hover\:border-amber-400:hover { border-color: #fbbf24; }
+    .focus\:border-neutral-900:focus { border-color: #171717; }
+
+    .text-\[10px\] { font-size: 10px; }
+    .text-lg { font-size: 1.125rem; line-height: 1.75rem; }
+    .text-4xl { font-size: 2.25rem; line-height: 2.5rem; }
+    .text-5xl { font-size: 3rem; line-height: 1; }
+    .text-6xl { font-size: 3.75rem; line-height: 1; }
+    .accent-amber-500 { accent-color: #f59e0b; }
+
+    @keyframes ping {
+      75%, 100% { transform: scale(2); opacity: 0; }
+    }
+    .animate-ping { animation: ping 1s cubic-bezier(0, 0, 0.2, 1) infinite; }
+
+    @media (min-width: 640px) {
+      .sm\:inline { display: inline !important; }
+      .sm\:inline-flex { display: inline-flex !important; }
+      .sm\:flex-row { flex-direction: row !important; }
+      .sm\:items-center { align-items: center !important; }
+      .sm\:col-span-2 { grid-column: span 2 / span 2 !important; }
+      .sm\:w-14 { width: 3.5rem !important; }
+      .sm\:h-14 { height: 3.5rem !important; }
+      .sm\:p-5 { padding: 1.25rem !important; }
+      .sm\:p-6 { padding: 1.5rem !important; }
+      .sm\:py-4 { padding-top: 1rem !important; padding-bottom: 1rem !important; }
+      .sm\:py-8 { padding-top: 2rem !important; padding-bottom: 2rem !important; }
+      .sm\:gap-3 { gap: 0.75rem !important; }
+      .sm\:gap-4 { gap: 1rem !important; }
+      .sm\:text-base { font-size: 1rem !important; line-height: 1.5rem !important; }
+      .sm\:text-2xl { font-size: 1.5rem !important; line-height: 2rem !important; }
+    }
+    @media (min-width: 768px) {
+      .md\:inline-flex { display: inline-flex !important; }
+      .md\:grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+    }
+    @media (min-width: 1024px) {
+      .lg\:grid-cols-12 { grid-template-columns: repeat(12, minmax(0, 1fr)) !important; }
+      .lg\:col-span-7 { grid-column: span 7 / span 7 !important; }
+      .lg\:col-span-5 { grid-column: span 5 / span 5 !important; }
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col text-neutral-900 font-sans antialiased selection:bg-amber-200 selection:text-neutral-900">
+
+  <!-- TOP NAVIGATION CHROME (SpinFoundry Standard) -->
+  <header id="topChrome" class="border-b border-neutral-200 bg-white/95 backdrop-blur sticky top-0 z-30">
+    <div class="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between gap-2">
+      <div class="flex items-center gap-2 sm:gap-3 min-w-0">
+        <a href="/" class="text-xs sm:text-sm font-medium text-neutral-600 hover:text-neutral-900 transition-colors whitespace-nowrap">
+          ← SpinFoundry Hub
+        </a>
+        <span class="text-neutral-300 hidden sm:inline">/</span>
+        <span class="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-50 text-amber-900 border border-amber-200">
+          <span>🕹️</span> Mini-Games &amp; Puzzles
+        </span>
+      </div>
+
+      <!-- Mode Switcher & Sync Badge -->
+      <div class="flex items-center gap-2">
+        <div id="syncStatusPill" class="hidden md:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-neutral-100 text-neutral-600 border border-neutral-200" title="Statut de synchronisation Cloud D1 & Hors-ligne">
+          <span id="syncDot" class="w-2 h-2 rounded-full bg-emerald-500"></span>
+          <span id="syncText">Prêt</span>
+        </div>
+
+        <!-- Mode Enfant / Mode Parent Toggle -->
+        <div class="inline-flex rounded-xl bg-neutral-100 p-1 border border-neutral-200">
+          <button id="btnModeChild" type="button" onclick="app.switchToChildMode()"
+            class="btn-tap px-3 py-1 rounded-lg text-xs sm:text-sm font-semibold flex items-center gap-1.5 bg-amber-500 text-white shadow-sm">
+            <span>🧸</span>
+            <span>Mode Enfant</span>
+          </button>
+          <button id="btnModeParent" type="button" onclick="app.requestParentMode()"
+            class="btn-tap px-3 py-1 rounded-lg text-xs sm:text-sm font-semibold flex items-center gap-1.5 text-neutral-600 hover:text-neutral-900">
+            <span>🔒</span>
+            <span>Parent</span>
+          </button>
+        </div>
+
+        <a href="https://github.com/SpinFoundry/SpinFoundry" target="_blank" rel="noopener noreferrer"
+          class="hidden sm:inline-flex text-xs font-medium text-neutral-500 hover:text-neutral-900 transition-colors ml-1">
+          GitHub ↗
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN APPLICATION CONTAINER -->
+  <main id="mainWrapper" class="flex-1 kid-bg transition-colors duration-300">
+
+    <!-- ========================================== -->
+    <!-- VIEW 1: MODE ENFANT — BIBLIOTHÈQUE         -->
+    <!-- ========================================== -->
+    <section id="viewChildLibrary" class="max-w-5xl mx-auto px-4 py-6 sm:py-8">
+      <!-- Child Hero Header -->
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 bg-white/90 backdrop-blur p-4 sm:p-5 rounded-2xl border-2 border-amber-200 shadow-sm">
+        <div class="flex items-center gap-3.5">
+          <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-amber-100 border-2 border-amber-300 flex items-center justify-center text-2xl sm:text-3xl shadow-inner shrink-0">
+            📖
+          </div>
+          <div>
+            <h1 class="text-xl sm:text-2xl font-extrabold text-neutral-900 tracking-tight">
+              Papa Raconte
+            </h1>
+            <p class="text-xs sm:text-sm text-neutral-600 font-medium">
+              Touche un livre pour écouter ton histoire !
+            </p>
+          </div>
+        </div>
+
+        <!-- Child Filter Pills (Tous / Favoris / Conteur) -->
+        <div class="flex flex-wrap items-center gap-2">
+          <button type="button" id="filterAllBtn" onclick="app.setChildFilter('all')"
+            class="btn-tap px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold bg-amber-500 text-white shadow-sm flex items-center gap-1.5">
+            <span>📚</span> Tous les livres
+          </button>
+          <button type="button" id="filterFavBtn" onclick="app.setChildFilter('fav')"
+            class="btn-tap px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold bg-white text-neutral-700 border border-amber-200 hover:bg-amber-50 flex items-center gap-1.5">
+            <span>❤️</span> Favoris
+          </button>
+        </div>
+      </div>
+
+      <!-- Books Shelf Grid -->
+      <div id="childBooksGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+        <!-- Populated by JS -->
+      </div>
+
+      <!-- Empty State if no books -->
+      <div id="childEmptyState" class="hidden text-center py-14 px-4 bg-white rounded-3xl border-2 border-dashed border-amber-300 max-w-lg mx-auto my-6">
+        <div class="text-5xl mb-3">🧸</div>
+        <h2 class="text-lg font-bold text-neutral-900 mb-1">La bibliothèque est vide</h2>
+        <p class="text-sm text-neutral-600 mb-5">
+          Passe en <strong>Mode Parent 🔒</strong> en haut de l'écran pour photographier un premier livre et enregistrer ta voix !
+        </p>
+        <button type="button" onclick="app.requestParentMode()"
+          class="btn-tap inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-bold text-sm shadow">
+          <span>🎙️</span> Enregistrer un premier livre
+        </button>
+      </div>
+    </section>
+
+    <!-- ========================================== -->
+    <!-- VIEW 2: MODE PARENT — GESTION & STUDIO     -->
+    <!-- ========================================== -->
+    <section id="viewParentMode" class="hidden max-w-5xl mx-auto px-4 py-6 sm:py-8">
+      <!-- Parent Header & Sub-Navigation -->
+      <div class="bg-white rounded-2xl border border-neutral-200 p-4 sm:p-6 shadow-sm mb-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-neutral-100">
+          <div>
+            <div class="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-amber-700 bg-amber-50 px-2.5 py-0.5 rounded-md border border-amber-200 mb-1">
+              <span>🔓</span> Espace Parent Déverrouillé
+            </div>
+            <h2 class="text-xl sm:text-2xl font-bold text-neutral-900">
+              Studio &amp; Gestion de la Bibliothèque
+            </h2>
+            <p class="text-xs sm:text-sm text-neutral-500">
+              Photographiez vos albums page par page, enregistrez votre voix et réglez le lecteur automatique.
+            </p>
+          </div>
+          <div class="flex flex-wrap items-center gap-2">
+            <button type="button" onclick="app.startNewBookWizard()"
+              class="btn-tap px-4 py-2.5 rounded-xl bg-neutral-900 hover:bg-neutral-800 text-white font-semibold text-sm flex items-center gap-2 shadow-sm">
+              <span>📸</span> + Nouveau Livre
+            </button>
+            <button type="button" onclick="app.switchToChildMode()"
+              class="btn-tap px-3.5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-semibold text-sm flex items-center gap-1.5 shadow-sm">
+              <span>🧸</span> Lancer Mode Enfant
+            </button>
+          </div>
+        </div>
+
+        <!-- Parent Tabs -->
+        <div class="flex flex-wrap items-center gap-2 pt-4">
+          <button type="button" id="parentTabBooks" onclick="app.setParentTab('books')"
+            class="btn-tap px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold bg-neutral-900 text-white flex items-center gap-1.5">
+            <span>📚</span> Mes Livres (<span id="parentBookCount">0</span>)
+          </button>
+          <button type="button" id="parentTabStudio" onclick="app.setParentTab('studio')"
+            class="btn-tap px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold bg-neutral-100 text-neutral-700 hover:bg-neutral-200 flex items-center gap-1.5">
+            <span>🎙️</span> Studio d'Enregistrement
+          </button>
+          <button type="button" id="parentTabSettings" onclick="app.setParentTab('settings')"
+            class="btn-tap px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold bg-neutral-100 text-neutral-700 hover:bg-neutral-200 flex items-center gap-1.5">
+            <span>⚙️</span> Paramètres &amp; Cloud
+          </button>
+        </div>
+      </div>
+
+      <!-- SUB-VIEW 2A: LISTE DES LIVRES (PARENT) -->
+      <div id="parentSectionBooks" class="space-y-4">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 rounded-xl border border-neutral-200">
+          <div class="text-xs sm:text-sm text-neutral-600">
+            Code Famille actif : <strong id="activeFamilyCodeBadge" class="font-mono text-neutral-900 bg-neutral-100 px-2 py-0.5 rounded border border-neutral-200">famille_default</strong>
+            <span class="text-neutral-400 ml-1">— Tous les appareils avec ce code partagent la même bibliothèque.</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <button type="button" onclick="app.syncFromCloud(true)"
+              class="btn-tap px-3 py-1.5 rounded-lg text-xs font-semibold bg-neutral-100 hover:bg-neutral-200 text-neutral-800 border border-neutral-300 flex items-center gap-1">
+              <span>🔄</span> Actualiser Cloud
+            </button>
+            <button type="button" onclick="app.downloadAllForOffline()"
+              class="btn-tap px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 flex items-center gap-1">
+              <span>📥</span> Tout garder hors-ligne
+            </button>
+          </div>
+        </div>
+
+        <div id="parentBooksList" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+
+      <!-- SUB-VIEW 2B: STUDIO D'ENREGISTREMENT (MOBILE EXPRESS) -->
+      <div id="parentSectionStudio" class="hidden space-y-6">
+        <!-- Book Metadata Bar -->
+        <div class="bg-white rounded-2xl border border-neutral-200 p-4 sm:p-6 shadow-sm">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 pb-3 border-b border-neutral-100">
+            <div>
+              <span id="studioModeBadge" class="text-xs font-semibold uppercase tracking-wider text-amber-700 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
+                Nouveau Livre
+              </span>
+              <h3 class="text-lg font-bold text-neutral-900 mt-1">
+                Informations de l'histoire
+              </h3>
+            </div>
+            <div class="flex items-center gap-2">
+              <button type="button" onclick="app.finishAndSaveBook()"
+                class="btn-tap px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs sm:text-sm flex items-center gap-1.5 shadow-sm">
+                <span>✓</span> Enregistrer &amp; Terminer le livre
+              </button>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div class="sm:col-span-2">
+              <label for="studioBookTitle" class="block text-xs font-semibold text-neutral-700 uppercase tracking-wider mb-1">
+                Titre du livre *
+              </label>
+              <input id="studioBookTitle" type="text" placeholder="Ex : Petit Ours Brun va au lit, T'choupi..."
+                oninput="app.updateStudioMetadata()"
+                class="w-full px-3.5 py-2.5 rounded-xl border border-neutral-300 text-sm font-medium focus:outline-none focus:border-neutral-900 bg-white">
+            </div>
+
+            <div>
+              <label for="studioBookNarrator" class="block text-xs font-semibold text-neutral-700 uppercase tracking-wider mb-1">
+                Raconté par
+              </label>
+              <select id="studioBookNarrator" onchange="app.updateStudioMetadata()"
+                class="w-full px-3.5 py-2.5 rounded-xl border border-neutral-300 text-sm font-medium focus:outline-none focus:border-neutral-900 bg-white">
+                <option value="Papa">🎙️ Papa</option>
+                <option value="Maman">🎙️ Maman</option>
+                <option value="Papa & Maman">🎙️ Papa &amp; Maman</option>
+                <option value="Papy">🎙️ Papy</option>
+                <option value="Mamie">🎙️ Mamie</option>
+                <option value="Famille">🎙️ Famille</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Optional Dedicated Cover Override -->
+          <div class="mt-4 pt-3 border-t border-neutral-100 flex flex-wrap items-center justify-between gap-3">
+            <div class="flex items-center gap-3">
+              <div id="studioCoverPreviewWrap" class="w-12 h-12 rounded-lg bg-neutral-100 border border-neutral-200 overflow-hidden flex items-center justify-center text-lg shrink-0">
+                📕
+              </div>
+              <div class="text-xs text-neutral-600">
+                <span class="font-semibold text-neutral-800 block">Couverture du livre</span>
+                <span id="studioCoverHint">Par défaut, l'illustration de la Page 1 sert automatiquement de couverture.</span>
+              </div>
+            </div>
+            <div class="flex items-center gap-2">
+              <label class="btn-tap cursor-pointer px-3 py-1.5 rounded-lg text-xs font-semibold bg-neutral-100 hover:bg-neutral-200 text-neutral-800 border border-neutral-300">
+                <span>📷 Photo de couverture dédiée</span>
+                <input type="file" accept="image/*" capture="environment" class="hidden" onchange="app.handleDedicatedCoverInput(event)">
+              </label>
+              <button id="btnClearCustomCover" type="button" onclick="app.clearDedicatedCover()"
+                class="hidden btn-tap px-2.5 py-1.5 rounded-lg text-xs font-medium text-red-600 hover:bg-red-50">
+                Utiliser Page 1
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- CURRENT PAGE CAPTURE & VOICE RECORDER CARD -->
+        <div class="bg-white rounded-2xl border-2 border-neutral-900 p-4 sm:p-6 shadow-sm">
+          <!-- Page Strip Navigation -->
+          <div class="flex flex-wrap items-center justify-between gap-2 pb-4 mb-4 border-b border-neutral-200">
+            <div class="flex items-center gap-2">
+              <span class="px-3 py-1 rounded-lg bg-neutral-900 text-white font-bold text-sm" id="studioCurrentPageBadge">
+                Page 1 sur 1
+              </span>
+              <span id="studioPageStatusBadge" class="text-xs font-medium px-2.5 py-1 rounded-full bg-amber-50 text-amber-800 border border-amber-200">
+                En attente de photo &amp; voix
+              </span>
+            </div>
+
+            <div class="flex items-center gap-1.5">
+              <button type="button" onclick="app.studioMovePage(-1)" id="btnMovePageLeft"
+                class="btn-tap px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-neutral-100 hover:bg-neutral-200 text-neutral-700 border border-neutral-200" title="Déplacer cette page vers l'avant">
+                ← Reculer page
+              </button>
+              <button type="button" onclick="app.studioMovePage(1)" id="btnMovePageRight"
+                class="btn-tap px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-neutral-100 hover:bg-neutral-200 text-neutral-700 border border-neutral-200" title="Déplacer cette page vers l'arrière">
+                Avancer page →
+              </button>
+              <button type="button" onclick="app.studioDeleteCurrentPage()" id="btnDeleteCurrentPage"
+                class="btn-tap px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-red-50 hover:bg-red-100 text-red-700 border border-red-200" title="Supprimer cette page">
+                🗑️ Suppr.
+              </button>
+            </div>
+          </div>
+
+          <!-- Horizontal Page Thumbnails Strip -->
+          <div id="studioPagesStrip" class="flex items-center gap-2 overflow-x-auto pb-3 mb-5">
+            <!-- Populated by JS -->
+          </div>
+
+          <!-- 2-Column Express Studio: Left = Photo Illustration, Right = Voice Recorder -->
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+
+            <!-- STEP 1: PHOTO DE LA PAGE (7 cols on desktop) -->
+            <div class="lg:col-span-7 space-y-3">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-bold uppercase tracking-wider text-neutral-500">
+                  1. Illustration de la page
+                </span>
+                <div class="flex items-center gap-2">
+                  <button type="button" id="btnRotatePhoto" onclick="app.rotateCurrentPagePhoto()"
+                    class="hidden btn-tap px-2.5 py-1 rounded-lg text-xs font-semibold bg-neutral-100 hover:bg-neutral-200 text-neutral-800 border border-neutral-300">
+                    ↻ Pivoter 90°
+                  </button>
+                </div>
+              </div>
+
+              <!-- Large Page Preview Box (ideal to read the book text while recording voice!) -->
+              <div id="studioPhotoBox" class="relative w-full aspect-[4/3] rounded-2xl bg-neutral-100 border-2 border-dashed border-neutral-300 overflow-hidden flex flex-col items-center justify-center">
+                <img id="studioPhotoPreview" src="" alt="Aperçu de la page" class="hidden w-full h-full object-contain bg-neutral-900">
+
+                <div id="studioPhotoPlaceholder" class="text-center p-6">
+                  <div class="text-4xl mb-2">📸</div>
+                  <p class="text-sm font-bold text-neutral-800 mb-1">
+                    Photographiez la page du livre
+                  </p>
+                  <p class="text-xs text-neutral-500 max-w-xs mx-auto mb-4">
+                    L'image s'affichera ici en grand pour que vous puissiez lire le texte tout en enregistrant votre voix.
+                  </p>
+                  <div class="flex flex-wrap items-center justify-center gap-2">
+                    <label class="btn-tap cursor-pointer inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-neutral-900 hover:bg-neutral-800 text-white font-bold text-sm shadow">
+                      <span>📷 Prendre la photo</span>
+                      <input type="file" accept="image/*" capture="environment" class="hidden" onchange="app.handlePagePhotoInput(event)">
+                    </label>
+                    <label class="btn-tap cursor-pointer inline-flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-white hover:bg-neutral-50 text-neutral-800 font-semibold text-sm border border-neutral-300">
+                      <span>🖼️ Galerie</span>
+                      <input type="file" accept="image/*" class="hidden" onchange="app.handlePagePhotoInput(event)">
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Retake photo buttons when photo already exists -->
+              <div id="studioPhotoActions" class="hidden flex flex-wrap items-center justify-between gap-2">
+                <div class="flex items-center gap-2">
+                  <label class="btn-tap cursor-pointer inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-neutral-100 hover:bg-neutral-200 text-neutral-800 text-xs font-semibold border border-neutral-300">
+                    <span>📷 Reprendre photo</span>
+                    <input type="file" accept="image/*" capture="environment" class="hidden" onchange="app.handlePagePhotoInput(event)">
+                  </label>
+                  <label class="btn-tap cursor-pointer inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white hover:bg-neutral-50 text-neutral-700 text-xs font-semibold border border-neutral-300">
+                    <span>🖼️ Galerie</span>
+                    <input type="file" accept="image/*" class="hidden" onchange="app.handlePagePhotoInput(event)">
+                  </label>
+                </div>
+                <span id="studioPhotoSizeInfo" class="text-xs text-neutral-400 font-mono"></span>
+              </div>
+            </div>
+
+            <!-- STEP 2: VOIX DU CONTEUR & ENCHAÎNEMENT (5 cols on desktop) -->
+            <div class="lg:col-span-5 space-y-4">
+              <span class="block text-xs font-bold uppercase tracking-wider text-neutral-500">
+                2. Lecture vocale de la page
+              </span>
+
+              <div class="rounded-2xl bg-neutral-50 border border-neutral-200 p-4 sm:p-5 space-y-4">
+                <!-- Recorder Status & Timer -->
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-2">
+                    <span id="recIndicatorDot" class="w-3 h-3 rounded-full bg-neutral-300"></span>
+                    <span id="recStatusLabel" class="text-sm font-bold text-neutral-800">Prêt à enregistrer</span>
+                  </div>
+                  <span id="recTimerDisplay" class="font-mono text-lg font-bold text-neutral-900">00:00</span>
+                </div>
+
+                <!-- Live Audio Meter Bar -->
+                <div class="w-full h-3 bg-neutral-200 rounded-full overflow-hidden">
+                  <div id="recVolumeBar" class="h-full bg-amber-500 transition-all duration-75" style="width: 0%"></div>
+                </div>
+
+                <!-- Primary Record / Stop Button -->
+                <div class="pt-1">
+                  <button type="button" id="btnToggleRecord" onclick="app.toggleVoiceRecording()"
+                    class="btn-tap w-full py-4 px-5 rounded-2xl bg-red-600 hover:bg-red-700 text-white font-extrabold text-base flex items-center justify-center gap-2.5 shadow-md">
+                    <span id="btnRecordIcon" class="text-xl">🎙️</span>
+                    <span id="btnRecordText">Enregistrer ma voix</span>
+                  </button>
+                </div>
+
+                <!-- Recorded Audio Playback Box -->
+                <div id="studioAudioPreviewBox" class="hidden pt-3 border-t border-neutral-200 space-y-2">
+                  <div class="flex items-center justify-between text-xs text-neutral-600">
+                    <span class="font-semibold text-emerald-700">✓ Voix enregistrée</span>
+                    <span id="studioAudioDurationLabel" class="font-mono">0.0s</span>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <button type="button" onclick="app.playStudioPreviewAudio()" id="btnStudioPlayAudio"
+                      class="btn-tap flex-1 py-2 px-3 rounded-xl bg-white hover:bg-neutral-100 text-neutral-900 font-bold text-xs border border-neutral-300 flex items-center justify-center gap-1.5">
+                      <span>▶️</span> Réécouter cette page
+                    </button>
+                    <button type="button" onclick="app.clearCurrentPageAudio()"
+                      class="btn-tap py-2 px-3 rounded-xl bg-white hover:bg-red-50 text-red-600 font-semibold text-xs border border-neutral-200">
+                      Effacer
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Optional Short Text Note / Repère -->
+                <div class="pt-2 border-t border-neutral-200">
+                  <label for="studioPageCaption" class="block text-xs font-medium text-neutral-500 mb-1">
+                    Note ou texte repère de la page (optionnel)
+                  </label>
+                  <input id="studioPageCaption" type="text" placeholder="Ex : Il était une fois dans la forêt..."
+                    oninput="app.updateCurrentPageCaption()"
+                    class="w-full px-3 py-2 rounded-lg border border-neutral-300 text-xs bg-white focus:outline-none focus:border-neutral-900">
+                </div>
+              </div>
+
+              <!-- STEP 3: EXPRESS NEXT PAGE / FINISH BUTTONS -->
+              <div class="pt-2 space-y-2.5">
+                <button type="button" onclick="app.studioNextOrAddPage()"
+                  class="btn-tap w-full py-3.5 px-5 rounded-2xl bg-amber-500 hover:bg-amber-600 text-white font-extrabold text-sm sm:text-base flex items-center justify-center gap-2 shadow-sm">
+                  <span id="btnNextPageLabel">Page suivante (Ajouter Page 2) ➔</span>
+                </button>
+
+                <button type="button" onclick="app.finishAndSaveBook()"
+                  class="btn-tap w-full py-3 px-4 rounded-xl bg-neutral-900 hover:bg-neutral-800 text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2">
+                  <span>✓</span> Terminer &amp; Publier dans la bibliothèque
+                </button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <!-- SUB-VIEW 2C: PARAMÈTRES ADULTE & SYNCHRONISATION -->
+      <div id="parentSectionSettings" class="hidden space-y-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+          <!-- Card 1: Comportement de la lecture automatique (Mode Enfant) -->
+          <div class="bg-white rounded-2xl border border-neutral-200 p-5 space-y-5 shadow-sm">
+            <div>
+              <h3 class="text-base font-bold text-neutral-900 flex items-center gap-2">
+                <span>⏱️</span> Lecture Automatique &amp; Tourne-Page
+              </h3>
+              <p class="text-xs text-neutral-500 mt-0.5">
+                Personnalisez le rythme de lecture lorsque votre enfant écoute un livre.
+              </p>
+            </div>
+
+            <!-- Auto page turn toggle -->
+            <div class="flex items-center justify-between gap-4 pt-2 border-t border-neutral-100">
+              <div>
+                <div class="text-sm font-semibold text-neutral-900">Passage automatique des pages</div>
+                <div class="text-xs text-neutral-500">Tourne la page tout seul quand la voix est terminée</div>
+              </div>
+              <input id="settingAutoTurn" type="checkbox" checked onchange="app.saveSettingsFromUI()"
+                class="w-5 h-5 accent-amber-500 rounded cursor-pointer">
+            </div>
+
+            <!-- Pause duration slider after voice ends -->
+            <div class="space-y-1.5 pt-2 border-t border-neutral-100">
+              <div class="flex items-center justify-between">
+                <label for="settingPauseAfterAudio" class="text-sm font-semibold text-neutral-900">
+                  Pause après la fin de la voix
+                </label>
+                <span id="settingPauseValueLabel" class="text-xs font-bold font-mono px-2 py-0.5 rounded bg-amber-100 text-amber-900">
+                  3 secondes
+                </span>
+              </div>
+              <p class="text-xs text-neutral-500">
+                Temps laissé à l'enfant pour observer l'illustration une fois que votre phrase est finie.
+              </p>
+              <input id="settingPauseAfterAudio" type="range" min="1" max="15" step="1" value="3"
+                oninput="app.saveSettingsFromUI()"
+                class="w-full accent-amber-500 cursor-pointer">
+              <div class="flex justify-between text-[11px] text-neutral-400 font-mono">
+                <span>1s (Rapide)</span>
+                <span>5s</span>
+                <span>10s</span>
+                <span>15s (Contemplatif)</span>
+              </div>
+            </div>
+
+            <!-- Page Turn Chime Sound -->
+            <div class="flex items-center justify-between gap-4 pt-2 border-t border-neutral-100">
+              <div>
+                <div class="text-sm font-semibold text-neutral-900">Clochette sonore de tourne-page 🔔</div>
+                <div class="text-xs text-neutral-500">Doux arpège musical juste avant que la page ne tourne</div>
+              </div>
+              <div class="flex items-center gap-2">
+                <button type="button" onclick="app.playPageTurnChime()"
+                  class="btn-tap px-2.5 py-1 rounded-lg text-xs font-semibold bg-neutral-100 hover:bg-neutral-200 text-neutral-700 border border-neutral-200">
+                  Tester 🔔
+                </button>
+                <input id="settingPageChime" type="checkbox" checked onchange="app.saveSettingsFromUI()"
+                  class="w-5 h-5 accent-amber-500 rounded cursor-pointer">
+              </div>
+            </div>
+
+            <!-- Child Controls Visibility -->
+            <div class="space-y-1.5 pt-2 border-t border-neutral-100">
+              <label for="settingChildControls" class="block text-sm font-semibold text-neutral-900">
+                Contrôles affichés pendant l'histoire
+              </label>
+              <select id="settingChildControls" onchange="app.saveSettingsFromUI()"
+                class="w-full px-3 py-2 rounded-xl border border-neutral-300 text-sm bg-white">
+                <option value="buttons">Gros boutons visuels adaptés aux petits (Précédent / Pause / Suivant)</option>
+                <option value="handsfree">Mode 100% Sans Touche (Verrouillé : évite les appuis accidentels)</option>
+              </select>
+            </div>
+
+            <!-- End of Book Behavior -->
+            <div class="space-y-1.5 pt-2 border-t border-neutral-100">
+              <label for="settingEndAction" class="block text-sm font-semibold text-neutral-900">
+                Quand la dernière page est terminée
+              </label>
+              <select id="settingEndAction" onchange="app.saveSettingsFromUI()"
+                class="w-full px-3 py-2 rounded-xl border border-neutral-300 text-sm bg-white">
+                <option value="screen">Écran de fin illustré ("Réécouter 🔄" ou "Bibliothèque 📚")</option>
+                <option value="library">Retour automatique à la bibliothèque de livres</option>
+                <option value="next_book">Enchaîner automatiquement avec le livre suivant</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Card 2: Sécurité Parentale, Cloud Famille & Sauvegarde -->
+          <div class="bg-white rounded-2xl border border-neutral-200 p-5 space-y-5 shadow-sm">
+            <div>
+              <h3 class="text-base font-bold text-neutral-900 flex items-center gap-2">
+                <span>🔒</span> Verrouillage Parent &amp; Synchronisation Famille
+              </h3>
+              <p class="text-xs text-neutral-500 mt-0.5">
+                Protégez l'accès au Mode Parent et partagez vos livres entre téléphone et tablette.
+              </p>
+            </div>
+
+            <!-- Parent Gate Challenge Type -->
+            <div class="space-y-1.5 pt-2 border-t border-neutral-100">
+              <label for="settingParentGate" class="block text-sm font-semibold text-neutral-900">
+                Défi pour entrer en Mode Parent
+              </label>
+              <select id="settingParentGate" onchange="app.saveSettingsFromUI()"
+                class="w-full px-3 py-2 rounded-xl border border-neutral-300 text-sm bg-white">
+                <option value="math">Petit calcul mental (ex : 6 × 4 = ?)</option>
+                <option value="hold">Appui long maintenu pendant 3 secondes</option>
+              </select>
+            </div>
+
+            <!-- Family Sync Code (Cloudflare D1) -->
+            <div class="space-y-2 pt-2 border-t border-neutral-100">
+              <label for="settingFamilyCode" class="block text-sm font-semibold text-neutral-900">
+                Code Famille Cloud (Téléphone ⇄ Tablette)
+              </label>
+              <p class="text-xs text-neutral-500">
+                Saisissez le même code sur votre smartphone (pour enregistrer) et sur la tablette de votre enfant (pour écouter).
+              </p>
+              <div class="flex items-center gap-2">
+                <input id="settingFamilyCode" type="text" value="famille_default" placeholder="Ex : famille-martin"
+                  class="flex-1 px-3 py-2 rounded-xl border border-neutral-300 text-sm font-mono bg-white">
+                <button type="button" onclick="app.applyFamilyCode()"
+                  class="btn-tap px-3.5 py-2 rounded-xl bg-neutral-900 hover:bg-neutral-800 text-white text-xs font-bold">
+                  Appliquer &amp; Sync
+                </button>
+              </div>
+            </div>
+
+            <!-- Export / Import Backup & Clipboard Summary -->
+            <div class="space-y-2.5 pt-2 border-t border-neutral-100">
+              <div class="text-sm font-semibold text-neutral-900">
+                Sauvegarde &amp; Partage de Bibliothèque
+              </div>
+              <div class="flex flex-wrap items-center gap-2">
+                <button type="button" onclick="app.exportAllBooksJSON()"
+                  class="btn-tap px-3 py-2 rounded-xl bg-neutral-100 hover:bg-neutral-200 text-neutral-800 text-xs font-semibold border border-neutral-300 flex items-center gap-1.5">
+                  <span>💾</span> Exporter (.json)
+                </button>
+                <label class="btn-tap cursor-pointer px-3 py-2 rounded-xl bg-neutral-100 hover:bg-neutral-200 text-neutral-800 text-xs font-semibold border border-neutral-300 flex items-center gap-1.5">
+                  <span>📂</span> Importer (.json)
+                  <input type="file" accept=".json,application/json" class="hidden" onchange="app.importBooksJSON(event)">
+                </label>
+                <button type="button" id="btnCopyCatalogText" onclick="app.copyLibrarySummary()"
+                  class="btn-tap px-3 py-2 rounded-xl bg-neutral-100 hover:bg-neutral-200 text-neutral-800 text-xs font-semibold border border-neutral-300 flex items-center gap-1.5">
+                  <span>📋</span> Copier le catalogue (Texte)
+                </button>
+              </div>
+            </div>
+
+            <!-- Restore Starter Demo Book -->
+            <div class="pt-2 border-t border-neutral-100 flex items-center justify-between">
+              <span class="text-xs text-neutral-500">Histoire de démonstration intégrée</span>
+              <button type="button" onclick="app.restoreDemoBook()"
+                class="btn-tap text-xs font-semibold text-amber-700 hover:underline">
+                Restaurer le livre de démo
+              </button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- CONTEXTUAL AFFILIATE / MONETIZATION MODULE (Visible ONLY in Parent Mode) -->
+      <aside class="mt-10 pt-8 border-t border-neutral-200">
+        <div class="flex items-center justify-between mb-3">
+          <h3 class="text-xs font-bold uppercase tracking-wider text-neutral-500">
+            Sélection Équipement Lecture &amp; Éveil Audio (Espace Parent)
+          </h3>
+          <span class="text-[11px] text-neutral-400">Liens partenaires — Soutient SpinFoundry sans surcoût</span>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <a href="https://www.amazon.fr/s?k=casque+audio+enfant+limiteur+85db" target="_blank" rel="noopener noreferrer sponsored"
+            class="group block p-4 rounded-xl bg-white border border-neutral-200 hover:border-neutral-400 transition-all">
+            <div class="text-xs font-semibold text-amber-700 mb-1">🎧 Protection Auditive 85 dB</div>
+            <div class="text-sm font-bold text-neutral-900 group-hover:underline">Casques Audio Enfant Limiteur de Volume</div>
+            <p class="text-xs text-neutral-500 mt-1">Confortables et bridés à 85 dB pour écouter les histoires en voiture ou en train en toute sécurité.</p>
+          </a>
+          <a href="https://www.amazon.fr/s?k=support+tablette+coussin+lecture+enfant" target="_blank" rel="noopener noreferrer sponsored"
+            class="group block p-4 rounded-xl bg-white border border-neutral-200 hover:border-neutral-400 transition-all">
+            <div class="text-xs font-semibold text-amber-700 mb-1">🛋️ Ergonomie Mains-Libres</div>
+            <div class="text-sm font-bold text-neutral-900 group-hover:underline">Coussin Support Tablette &amp; Liseuse</div>
+            <p class="text-xs text-neutral-500 mt-1">Maintient l'écran à bonne distance des yeux sur les genoux ou dans le lit pendant le tourne-page automatique.</p>
+          </a>
+          <a href="https://www.amazon.fr/s?k=micro+cravate+usb+c+smartphone" target="_blank" rel="noopener noreferrer sponsored"
+            class="group block p-4 rounded-xl bg-white border border-neutral-200 hover:border-neutral-400 transition-all">
+            <div class="text-xs font-semibold text-amber-700 mb-1">🎙️ Voix Chaleureuse</div>
+            <div class="text-sm font-bold text-neutral-900 group-hover:underline">Micro Cravate Sans-Fil Smartphone</div>
+            <p class="text-xs text-neutral-500 mt-1">Capturez une voix douce et cristalline tout en tournant librement les pages de l'album papier.</p>
+          </a>
+        </div>
+      </aside>
+    </section>
+
+  </main>
+
+  <!-- ========================================================= -->
+  <!-- FULLSCREEN CHILD STORY READER OVERLAY                     -->
+  <!-- ========================================================= -->
+  <div id="readerOverlay" class="hidden reader-overlay">
+    <!-- Top Reader Bar -->
+    <div class="px-4 py-3 bg-black/50 backdrop-blur-md flex items-center justify-between gap-3 z-10 border-b border-white/10">
+      <div class="flex items-center gap-3 min-w-0">
+        <!-- Exit button (direct in buttons mode, or 2s hold in handsfree mode) -->
+        <button type="button" id="btnReaderExit" onclick="app.handleReaderExitTap()"
+          class="btn-tap px-3.5 py-2 rounded-xl bg-white/15 hover:bg-white/25 text-white font-bold text-xs sm:text-sm flex items-center gap-1.5 shrink-0">
+          <span>📚</span> <span id="readerExitLabel">Bibliothèque</span>
+        </button>
+        <div class="min-w-0">
+          <h2 id="readerBookTitle" class="text-white font-bold text-sm sm:text-base truncate">Titre de l'histoire</h2>
+          <div class="flex items-center gap-2 text-xs text-amber-300 font-medium">
+            <span id="readerNarratorBadge">🎙️ Papa</span>
+            <span>•</span>
+            <span id="readerPageCounter">Page 1 / 1</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Auto-turn / Audio Status Pill -->
+      <div class="flex items-center gap-2 shrink-0">
+        <div id="readerStatusPill" class="px-3 py-1.5 rounded-full bg-amber-500/20 border border-amber-400/40 text-amber-200 text-xs font-bold flex items-center gap-1.5">
+          <span id="readerStatusIcon">🔊</span>
+          <span id="readerStatusText">Lecture...</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Page Progress Dots / Bar -->
+    <div class="w-full h-1.5 bg-white/10">
+      <div id="readerBookProgressBar" class="h-full bg-amber-400 transition-all duration-300" style="width: 0%"></div>
+    </div>
+
+    <!-- Center Illustration Stage -->
+    <div id="readerStage" class="flex-1 relative flex items-center justify-center p-2 sm:p-6 overflow-hidden select-none">
+      <div id="readerPageContainer" class="relative w-full h-full max-w-4xl flex flex-col items-center justify-center">
+        <img id="readerPageImage" src="" alt="Illustration de la page"
+          class="max-h-full max-w-full object-contain rounded-2xl shadow-2xl border-2 border-white/15 bg-neutral-900">
+
+        <!-- Optional Subtitle / Caption pill if parent added one -->
+        <div id="readerPageCaption" class="hidden mt-3 px-4 py-2 rounded-xl bg-black/75 text-white text-xs sm:text-sm font-medium text-center max-w-xl backdrop-blur">
+        </div>
+      </div>
+
+      <!-- END OF STORY OVERLAY SCREEN -->
+      <div id="readerEndScreen" class="hidden absolute inset-0 bg-neutral-900/95 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center z-20">
+        <div class="w-20 h-20 rounded-3xl bg-amber-500/20 border-2 border-amber-400 flex items-center justify-center text-4xl mb-4">
+          🌟
+        </div>
+        <h3 class="text-2xl sm:text-3xl font-extrabold text-white mb-2">
+          Fin de l'histoire !
+        </h3>
+        <p id="readerEndBookTitle" class="text-sm sm:text-base text-amber-200 font-medium mb-8">
+          Bravo d'avoir écouté jusqu'au bout !
+        </p>
+        <div class="flex flex-col sm:flex-row items-center justify-center gap-4 w-full max-w-md">
+          <button type="button" onclick="app.restartCurrentBook()"
+            class="btn-tap w-full sm:w-1/2 py-5 px-6 rounded-3xl bg-amber-500 hover:bg-amber-400 text-neutral-950 font-extrabold text-lg flex flex-col items-center justify-center gap-1 shadow-xl">
+            <span class="text-3xl">🔄</span>
+            <span>Réécouter</span>
+          </button>
+          <button type="button" onclick="app.closeReader()"
+            class="btn-tap w-full sm:w-1/2 py-5 px-6 rounded-3xl bg-white hover:bg-neutral-100 text-neutral-900 font-extrabold text-lg flex flex-col items-center justify-center gap-1 shadow-xl">
+            <span class="text-3xl">📚</span>
+            <span>Autre livre</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pause Countdown Progress Bar (shows post-voice pause before auto page turn) -->
+    <div id="readerPauseCountdownWrap" class="hidden px-4 py-1.5 bg-black/60 text-center">
+      <div class="max-w-md mx-auto flex items-center gap-2 text-xs text-amber-200 font-medium">
+        <span>⏳ Prochaine page dans <strong id="readerPauseSecondsLeft">3</strong>s...</span>
+        <div class="flex-1 h-2 bg-white/15 rounded-full overflow-hidden">
+          <div id="readerPauseBar" class="h-full bg-amber-400 transition-all duration-100" style="width: 100%"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom Kid-Friendly Controls Bar -->
+    <div id="readerControlsBar" class="px-4 py-3 sm:py-4 bg-black/70 backdrop-blur-md border-t border-white/10">
+      <div class="max-w-xl mx-auto grid grid-cols-3 gap-3 sm:gap-4">
+        <button type="button" id="btnReaderPrev" onclick="app.readerPrevPage()"
+          class="btn-tap py-3.5 sm:py-4 px-4 rounded-2xl bg-white/15 hover:bg-white/25 text-white font-extrabold text-sm sm:text-base flex items-center justify-center gap-2">
+          <span class="text-xl sm:text-2xl">⬅️</span>
+          <span>Avant</span>
+        </button>
+
+        <button type="button" id="btnReaderPlayPause" onclick="app.readerTogglePlayPause()"
+          class="btn-tap py-3.5 sm:py-4 px-4 rounded-2xl bg-amber-500 hover:bg-amber-400 text-neutral-950 font-extrabold text-sm sm:text-base flex items-center justify-center gap-2 shadow-lg">
+          <span id="readerPlayPauseIcon" class="text-xl sm:text-2xl">⏸️</span>
+          <span id="readerPlayPauseText">Pause</span>
+        </button>
+
+        <button type="button" id="btnReaderNext" onclick="app.readerNextPage()"
+          class="btn-tap py-3.5 sm:py-4 px-4 rounded-2xl bg-white/15 hover:bg-white/25 text-white font-extrabold text-sm sm:text-base flex items-center justify-center gap-2">
+          <span>Après</span>
+          <span class="text-xl sm:text-2xl">➡️</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================= -->
+  <!-- PARENTAL GATE MODAL (Défi Parental Math ou Appui 3s)       -->
+  <!-- ========================================================= -->
+  <div id="parentGateModal" class="hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-sm w-full p-6 border border-neutral-200 shadow-2xl text-center space-y-4">
+      <div class="w-12 h-12 rounded-2xl bg-neutral-100 border border-neutral-200 flex items-center justify-center text-2xl mx-auto">
+        🔒
+      </div>
+      <div>
+        <h3 class="text-lg font-extrabold text-neutral-900">Accès Mode Parent</h3>
+        <p id="gateSubtitle" class="text-xs text-neutral-500 mt-0.5">
+          Résolvez ce petit calcul pour déverrouiller les réglages et l'enregistrement.
+        </p>
+      </div>
+
+      <!-- Math Challenge Container -->
+      <div id="gateMathBox" class="space-y-3">
+        <div id="gateMathPrompt" class="py-3 px-4 rounded-2xl bg-amber-50 border border-amber-200 text-2xl font-extrabold text-neutral-900 font-mono">
+          7 × 4 = ?
+        </div>
+        <div id="gateMathChoices" class="grid grid-cols-3 gap-2.5">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+
+      <!-- 3-Second Hold Container -->
+      <div id="gateHoldBox" class="hidden space-y-3">
+        <button type="button" id="btnHoldUnlock"
+          onmousedown="app.startParentHold()" onmouseup="app.cancelParentHold()" onmouseleave="app.cancelParentHold()"
+          ontouchstart="app.startParentHold(event)" ontouchend="app.cancelParentHold()"
+          class="relative overflow-hidden w-full py-4 px-5 rounded-2xl bg-neutral-900 text-white font-bold text-sm select-none">
+          <div id="holdProgressBar" class="hold-progress-ring absolute inset-y-0 left-0 bg-amber-500/40" style="width: 0%"></div>
+          <span class="relative z-10">Maintenir appuyé 3 secondes</span>
+        </button>
+      </div>
+
+      <button type="button" onclick="app.closeParentGate()"
+        class="btn-tap w-full py-2.5 rounded-xl bg-neutral-100 hover:bg-neutral-200 text-neutral-700 font-semibold text-xs">
+        Annuler (Rester en Mode Enfant)
+      </button>
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICATION -->
+  <div id="toastNotice" class="fixed bottom-5 right-5 z-50 hidden px-4 py-2.5 rounded-xl bg-neutral-900 text-white text-xs sm:text-sm font-semibold shadow-lg border border-neutral-700">
+  </div>
+
+  <!-- APPLICATION LOGIC -->
+  <script>
+  const app = (() => {
+    const STORAGE_KEY_STATE = 'spinfoundry_papa_raconte_state_v1';
+    const IDB_NAME = 'spinfoundry_papa_raconte_idb';
+    const IDB_VERSION = 1;
+    const DEMO_BOOK_ID = 'demo_ours_etoiles_v1';
+
+    let state = {
+      mode: 'child', // 'child' | 'parent'
+      parentTab: 'books', // 'books' | 'studio' | 'settings'
+      childFilter: 'all', // 'all' | 'fav'
+      familyCode: 'famille_default',
+      demoDeleted: false,
+      settings: {
+        autoTurn: true,
+        pauseAfterAudioSec: 3,
+        pageChime: true,
+        childControls: 'buttons', // 'buttons' | 'handsfree'
+        endOfBookAction: 'screen', // 'screen' | 'library' | 'next_book'
+        parentGate: 'math' // 'math' | 'hold'
+      }
+    };
+
+    // Books metadata list & cached full books (with pages)
+    let booksList = [];
+    let offlineBookIds = new Set();
+
+    // Studio State (Recording / Editing a book)
+    let studioBook = {
+      id: '',
+      title: '',
+      narrator: 'Papa',
+      custom_cover: '',
+      is_favorite: 0,
+      pages: [] // [{ id, page_number, image_data, audio_data, audio_duration, caption }]
+    };
+    let studioPageIndex = 0;
+
+    // Audio Recording State
+    let mediaRecorder = null;
+    let audioChunks = [];
+    let isRecording = false;
+    let recordStartTime = 0;
+    let recordTimerInterval = null;
+    let audioContext = null;
+    let analyserNode = null;
+    let micStream = null;
+    let meterAnimId = null;
+    let studioPreviewAudio = null;
+
+    // Child Reader State
+    let readerBook = null;
+    let readerPages = [];
+    let readerPageIndex = 0;
+    let readerIsPlaying = false;
+    let readerAudioEl = null;
+    let readerPauseTimer = null;
+    let readerPauseInterval = null;
+    let wakeLockSentinel = null;
+
+    // Parent Gate State
+    let gateExpectedAnswer = 28;
+    let holdTimer = null;
+    let holdStartMs = 0;
+
+    // -------------------------------------------------------------
+    // 1. DEMO STORY GENERATOR (SVG Canvas Illustrations + Melody/TTS)
+    // -------------------------------------------------------------
+    function createDemoCoverAndPages() {
+      const scenes = [
+        {
+          bg1: '#1e1b4b', bg2: '#312e81', accent: '#fbbf24',
+          emoji: '🐻✨',
+          title: 'Petit Ours et les Étoiles',
+          caption: 'Ce soir, la nuit est douce sur la grande forêt calme. Petit Ours lève le nez vers le ciel étoilé.'
+        },
+        {
+          bg1: '#0f172a', bg2: '#1e3a8a', accent: '#38bdf8',
+          emoji: '🦉🌲',
+          title: 'La Chouette Sage',
+          caption: 'Coucou Hibou ! La chouette lui murmure : écoute le vent dans les sapins, il berce tous les animaux.'
+        },
+        {
+          bg1: '#1e1b4b', bg2: '#4c1d95', accent: '#f472b6',
+          emoji: '🌙☁️',
+          title: 'Le Nuage Doux',
+          caption: 'La grande Lune dorée allume sa veilleuse. Les petits nuages flottent tout doucement comme des oreillers.'
+        },
+        {
+          bg1: '#111827', bg2: '#1f2937', accent: '#fde047',
+          emoji: '😴💤',
+          title: 'Bonne Nuit Petit Ours',
+          caption: 'Petit Ours ferme les yeux dans sa tanière bien chaude. Bonne nuit, fais de beaux rêves !'
+        }
+      ];
+
+      const pages = scenes.map((sc, idx) => {
+        const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" width="800" height="600">
+          <defs>
+            <linearGradient id="g${idx}" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="${sc.bg1}"/>
+              <stop offset="100%" stop-color="${sc.bg2}"/>
+            </linearGradient>
+          </defs>
+          <rect width="800" height="600" fill="url(#g${idx})"/>
+          <circle cx="140" cy="110" r="3" fill="#ffffff" opacity="0.8"/>
+          <circle cx="670" cy="95" r="4" fill="#fde047" opacity="0.9"/>
+          <circle cx="520" cy="160" r="2.5" fill="#ffffff" opacity="0.7"/>
+          <circle cx="260" cy="180" r="3" fill="#fde047" opacity="0.7"/>
+          <circle cx="400" cy="240" r="115" fill="${sc.accent}" opacity="0.16"/>
+          <text x="400" y="265" font-size="115" text-anchor="middle" dominant-baseline="middle">${sc.emoji}</text>
+          <rect x="70" y="420" width="660" height="125" rx="24" fill="#000000" opacity="0.45"/>
+          <text x="400" y="468" font-family="sans-serif" font-size="28" font-weight="bold" fill="${sc.accent}" text-anchor="middle">${sc.title}</text>
+          <text x="400" y="512" font-family="sans-serif" font-size="19" fill="#f8fafc" text-anchor="middle">${sc.caption.slice(0, 68)}...</text>
+        </svg>`;
+        const dataUrl = 'data:image/svg+xml;utf8,' + encodeURIComponent(svg);
+        return {
+          id: `${DEMO_BOOK_ID}_p${idx + 1}`,
+          book_id: DEMO_BOOK_ID,
+          page_number: idx + 1,
+          image_data: dataUrl,
+          audio_data: 'DEMO_TTS',
+          audio_duration: 6,
+          caption: sc.caption
+        };
+      });
+
+      return {
+        book: {
+          id: DEMO_BOOK_ID,
+          title: 'Petit Ours et les Étoiles (Démo)',
+          narrator: 'Papa',
+          cover_image: pages[0].image_data,
+          page_count: pages.length,
+          total_duration_sec: 24,
+          is_favorite: 1,
+          is_demo: true,
+          updated_at: new Date().toISOString()
+        },
+        pages
+      };
+    }
+
+    // -------------------------------------------------------------
+    // 2. INDEXEDDB LOCAL CACHE (Offline Books + Pages)
+    // -------------------------------------------------------------
+    function openIDB() {
+      return new Promise((resolve, reject) => {
+        const req = indexedDB.open(IDB_NAME, IDB_VERSION);
+        req.onupgradeneeded = (e) => {
+          const db = e.target.result;
+          if (!db.objectStoreNames.contains('books')) {
+            db.createObjectStore('books', { keyPath: 'id' });
+          }
+          if (!db.objectStoreNames.contains('pages')) {
+            const pStore = db.createObjectStore('pages', { keyPath: 'id' });
+            pStore.createIndex('by_book', 'book_id', { unique: false });
+          }
+        };
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => reject(req.error);
+      });
+    }
+
+    async function saveBookToIDB(bookMeta, pagesArray) {
+      const db = await openIDB();
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction(['books', 'pages'], 'readwrite');
+        const bStore = tx.objectStore('books');
+        const pStore = tx.objectStore('pages');
+        bStore.put(bookMeta);
+
+        if (Array.isArray(pagesArray)) {
+          // Delete old pages for this book first
+          const idx = pStore.index('by_book');
+          const range = IDBKeyRange.only(bookMeta.id);
+          idx.openCursor(range).onsuccess = (ev) => {
+            const cursor = ev.target.result;
+            if (cursor) {
+              cursor.delete();
+              cursor.continue();
+            } else {
+              pagesArray.forEach((p) => pStore.put(p));
+            }
+          };
+        }
+        tx.oncomplete = () => {
+          offlineBookIds.add(bookMeta.id);
+          resolve();
+        };
+        tx.onerror = () => reject(tx.error);
+      });
+    }
+
+    async function getAllBooksFromIDB() {
+      const db = await openIDB();
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction('books', 'readonly');
+        const req = tx.objectStore('books').getAll();
+        req.onsuccess = () => resolve(req.result || []);
+        req.onerror = () => reject(req.error);
+      });
+    }
+
+    async function getBookPagesFromIDB(bookId) {
+      const db = await openIDB();
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction('pages', 'readonly');
+        const idx = tx.objectStore('pages').index('by_book');
+        const req = idx.getAll(IDBKeyRange.only(bookId));
+        req.onsuccess = () => {
+          const pages = (req.result || []).sort((a, b) => a.page_number - b.page_number);
+          resolve(pages);
+        };
+        req.onerror = () => reject(req.error);
+      });
+    }
+
+    async function deleteBookFromIDB(bookId) {
+      const db = await openIDB();
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction(['books', 'pages'], 'readwrite');
+        tx.objectStore('books').delete(bookId);
+        const idx = tx.objectStore('pages').index('by_book');
+        idx.openCursor(IDBKeyRange.only(bookId)).onsuccess = (ev) => {
+          const cursor = ev.target.result;
+          if (cursor) {
+            cursor.delete();
+            cursor.continue();
+          }
+        };
+        tx.oncomplete = () => {
+          offlineBookIds.delete(bookId);
+          resolve();
+        };
+        tx.onerror = () => reject(tx.error);
+      });
+    }
+
+    // -------------------------------------------------------------
+    // 3. LOCALSTORAGE STATE & SETTINGS PERSISTENCE
+    // -------------------------------------------------------------
+    function loadLocalState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY_STATE);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          state.familyCode = parsed.familyCode || 'famille_default';
+          state.demoDeleted = !!parsed.demoDeleted;
+          if (parsed.settings) {
+            state.settings = { ...state.settings, ...parsed.settings };
+          }
+        }
+      } catch (_) {}
+      applySettingsToUI();
+    }
+
+    function saveLocalState() {
+      try {
+        localStorage.setItem(STORAGE_KEY_STATE, JSON.stringify({
+          familyCode: state.familyCode,
+          demoDeleted: state.demoDeleted,
+          settings: state.settings
+        }));
+      } catch (_) {}
+    }
+
+    function applySettingsToUI() {
+      const s = state.settings;
+      const elAuto = document.getElementById('settingAutoTurn');
+      if (elAuto) elAuto.checked = !!s.autoTurn;
+
+      const elPause = document.getElementById('settingPauseAfterAudio');
+      const elPauseLbl = document.getElementById('settingPauseValueLabel');
+      if (elPause) elPause.value = s.pauseAfterAudioSec || 3;
+      if (elPauseLbl) elPauseLbl.textContent = `${s.pauseAfterAudioSec || 3} seconde${(s.pauseAfterAudioSec || 3) > 1 ? 's' : ''}`;
+
+      const elChime = document.getElementById('settingPageChime');
+      if (elChime) elChime.checked = !!s.pageChime;
+
+      const elCtrl = document.getElementById('settingChildControls');
+      if (elCtrl) elCtrl.value = s.childControls || 'buttons';
+
+      const elEnd = document.getElementById('settingEndAction');
+      if (elEnd) elEnd.value = s.endOfBookAction || 'screen';
+
+      const elGate = document.getElementById('settingParentGate');
+      if (elGate) elGate.value = s.parentGate || 'math';
+
+      const elFam = document.getElementById('settingFamilyCode');
+      if (elFam) elFam.value = state.familyCode || 'famille_default';
+
+      const elBadge = document.getElementById('activeFamilyCodeBadge');
+      if (elBadge) elBadge.textContent = state.familyCode || 'famille_default';
+    }
+
+    function saveSettingsFromUI() {
+      state.settings.autoTurn = document.getElementById('settingAutoTurn').checked;
+      state.settings.pauseAfterAudioSec = parseInt(document.getElementById('settingPauseAfterAudio').value, 10) || 3;
+      state.settings.pageChime = document.getElementById('settingPageChime').checked;
+      state.settings.childControls = document.getElementById('settingChildControls').value;
+      state.settings.endOfBookAction = document.getElementById('settingEndAction').value;
+      state.settings.parentGate = document.getElementById('settingParentGate').value;
+
+      applySettingsToUI();
+      saveLocalState();
+
+      // Sync settings to Cloud D1 asynchronously
+      fetch('/api/stories', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-User-Id': state.familyCode
+        },
+        body: JSON.stringify({
+          action: 'save_settings',
+          settings: state.settings
+        })
+      }).catch(() => {});
+    }
+
+    // -------------------------------------------------------------
+    // 4. CLOUDFLARE D1 SYNC & INITIALIZATION
+    // -------------------------------------------------------------
+    function setSyncStatus(status, label) {
+      const pill = document.getElementById('syncStatusPill');
+      const dot = document.getElementById('syncDot');
+      const txt = document.getElementById('syncText');
+      if (!pill || !dot || !txt) return;
+      pill.classList.remove('hidden');
+      txt.textContent = label;
+      dot.className = 'w-2 h-2 rounded-full ' + (
+        status === 'ok' ? 'bg-emerald-500' :
+        status === 'syncing' ? 'bg-amber-500 animate-pulse' : 'bg-neutral-400'
+      );
+    }
+
+    async function initApp() {
+      loadLocalState();
+
+      // 1. Load offline cached books from IndexedDB
+      try {
+        const localBooks = await getAllBooksFromIDB();
+        localBooks.forEach((b) => offlineBookIds.add(b.id));
+        booksList = localBooks;
+      } catch (_) {
+        booksList = [];
+      }
+
+      // 2. Ensure Demo Book exists if no books and not explicitly deleted
+      if (booksList.length === 0 && !state.demoDeleted) {
+        const demo = createDemoCoverAndPages();
+        await saveBookToIDB(demo.book, demo.pages);
+        booksList = [demo.book];
+      }
+
+      renderAll();
+
+      // 3. Sync with Cloudflare D1 in background
+      await syncFromCloud(false);
+    }
+
+    async function syncFromCloud(showToastMsg) {
+      setSyncStatus('syncing', 'Sync Cloud...');
+      try {
+        const res = await fetch('/api/stories', {
+          headers: { 'X-User-Id': state.familyCode }
+        });
+        if (!res.ok) throw new Error('Mode local hors-ligne');
+        const data = await res.json();
+
+        if (data.settings) {
+          state.settings = { ...state.settings, ...data.settings };
+          applySettingsToUI();
+          saveLocalState();
+        }
+
+        const cloudBooks = Array.isArray(data.books) ? data.books : [];
+        const localBooks = await getAllBooksFromIDB();
+        const mergedMap = new Map();
+
+        localBooks.forEach((b) => {
+          offlineBookIds.add(b.id);
+          mergedMap.set(b.id, b);
+        });
+        cloudBooks.forEach((cb) => {
+          mergedMap.set(cb.id, cb);
+        });
+
+        booksList = Array.from(mergedMap.values()).sort((a, b) => {
+          if ((b.is_favorite || 0) !== (a.is_favorite || 0)) {
+            return (b.is_favorite || 0) - (a.is_favorite || 0);
+          }
+          return (b.updated_at || '').localeCompare(a.updated_at || '');
+        });
+
+        setSyncStatus('ok', 'Cloud D1 Synchronisé');
+        if (showToastMsg) showToast('Bibliothèque synchronisée avec le Cloud ✓');
+        renderAll();
+      } catch (_) {
+        setSyncStatus('offline', 'Hors-ligne (Local)');
+        if (showToastMsg) showToast('Fonctionnement en mode local hors-ligne');
+      }
+    }
+
+    async function fetchOrLoadBookPages(bookId) {
+      // 1. Check IndexedDB first
+      const localPages = await getBookPagesFromIDB(bookId);
+      if (localPages && localPages.length > 0) {
+        return localPages;
+      }
+
+      // 2. If Demo Book, generate it
+      if (bookId === DEMO_BOOK_ID) {
+        const demo = createDemoCoverAndPages();
+        await saveBookToIDB(demo.book, demo.pages);
+        return demo.pages;
+      }
+
+      // 3. Fetch from Cloud D1 and cache locally in IndexedDB
+      setSyncStatus('syncing', 'Téléchargement du livre...');
+      const res = await fetch(`/api/stories?book_id=${encodeURIComponent(bookId)}`, {
+        headers: { 'X-User-Id': state.familyCode }
+      });
+      if (!res.ok) {
+        throw new Error('Impossible de charger les pages de ce livre.');
+      }
+      const data = await res.json();
+      if (data.book && Array.isArray(data.pages)) {
+        await saveBookToIDB(data.book, data.pages);
+        setSyncStatus('ok', 'Livre disponible hors-ligne ✓');
+        renderAll();
+        return data.pages;
+      }
+      return [];
+    }
+
+    async function downloadAllForOffline() {
+      showToast('Téléchargement de tous les livres pour lecture hors-ligne...');
+      let count = 0;
+      for (const b of booksList) {
+        try {
+          await fetchOrLoadBookPages(b.id);
+          count++;
+        } catch (_) {}
+      }
+      renderAll();
+      showToast(`${count} livre(s) prêts pour le mode hors-ligne ✓`);
+    }
+
+    // -------------------------------------------------------------
+    // 5. MODE SWITCHING & PARENTAL GATE
+    // -------------------------------------------------------------
+    function switchToChildMode() {
+      stopVoiceRecordingIfActive();
+      state.mode = 'child';
+      document.getElementById('viewChildLibrary').classList.remove('hidden');
+      document.getElementById('viewParentMode').classList.add('hidden');
+      document.getElementById('mainWrapper').classList.add('kid-bg');
+
+      // Update header toggle buttons
+      document.getElementById('btnModeChild').className = 'btn-tap px-3 py-1 rounded-lg text-xs sm:text-sm font-semibold flex items-center gap-1.5 bg-amber-500 text-white shadow-sm';
+      document.getElementById('btnModeParent').className = 'btn-tap px-3 py-1 rounded-lg text-xs sm:text-sm font-semibold flex items-center gap-1.5 text-neutral-600 hover:text-neutral-900';
+
+      renderAll();
+    }
+
+    function requestParentMode() {
+      if (state.mode === 'parent') return;
+      openParentGate();
+    }
+
+    function openParentGate() {
+      const modal = document.getElementById('parentGateModal');
+      const mathBox = document.getElementById('gateMathBox');
+      const holdBox = document.getElementById('gateHoldBox');
+      const sub = document.getElementById('gateSubtitle');
+
+      modal.classList.remove('hidden');
+
+      if (state.settings.parentGate === 'hold') {
+        mathBox.classList.add('hidden');
+        holdBox.classList.remove('hidden');
+        sub.textContent = 'Maintenez le bouton appuyé pendant 3 secondes pour entrer en Mode Parent.';
+        document.getElementById('holdProgressBar').style.width = '0%';
+      } else {
+        mathBox.classList.remove('hidden');
+        holdBox.classList.add('hidden');
+        sub.textContent = 'Résolvez ce petit calcul pour déverrouiller le Mode Parent.';
+
+        const a = Math.floor(Math.random() * 6) + 4; // 4..9
+        const b = Math.floor(Math.random() * 5) + 3; // 3..7
+        gateExpectedAnswer = a * b;
+        document.getElementById('gateMathPrompt').textContent = `${a} × ${b} = ?`;
+
+        const wrong1 = gateExpectedAnswer + (Math.random() > 0.5 ? 4 : -3);
+        const wrong2 = gateExpectedAnswer + (Math.random() > 0.5 ? 7 : -5);
+        const choices = [gateExpectedAnswer, wrong1, wrong2].sort(() => Math.random() - 0.5);
+
+        const choicesContainer = document.getElementById('gateMathChoices');
+        choicesContainer.innerHTML = choices.map((val) => `
+          <button type="button" onclick="app.checkGateMath(${val})"
+            class="btn-tap py-3.5 rounded-2xl bg-neutral-100 hover:bg-amber-100 border-2 border-neutral-200 hover:border-amber-400 text-lg font-extrabold text-neutral-900">
+            ${val}
+          </button>
+        `).join('');
+      }
+    }
+
+    function checkGateMath(val) {
+      if (val === gateExpectedAnswer) {
+        closeParentGate();
+        unlockParentMode();
+      } else {
+        showToast('Oups, réponse incorrecte !');
+        closeParentGate();
+      }
+    }
+
+    function startParentHold(ev) {
+      if (ev && ev.cancelable) ev.preventDefault();
+      cancelParentHold();
+      holdStartMs = Date.now();
+      const bar = document.getElementById('holdProgressBar');
+      holdTimer = setInterval(() => {
+        const elapsed = Date.now() - holdStartMs;
+        const pct = Math.min(100, (elapsed / 3000) * 100);
+        if (bar) bar.style.width = `${pct}%`;
+        if (elapsed >= 3000) {
+          cancelParentHold();
+          closeParentGate();
+          unlockParentMode();
+        }
+      }, 40);
+    }
+
+    function cancelParentHold() {
+      if (holdTimer) {
+        clearInterval(holdTimer);
+        holdTimer = null;
+      }
+      const bar = document.getElementById('holdProgressBar');
+      if (bar) bar.style.width = '0%';
+    }
+
+    function closeParentGate() {
+      cancelParentHold();
+      document.getElementById('parentGateModal').classList.add('hidden');
+    }
+
+    function unlockParentMode() {
+      state.mode = 'parent';
+      document.getElementById('viewChildLibrary').classList.add('hidden');
+      document.getElementById('viewParentMode').classList.remove('hidden');
+      document.getElementById('mainWrapper').classList.remove('kid-bg');
+
+      document.getElementById('btnModeParent').className = 'btn-tap px-3 py-1 rounded-lg text-xs sm:text-sm font-semibold flex items-center gap-1.5 bg-neutral-900 text-white shadow-sm';
+      document.getElementById('btnModeChild').className = 'btn-tap px-3 py-1 rounded-lg text-xs sm:text-sm font-semibold flex items-center gap-1.5 text-neutral-600 hover:text-neutral-900';
+
+      setParentTab(state.parentTab || 'books');
+      renderAll();
+    }
+
+    function setParentTab(tab) {
+      state.parentTab = tab;
+      ['books', 'studio', 'settings'].forEach((t) => {
+        const sec = document.getElementById('parentSection' + t.charAt(0).toUpperCase() + t.slice(1));
+        const btn = document.getElementById('parentTab' + t.charAt(0).toUpperCase() + t.slice(1));
+        if (sec) sec.classList.toggle('hidden', t !== tab);
+        if (btn) {
+          btn.className = t === tab
+            ? 'btn-tap px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold bg-neutral-900 text-white flex items-center gap-1.5'
+            : 'btn-tap px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold bg-neutral-100 text-neutral-700 hover:bg-neutral-200 flex items-center gap-1.5';
+        }
+      });
+
+      if (tab === 'studio' && (!studioBook.id || studioBook.pages.length === 0)) {
+        initFreshStudioBook();
+      }
+      renderStudio();
+    }
+
+    // -------------------------------------------------------------
+    // 6. RENDERING LIBRARY (CHILD & PARENT)
+    // -------------------------------------------------------------
+    function formatDuration(sec) {
+      const s = Math.round(Number(sec) || 0);
+      if (s < 60) return `${s}s`;
+      const m = Math.floor(s / 60);
+      const r = s % 60;
+      return r > 0 ? `${m}m ${r}s` : `${m} min`;
+    }
+
+    function setChildFilter(filter) {
+      state.childFilter = filter;
+      document.getElementById('filterAllBtn').className = filter === 'all'
+        ? 'btn-tap px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold bg-amber-500 text-white shadow-sm flex items-center gap-1.5'
+        : 'btn-tap px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold bg-white text-neutral-700 border border-amber-200 hover:bg-amber-50 flex items-center gap-1.5';
+      document.getElementById('filterFavBtn').className = filter === 'fav'
+        ? 'btn-tap px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold bg-amber-500 text-white shadow-sm flex items-center gap-1.5'
+        : 'btn-tap px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold bg-white text-neutral-700 border border-amber-200 hover:bg-amber-50 flex items-center gap-1.5';
+      renderChildLibrary();
+    }
+
+    function renderAll() {
+      renderChildLibrary();
+      renderParentBooksList();
+      const countEl = document.getElementById('parentBookCount');
+      if (countEl) countEl.textContent = booksList.length;
+    }
+
+    function renderChildLibrary() {
+      const grid = document.getElementById('childBooksGrid');
+      const empty = document.getElementById('childEmptyState');
+      if (!grid || !empty) return;
+
+      const filtered = state.childFilter === 'fav'
+        ? booksList.filter((b) => b.is_favorite)
+        : booksList;
+
+      if (filtered.length === 0) {
+        grid.innerHTML = '';
+        empty.classList.remove('hidden');
+        return;
+      }
+      empty.classList.add('hidden');
+
+      grid.innerHTML = filtered.map((b) => {
+        const isOffline = offlineBookIds.has(b.id);
+        const coverSrc = b.cover_image || '';
+        return `
+          <article onclick="app.openBookInReader('${b.id}')"
+            class="kid-card cursor-pointer overflow-hidden flex flex-col justify-between btn-tap">
+            <div>
+              <div class="relative aspect-[4/3] bg-amber-100 overflow-hidden border-b-2 border-amber-100">
+                ${coverSrc
+                  ? `<img src="${coverSrc}" alt="${escapeHtml(b.title)}" class="w-full h-full object-cover">`
+                  : `<div class="w-full h-full flex items-center justify-center text-6xl">📕</div>`
+                }
+                <div class="absolute top-3 left-3 px-3 py-1 rounded-full bg-black/70 backdrop-blur text-white text-xs font-bold flex items-center gap-1">
+                  <span>🎙️</span> <span>${escapeHtml(b.narrator || 'Papa')}</span>
+                </div>
+                ${b.is_favorite ? `
+                  <div class="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/90 shadow flex items-center justify-center text-base">
+                    ❤️
+                  </div>
+                ` : ''}
+                <div class="absolute bottom-2.5 right-2.5 px-2.5 py-1 rounded-lg bg-black/70 text-amber-200 text-xs font-bold">
+                  ${b.page_count || 1} pages
+                </div>
+              </div>
+              <div class="p-4">
+                <h2 class="text-lg font-extrabold text-neutral-900 line-clamp-1">
+                  ${escapeHtml(b.title)}
+                </h2>
+                <div class="flex items-center justify-between text-xs text-neutral-500 font-semibold mt-1">
+                  <span>⏱️ ${formatDuration(b.total_duration_sec || 15)}</span>
+                  <span class="${isOffline ? 'text-emerald-700' : 'text-amber-700'}">
+                    ${isOffline ? '✓ Prêt hors-ligne' : '☁️ Cloud'}
+                  </span>
+                </div>
+              </div>
+            </div>
+            <div class="px-4 pb-4">
+              <div class="w-full py-3 rounded-2xl bg-amber-500 hover:bg-amber-600 text-white font-extrabold text-base flex items-center justify-center gap-2 shadow">
+                <span>▶️</span> <span>Écouter l'histoire</span>
+              </div>
+            </div>
+          </article>
+        `;
+      }).join('');
+    }
+
+    function renderParentBooksList() {
+      const container = document.getElementById('parentBooksList');
+      if (!container) return;
+
+      if (booksList.length === 0) {
+        container.innerHTML = `
+          <div class="col-span-full bg-white rounded-2xl border border-neutral-200 p-8 text-center">
+            <p class="text-sm text-neutral-600 mb-3">Aucun livre enregistré pour le moment.</p>
+            <button type="button" onclick="app.startNewBookWizard()"
+              class="btn-tap px-4 py-2 rounded-xl bg-neutral-900 text-white text-xs font-bold">
+              📸 Créer mon premier livre
+            </button>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = booksList.map((b) => {
+        const isOffline = offlineBookIds.has(b.id);
+        return `
+          <div class="bg-white rounded-2xl border border-neutral-200 p-4 flex gap-4 items-center shadow-sm">
+            <div class="w-20 h-20 rounded-xl bg-neutral-100 border border-neutral-200 overflow-hidden shrink-0 flex items-center justify-center">
+              ${b.cover_image
+                ? `<img src="${b.cover_image}" alt="${escapeHtml(b.title)}" class="w-full h-full object-cover">`
+                : `<span class="text-2xl">📕</span>`
+              }
+            </div>
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center gap-1.5">
+                <h3 class="text-sm sm:text-base font-bold text-neutral-900 truncate">${escapeHtml(b.title)}</h3>
+                <button type="button" onclick="app.toggleBookFavorite('${b.id}')" title="Favori"
+                  class="btn-tap text-sm ml-auto">
+                  ${b.is_favorite ? '❤️' : '🤍'}
+                </button>
+              </div>
+              <div class="text-xs text-neutral-500 mt-0.5 flex flex-wrap items-center gap-2">
+                <span>🎙️ ${escapeHtml(b.narrator || 'Papa')}</span>
+                <span>•</span>
+                <span>${b.page_count || 1} page(s)</span>
+                <span>•</span>
+                <span>${formatDuration(b.total_duration_sec || 0)}</span>
+                <span class="px-1.5 py-0.5 rounded text-[10px] font-semibold ${isOffline ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-amber-50 text-amber-700'}">
+                  ${isOffline ? 'Hors-ligne ✓' : 'Cloud'}
+                </span>
+              </div>
+              <div class="flex flex-wrap items-center gap-1.5 mt-3">
+                <button type="button" onclick="app.openBookInReader('${b.id}')"
+                  class="btn-tap px-2.5 py-1 rounded-lg bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold">
+                  ▶ Tester
+                </button>
+                <button type="button" onclick="app.editExistingBook('${b.id}')"
+                  class="btn-tap px-2.5 py-1 rounded-lg bg-neutral-100 hover:bg-neutral-200 text-neutral-800 text-xs font-semibold border border-neutral-300">
+                  ✏️ Modifier pages
+                </button>
+                <button type="button" onclick="app.deleteBook('${b.id}')"
+                  class="btn-tap px-2.5 py-1 rounded-lg bg-red-50 hover:bg-red-100 text-red-700 text-xs font-semibold border border-red-200">
+                  🗑️ Supprimer
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // -------------------------------------------------------------
+    // 7. STUDIO D'ENREGISTREMENT (EXPRESS PHOTO + VOICE)
+    // -------------------------------------------------------------
+    function createEmptyPage(pageNumber, bookId) {
+      return {
+        id: 'page_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
+        book_id: bookId,
+        page_number: pageNumber,
+        image_data: '',
+        audio_data: '',
+        audio_duration: 0,
+        caption: ''
+      };
+    }
+
+    function initFreshStudioBook() {
+      const bookId = 'book_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6);
+      studioBook = {
+        id: bookId,
+        title: '',
+        narrator: 'Papa',
+        custom_cover: '',
+        is_favorite: 0,
+        pages: [createEmptyPage(1, bookId)]
+      };
+      studioPageIndex = 0;
+    }
+
+    function startNewBookWizard() {
+      stopVoiceRecordingIfActive();
+      initFreshStudioBook();
+      setParentTab('studio');
+      const titleInput = document.getElementById('studioBookTitle');
+      if (titleInput) titleInput.focus();
+    }
+
+    async function editExistingBook(bookId) {
+      stopVoiceRecordingIfActive();
+      const meta = booksList.find((b) => b.id === bookId);
+      if (!meta) return;
+
+      try {
+        const pages = await fetchOrLoadBookPages(bookId);
+        studioBook = {
+          id: meta.id,
+          title: meta.title || '',
+          narrator: meta.narrator || 'Papa',
+          custom_cover: '',
+          is_favorite: meta.is_favorite || 0,
+          pages: pages.length > 0 ? pages.map((p) => ({ ...p })) : [createEmptyPage(1, meta.id)]
+        };
+        studioPageIndex = 0;
+        setParentTab('studio');
+      } catch (err) {
+        showToast(err.message || 'Erreur lors du chargement du livre');
+      }
+    }
+
+    function updateStudioMetadata() {
+      studioBook.title = document.getElementById('studioBookTitle').value;
+      studioBook.narrator = document.getElementById('studioBookNarrator').value;
+    }
+
+    function renderStudio() {
+      if (!studioBook || !studioBook.pages || studioBook.pages.length === 0) return;
+
+      document.getElementById('studioBookTitle').value = studioBook.title || '';
+      document.getElementById('studioBookNarrator').value = studioBook.narrator || 'Papa';
+
+      // Cover preview
+      const effectiveCover = studioBook.custom_cover || (studioBook.pages[0] && studioBook.pages[0].image_data) || '';
+      const coverWrap = document.getElementById('studioCoverPreviewWrap');
+      const clearCoverBtn = document.getElementById('btnClearCustomCover');
+      const coverHint = document.getElementById('studioCoverHint');
+      if (effectiveCover) {
+        coverWrap.innerHTML = `<img src="${effectiveCover}" alt="Couverture" class="w-full h-full object-cover">`;
+      } else {
+        coverWrap.innerHTML = '📕';
+      }
+      if (studioBook.custom_cover) {
+        clearCoverBtn.classList.remove('hidden');
+        coverHint.textContent = 'Photo de couverture personnalisée active.';
+      } else {
+        clearCoverBtn.classList.add('hidden');
+        coverHint.textContent = "Par défaut, l'illustration de la Page 1 sert automatiquement de couverture.";
+      }
+
+      // Clamp index
+      if (studioPageIndex >= studioBook.pages.length) studioPageIndex = studioBook.pages.length - 1;
+      if (studioPageIndex < 0) studioPageIndex = 0;
+
+      const currentPage = studioBook.pages[studioPageIndex];
+      const totalPages = studioBook.pages.length;
+
+      document.getElementById('studioCurrentPageBadge').textContent = `Page ${studioPageIndex + 1} sur ${totalPages}`;
+
+      const hasImg = !!currentPage.image_data;
+      const hasAud = !!currentPage.audio_data;
+      const statusBadge = document.getElementById('studioPageStatusBadge');
+      if (hasImg && hasAud) {
+        statusBadge.className = 'text-xs font-semibold px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200';
+        statusBadge.textContent = '✓ Page complète (Photo + Voix)';
+      } else if (hasImg) {
+        statusBadge.className = 'text-xs font-semibold px-2.5 py-1 rounded-full bg-amber-50 text-amber-800 border border-amber-200';
+        statusBadge.textContent = '📷 Photo prête — Enregistrez votre voix';
+      } else {
+        statusBadge.className = 'text-xs font-semibold px-2.5 py-1 rounded-full bg-neutral-100 text-neutral-600 border border-neutral-200';
+        statusBadge.textContent = '1. Prenez la photo de la page';
+      }
+
+      // Render horizontal thumbnails strip
+      const strip = document.getElementById('studioPagesStrip');
+      strip.innerHTML = studioBook.pages.map((p, idx) => {
+        const active = idx === studioPageIndex;
+        const complete = p.image_data && p.audio_data;
+        return `
+          <button type="button" onclick="app.selectStudioPage(${idx})"
+            class="btn-tap shrink-0 px-3 py-2 rounded-xl border-2 text-xs font-bold flex items-center gap-1.5 ${
+              active
+                ? 'border-neutral-900 bg-neutral-900 text-white'
+                : 'border-neutral-200 bg-neutral-50 text-neutral-700 hover:bg-neutral-100'
+            }">
+            <span>Page ${idx + 1}</span>
+            <span>${complete ? '✅' : (p.image_data ? '📷' : '⚪')}</span>
+          </button>
+        `;
+      }).join('') + `
+        <button type="button" onclick="app.studioAddBlankPage()"
+          class="btn-tap shrink-0 px-3 py-2 rounded-xl border-2 border-dashed border-neutral-300 text-xs font-bold text-neutral-600 hover:border-neutral-900 hover:text-neutral-900">
+          + Ajouter page
+        </button>
+      `;
+
+      // Photo Preview
+      const imgEl = document.getElementById('studioPhotoPreview');
+      const placeholderEl = document.getElementById('studioPhotoPlaceholder');
+      const actionsEl = document.getElementById('studioPhotoActions');
+      const rotateBtn = document.getElementById('btnRotatePhoto');
+
+      if (currentPage.image_data) {
+        imgEl.src = currentPage.image_data;
+        imgEl.classList.remove('hidden');
+        placeholderEl.classList.add('hidden');
+        actionsEl.classList.remove('hidden');
+        rotateBtn.classList.remove('hidden');
+        const kb = Math.round((currentPage.image_data.length * 0.75) / 1024);
+        document.getElementById('studioPhotoSizeInfo').textContent = `~${kb} Ko`;
+      } else {
+        imgEl.src = '';
+        imgEl.classList.add('hidden');
+        placeholderEl.classList.remove('hidden');
+        actionsEl.classList.add('hidden');
+        rotateBtn.classList.add('hidden');
+      }
+
+      // Audio Preview
+      const audBox = document.getElementById('studioAudioPreviewBox');
+      const audDur = document.getElementById('studioAudioDurationLabel');
+      if (currentPage.audio_data) {
+        audBox.classList.remove('hidden');
+        audDur.textContent = `${(currentPage.audio_duration || 0).toFixed(1)}s`;
+      } else {
+        audBox.classList.add('hidden');
+      }
+
+      // Caption
+      document.getElementById('studioPageCaption').value = currentPage.caption || '';
+
+      // Next / Add Page button label
+      const nextBtnLbl = document.getElementById('btnNextPageLabel');
+      if (studioPageIndex < totalPages - 1) {
+        nextBtnLbl.textContent = `Aller à la Page ${studioPageIndex + 2} ➔`;
+      } else {
+        nextBtnLbl.textContent = `Page suivante (Ajouter Page ${totalPages + 1}) ➔`;
+      }
+    }
+
+    function selectStudioPage(idx) {
+      stopVoiceRecordingIfActive();
+      studioPageIndex = idx;
+      renderStudio();
+    }
+
+    function studioAddBlankPage() {
+      stopVoiceRecordingIfActive();
+      const nextNum = studioBook.pages.length + 1;
+      studioBook.pages.push(createEmptyPage(nextNum, studioBook.id));
+      studioPageIndex = studioBook.pages.length - 1;
+      renderStudio();
+    }
+
+    function studioNextOrAddPage() {
+      stopVoiceRecordingIfActive();
+      if (studioPageIndex < studioBook.pages.length - 1) {
+        studioPageIndex++;
+      } else {
+        const nextNum = studioBook.pages.length + 1;
+        studioBook.pages.push(createEmptyPage(nextNum, studioBook.id));
+        studioPageIndex = studioBook.pages.length - 1;
+      }
+      renderStudio();
+      showToast(`Page ${studioPageIndex + 1} prête`);
+    }
+
+    function studioMovePage(dir) {
+      stopVoiceRecordingIfActive();
+      const target = studioPageIndex + dir;
+      if (target < 0 || target >= studioBook.pages.length) return;
+      const temp = studioBook.pages[studioPageIndex];
+      studioBook.pages[studioPageIndex] = studioBook.pages[target];
+      studioBook.pages[target] = temp;
+      studioBook.pages.forEach((p, i) => { p.page_number = i + 1; });
+      studioPageIndex = target;
+      renderStudio();
+    }
+
+    function studioDeleteCurrentPage() {
+      stopVoiceRecordingIfActive();
+      if (studioBook.pages.length <= 1) {
+        studioBook.pages[0] = createEmptyPage(1, studioBook.id);
+        renderStudio();
+        showToast('Page réinitialisée');
+        return;
+      }
+      studioBook.pages.splice(studioPageIndex, 1);
+      studioBook.pages.forEach((p, i) => { p.page_number = i + 1; });
+      if (studioPageIndex >= studioBook.pages.length) {
+        studioPageIndex = studioBook.pages.length - 1;
+      }
+      renderStudio();
+      showToast('Page supprimée');
+    }
+
+    function updateCurrentPageCaption() {
+      const p = studioBook.pages[studioPageIndex];
+      if (p) p.caption = document.getElementById('studioPageCaption').value;
+    }
+
+    // -------------------------------------------------------------
+    // 8. IMAGE COMPRESSION & ROTATION ON CANVAS
+    // -------------------------------------------------------------
+    function compressImageFile(file, maxDim = 1100, quality = 0.76) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const img = new Image();
+          img.onload = () => {
+            let w = img.width;
+            let h = img.height;
+            if (w > maxDim || h > maxDim) {
+              if (w > h) {
+                h = Math.round((h * maxDim) / w);
+                w = maxDim;
+              } else {
+                w = Math.round((w * maxDim) / h);
+                h = maxDim;
+              }
+            }
+            const canvas = document.createElement('canvas');
+            canvas.width = w;
+            canvas.height = h;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, w, h);
+            // Prefer webp if supported, fallback to jpeg
+            let dataUrl = canvas.toDataURL('image/webp', quality);
+            if (!dataUrl.startsWith('data:image/webp')) {
+              dataUrl = canvas.toDataURL('image/jpeg', quality);
+            }
+            resolve(dataUrl);
+          };
+          img.onerror = reject;
+          img.src = e.target.result;
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+
+    async function handlePagePhotoInput(event) {
+      const file = event.target.files && event.target.files[0];
+      if (!file) return;
+      try {
+        showToast('Optimisation de la photo...');
+        const compressed = await compressImageFile(file, 1100, 0.76);
+        studioBook.pages[studioPageIndex].image_data = compressed;
+        renderStudio();
+        showToast('Photo ajoutée ! Vous pouvez enregistrer votre voix 🎙️');
+      } catch (_) {
+        showToast('Impossible de lire cette image');
+      } finally {
+        event.target.value = '';
+      }
+    }
+
+    async function handleDedicatedCoverInput(event) {
+      const file = event.target.files && event.target.files[0];
+      if (!file) return;
+      try {
+        const compressed = await compressImageFile(file, 700, 0.75);
+        studioBook.custom_cover = compressed;
+        renderStudio();
+        showToast('Photo de couverture mise à jour ✓');
+      } catch (_) {}
+      event.target.value = '';
+    }
+
+    function clearDedicatedCover() {
+      studioBook.custom_cover = '';
+      renderStudio();
+    }
+
+    function rotateCurrentPagePhoto() {
+      const p = studioBook.pages[studioPageIndex];
+      if (!p || !p.image_data) return;
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = img.height;
+        canvas.height = img.width;
+        const ctx = canvas.getContext('2d');
+        ctx.translate(canvas.width / 2, canvas.height / 2);
+        ctx.rotate(Math.PI / 2);
+        ctx.drawImage(img, -img.width / 2, -img.height / 2);
+        p.image_data = canvas.toDataURL('image/jpeg', 0.8);
+        renderStudio();
+      };
+      img.src = p.image_data;
+    }
+
+    // -------------------------------------------------------------
+    // 9. VOICE RECORDING (MediaRecorder + Live Meter + WakeLock)
+    // -------------------------------------------------------------
+    async function toggleVoiceRecording() {
+      if (isRecording) {
+        stopVoiceRecordingIfActive();
+      } else {
+        await startVoiceRecording();
+      }
+    }
+
+    async function startVoiceRecording() {
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        showToast('Votre navigateur ne supporte pas le microphone.');
+        return;
+      }
+
+      try {
+        await requestWakeLock();
+        micStream = await navigator.mediaDevices.getUserMedia({
+          audio: {
+            echoCancellation: true,
+            noiseSuppression: true,
+            channelCount: 1
+          }
+        });
+
+        // Setup live volume meter
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        audioContext = new AudioCtx();
+        const source = audioContext.createMediaStreamSource(micStream);
+        analyserNode = audioContext.createAnalyser();
+        analyserNode.fftSize = 256;
+        source.connect(analyserNode);
+
+        const dataArray = new Uint8Array(analyserNode.frequencyBinCount);
+        const volBar = document.getElementById('recVolumeBar');
+        function updateMeter() {
+          if (!isRecording || !analyserNode) return;
+          analyserNode.getByteFrequencyData(dataArray);
+          let sum = 0;
+          for (let i = 0; i < dataArray.length; i++) sum += dataArray[i];
+          const avg = sum / dataArray.length;
+          const pct = Math.min(100, Math.round((avg / 90) * 100));
+          if (volBar) volBar.style.width = `${pct}%`;
+          meterAnimId = requestAnimationFrame(updateMeter);
+        }
+
+        // Choose low-bitrate voice mimeType so D1 & IndexedDB stay super fast
+        const mimeCandidates = [
+          'audio/webm;codecs=opus',
+          'audio/webm',
+          'audio/mp4',
+          'audio/ogg;codecs=opus'
+        ];
+        let chosenMime = '';
+        for (const m of mimeCandidates) {
+          if (window.MediaRecorder && MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(m)) {
+            chosenMime = m;
+            break;
+          }
+        }
+
+        const recOptions = { audioBitsPerSecond: 32000 };
+        if (chosenMime) recOptions.mimeType = chosenMime;
+
+        audioChunks = [];
+        mediaRecorder = new MediaRecorder(micStream, recOptions);
+
+        mediaRecorder.ondataavailable = (ev) => {
+          if (ev.data && ev.data.size > 0) audioChunks.push(ev.data);
+        };
+
+        mediaRecorder.onstop = () => {
+          const durationSec = Math.max(0.8, (Date.now() - recordStartTime) / 1000);
+          const blob = new Blob(audioChunks, { type: mediaRecorder.mimeType || 'audio/webm' });
+          const reader = new FileReader();
+          reader.onloadend = () => {
+            const p = studioBook.pages[studioPageIndex];
+            if (p) {
+              p.audio_data = reader.result;
+              p.audio_duration = Math.round(durationSec * 10) / 10;
+              renderStudio();
+              showToast(`Voix enregistrée (${p.audio_duration}s) ✓`);
+            }
+          };
+          reader.readAsDataURL(blob);
+        };
+
+        mediaRecorder.start(250);
+        isRecording = true;
+        recordStartTime = Date.now();
+        updateMeter();
+
+        // Update UI
+        document.getElementById('recIndicatorDot').className = 'w-3 h-3 rounded-full bg-red-600 animate-ping';
+        document.getElementById('recStatusLabel').textContent = 'Enregistrement en cours...';
+        const btn = document.getElementById('btnToggleRecord');
+        btn.className = 'btn-tap rec-pulse w-full py-4 px-5 rounded-2xl bg-neutral-900 hover:bg-neutral-800 text-white font-extrabold text-base flex items-center justify-center gap-2.5 shadow-md';
+        document.getElementById('btnRecordIcon').textContent = '⏹️';
+        document.getElementById('btnRecordText').textContent = "Arrêter l'enregistrement";
+
+        recordTimerInterval = setInterval(() => {
+          const sec = Math.floor((Date.now() - recordStartTime) / 1000);
+          const m = String(Math.floor(sec / 60)).padStart(2, '0');
+          const s = String(sec % 60).padStart(2, '0');
+          document.getElementById('recTimerDisplay').textContent = `${m}:${s}`;
+        }, 250);
+      } catch (err) {
+        showToast("Accès au micro refusé ou indisponible.");
+      }
+    }
+
+    function stopVoiceRecordingIfActive() {
+      if (!isRecording) return;
+      isRecording = false;
+      if (recordTimerInterval) {
+        clearInterval(recordTimerInterval);
+        recordTimerInterval = null;
+      }
+      if (meterAnimId) {
+        cancelAnimationFrame(meterAnimId);
+        meterAnimId = null;
+      }
+      try {
+        if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+          mediaRecorder.stop();
+        }
+      } catch (_) {}
+      try {
+        if (micStream) {
+          micStream.getTracks().forEach((t) => t.stop());
+          micStream = null;
+        }
+      } catch (_) {}
+      try {
+        if (audioContext) {
+          audioContext.close();
+          audioContext = null;
+        }
+      } catch (_) {}
+
+      const dot = document.getElementById('recIndicatorDot');
+      if (dot) dot.className = 'w-3 h-3 rounded-full bg-neutral-300';
+      const lbl = document.getElementById('recStatusLabel');
+      if (lbl) lbl.textContent = 'Prêt à enregistrer';
+      const vol = document.getElementById('recVolumeBar');
+      if (vol) vol.style.width = '0%';
+      const btn = document.getElementById('btnToggleRecord');
+      if (btn) {
+        btn.className = 'btn-tap w-full py-4 px-5 rounded-2xl bg-red-600 hover:bg-red-700 text-white font-extrabold text-base flex items-center justify-center gap-2.5 shadow-md';
+      }
+      const ico = document.getElementById('btnRecordIcon');
+      if (ico) ico.textContent = '🎙️';
+      const txt = document.getElementById('btnRecordText');
+      if (txt) txt.textContent = 'Enregistrer ma voix';
+    }
+
+    function playStudioPreviewAudio() {
+      const p = studioBook.pages[studioPageIndex];
+      if (!p || !p.audio_data) return;
+      if (studioPreviewAudio) {
+        studioPreviewAudio.pause();
+        studioPreviewAudio = null;
+      }
+      if (p.audio_data === 'DEMO_TTS') {
+        speakTextFallback(p.caption || studioBook.title);
+        return;
+      }
+      studioPreviewAudio = new Audio(p.audio_data);
+      studioPreviewAudio.play().catch(() => {});
+    }
+
+    function clearCurrentPageAudio() {
+      const p = studioBook.pages[studioPageIndex];
+      if (!p) return;
+      p.audio_data = '';
+      p.audio_duration = 0;
+      renderStudio();
+    }
+
+    // -------------------------------------------------------------
+    // 10. SAVING BOOK TO INDEXEDDB + CLOUDFLARE D1
+    // -------------------------------------------------------------
+    async function generateCoverThumbnail(dataUrl) {
+      if (!dataUrl) return '';
+      if (dataUrl.startsWith('data:image/svg+xml')) return dataUrl;
+      return new Promise((resolve) => {
+        const img = new Image();
+        img.onload = () => {
+          const maxDim = 480;
+          let w = img.width;
+          let h = img.height;
+          if (w > maxDim || h > maxDim) {
+            if (w > h) {
+              h = Math.round((h * maxDim) / w);
+              w = maxDim;
+            } else {
+              w = Math.round((w * maxDim) / h);
+              h = maxDim;
+            }
+          }
+          const c = document.createElement('canvas');
+          c.width = w;
+          c.height = h;
+          c.getContext('2d').drawImage(img, 0, 0, w, h);
+          resolve(c.toDataURL('image/jpeg', 0.72));
+        };
+        img.onerror = () => resolve(dataUrl);
+        img.src = dataUrl;
+      });
+    }
+
+    async function finishAndSaveBook() {
+      stopVoiceRecordingIfActive();
+      updateStudioMetadata();
+
+      const validPages = studioBook.pages.filter((p) => p.image_data || p.audio_data || p.caption);
+      if (validPages.length === 0) {
+        showToast('Ajoutez au moins une photo ou un enregistrement vocal avant de terminer.');
+        return;
+      }
+
+      const title = (studioBook.title || '').trim() || 'Mon Histoire Illustrée';
+      validPages.forEach((p, idx) => {
+        p.page_number = idx + 1;
+        p.book_id = studioBook.id;
+      });
+
+      const rawCover = studioBook.custom_cover || validPages[0].image_data || '';
+      const coverThumb = await generateCoverThumbnail(rawCover);
+      const totalDuration = validPages.reduce((acc, p) => acc + (Number(p.audio_duration) || 5), 0);
+
+      const bookMeta = {
+        id: studioBook.id,
+        title,
+        narrator: studioBook.narrator || 'Papa',
+        cover_image: coverThumb,
+        page_count: validPages.length,
+        total_duration_sec: Math.round(totalDuration),
+        is_favorite: studioBook.is_favorite || 0,
+        updated_at: new Date().toISOString()
+      };
+
+      // 1. Save locally to IndexedDB immediately
+      await saveBookToIDB(bookMeta, validPages);
+
+      const existingIdx = booksList.findIndex((b) => b.id === bookMeta.id);
+      if (existingIdx >= 0) {
+        booksList[existingIdx] = bookMeta;
+      } else {
+        booksList.unshift(bookMeta);
+      }
+      renderAll();
+      setParentTab('books');
+      showToast(`Livre "${title}" enregistré (${validPages.length} pages) ✓`);
+
+      // 2. Upload Book Metadata + Each Page sequentially to Cloudflare D1
+      setSyncStatus('syncing', 'Sauvegarde Cloud...');
+      try {
+        await fetch('/api/stories', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'X-User-Id': state.familyCode },
+          body: JSON.stringify({ action: 'save_book', book: bookMeta })
+        });
+
+        for (const p of validPages) {
+          await fetch('/api/stories', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-User-Id': state.familyCode },
+            body: JSON.stringify({ action: 'save_page', page: p })
+          });
+        }
+
+        await fetch('/api/stories', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'X-User-Id': state.familyCode },
+          body: JSON.stringify({
+            action: 'sync_pages_order',
+            book_id: bookMeta.id,
+            page_ids: validPages.map((p) => p.id)
+          })
+        });
+
+        setSyncStatus('ok', 'Cloud D1 Synchronisé');
+      } catch (_) {
+        setSyncStatus('offline', 'Sauvegardé en local');
+      }
+    }
+
+    async function toggleBookFavorite(bookId) {
+      const b = booksList.find((x) => x.id === bookId);
+      if (!b) return;
+      b.is_favorite = b.is_favorite ? 0 : 1;
+      renderAll();
+
+      try {
+        const pages = await getBookPagesFromIDB(bookId);
+        if (pages.length > 0) await saveBookToIDB(b, pages);
+      } catch (_) {}
+
+      fetch('/api/stories', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-User-Id': state.familyCode },
+        body: JSON.stringify({ action: 'toggle_favorite', book_id: bookId, is_favorite: b.is_favorite })
+      }).catch(() => {});
+    }
+
+    async function deleteBook(bookId) {
+      const b = booksList.find((x) => x.id === bookId);
+      if (!b) return;
+      if (!confirm(`Supprimer le livre "${b.title}" ?`)) return;
+
+      if (bookId === DEMO_BOOK_ID) {
+        state.demoDeleted = true;
+        saveLocalState();
+      }
+
+      booksList = booksList.filter((x) => x.id !== bookId);
+      await deleteBookFromIDB(bookId);
+      renderAll();
+      showToast('Livre supprimé');
+
+      fetch(`/api/stories?book_id=${encodeURIComponent(bookId)}`, {
+        method: 'DELETE',
+        headers: { 'X-User-Id': state.familyCode }
+      }).catch(() => {});
+    }
+
+    async function restoreDemoBook() {
+      state.demoDeleted = false;
+      saveLocalState();
+      const demo = createDemoCoverAndPages();
+      await saveBookToIDB(demo.book, demo.pages);
+      booksList = booksList.filter((b) => b.id !== DEMO_BOOK_ID);
+      booksList.unshift(demo.book);
+      renderAll();
+      showToast('Histoire de démonstration restaurée ✓');
+    }
+
+    // -------------------------------------------------------------
+    // 11. CHILD STORY READER & AUTOMATIC PAGE-TURN ENGINE
+    // -------------------------------------------------------------
+    async function openBookInReader(bookId) {
+      stopVoiceRecordingIfActive();
+      const meta = booksList.find((b) => b.id === bookId);
+      if (!meta) return;
+
+      try {
+        const pages = await fetchOrLoadBookPages(bookId);
+        if (!pages || pages.length === 0) {
+          showToast('Ce livre ne contient pas encore de pages.');
+          return;
+        }
+
+        readerBook = meta;
+        readerPages = pages;
+        readerPageIndex = 0;
+        readerIsPlaying = true;
+
+        // Configure Reader UI
+        document.getElementById('readerOverlay').classList.remove('hidden');
+        document.getElementById('readerEndScreen').classList.add('hidden');
+        document.getElementById('readerBookTitle').textContent = meta.title;
+        document.getElementById('readerNarratorBadge').textContent = `🎙️ ${meta.narrator || 'Papa'}`;
+
+        // Handsfree mode vs Big Buttons mode
+        const ctrlBar = document.getElementById('readerControlsBar');
+        const exitLbl = document.getElementById('readerExitLabel');
+        if (state.settings.childControls === 'handsfree') {
+          ctrlBar.classList.add('hidden');
+          exitLbl.textContent = 'Quitter';
+        } else {
+          ctrlBar.classList.remove('hidden');
+          exitLbl.textContent = 'Bibliothèque';
+        }
+
+        await requestWakeLock();
+        loadAndPlayReaderPage(0);
+      } catch (err) {
+        showToast(err.message || 'Impossible de lancer ce livre');
+      }
+    }
+
+    function clearReaderTimersAndAudio() {
+      if (readerPauseTimer) {
+        clearTimeout(readerPauseTimer);
+        readerPauseTimer = null;
+      }
+      if (readerPauseInterval) {
+        clearInterval(readerPauseInterval);
+        readerPauseInterval = null;
+      }
+      if (readerAudioEl) {
+        readerAudioEl.pause();
+        readerAudioEl.onended = null;
+        readerAudioEl = null;
+      }
+      if (window.speechSynthesis) {
+        try { window.speechSynthesis.cancel(); } catch (_) {}
+      }
+      document.getElementById('readerPauseCountdownWrap').classList.add('hidden');
+    }
+
+    function loadAndPlayReaderPage(index) {
+      clearReaderTimersAndAudio();
+
+      if (!readerPages || index < 0 || index >= readerPages.length) return;
+      readerPageIndex = index;
+      const page = readerPages[index];
+      const total = readerPages.length;
+
+      document.getElementById('readerEndScreen').classList.add('hidden');
+      document.getElementById('readerPageCounter').textContent = `Page ${index + 1} / ${total}`;
+      document.getElementById('readerBookProgressBar').style.width = `${Math.round(((index + 1) / total) * 100)}%`;
+
+      // Animate page illustration
+      const imgEl = document.getElementById('readerPageImage');
+      imgEl.classList.remove('page-animate');
+      void imgEl.offsetWidth; // trigger reflow
+      imgEl.src = page.image_data || readerBook.cover_image || '';
+      imgEl.classList.add('page-animate');
+
+      // Optional caption
+      const capEl = document.getElementById('readerPageCaption');
+      if (page.caption) {
+        capEl.textContent = page.caption;
+        capEl.classList.remove('hidden');
+      } else {
+        capEl.classList.add('hidden');
+      }
+
+      updateReaderPlayPauseUI();
+
+      if (readerIsPlaying) {
+        playCurrentReaderPageAudio();
+      }
+    }
+
+    function playCurrentReaderPageAudio() {
+      clearReaderTimersAndAudio();
+      const page = readerPages[readerPageIndex];
+      if (!page) return;
+
+      setReaderStatus('🔊', `${readerBook.narrator || 'Papa'} raconte...`);
+
+      // Case 1: Recorded Voice Data URL
+      if (page.audio_data && page.audio_data !== 'DEMO_TTS') {
+        readerAudioEl = new Audio(page.audio_data);
+        readerAudioEl.onended = () => {
+          onPageAudioFinished();
+        };
+        readerAudioEl.onerror = () => {
+          onPageAudioFinished();
+        };
+        readerAudioEl.play().catch(() => {
+          onPageAudioFinished();
+        });
+        return;
+      }
+
+      // Case 2: Demo Story TTS or gentle lullaby fallback
+      if (page.audio_data === 'DEMO_TTS' && page.caption && 'speechSynthesis' in window) {
+        try {
+          window.speechSynthesis.cancel();
+          const utter = new SpeechSynthesisUtterance(page.caption);
+          utter.lang = 'fr-FR';
+          utter.rate = 0.92;
+          utter.onend = () => {
+            if (readerIsPlaying) onPageAudioFinished();
+          };
+          utter.onerror = () => {
+            if (readerIsPlaying) onPageAudioFinished();
+          };
+          window.speechSynthesis.speak(utter);
+          return;
+        } catch (_) {}
+      }
+
+      // Case 3: Page without voice recording -> wait 4s then trigger post-audio flow
+      readerPauseTimer = setTimeout(() => {
+        if (readerIsPlaying) onPageAudioFinished();
+      }, 3500);
+    }
+
+    function onPageAudioFinished() {
+      if (!readerIsPlaying) return;
+
+      // If auto-turn is disabled in parent settings, wait for manual next
+      if (!state.settings.autoTurn) {
+        setReaderStatus('⏸️', 'En attente de tourner la page');
+        return;
+      }
+
+      const pauseSec = Math.max(1, parseInt(state.settings.pauseAfterAudioSec, 10) || 3);
+      const pauseMs = pauseSec * 1000;
+      const startMs = Date.now();
+
+      setReaderStatus('👀', 'On regarde les images...');
+      const wrap = document.getElementById('readerPauseCountdownWrap');
+      const secLbl = document.getElementById('readerPauseSecondsLeft');
+      const bar = document.getElementById('readerPauseBar');
+      wrap.classList.remove('hidden');
+
+      let chimePlayed = false;
+
+      readerPauseInterval = setInterval(() => {
+        const elapsed = Date.now() - startMs;
+        const remainMs = Math.max(0, pauseMs - elapsed);
+        const remainSec = Math.ceil(remainMs / 1000);
+        if (secLbl) secLbl.textContent = remainSec;
+        if (bar) bar.style.width = `${Math.max(0, (remainMs / pauseMs) * 100)}%`;
+
+        // Play soft page-turn chime 650ms before turning the page
+        if (!chimePlayed && remainMs <= 650 && state.settings.pageChime) {
+          chimePlayed = true;
+          playPageTurnChime();
+        }
+      }, 80);
+
+      readerPauseTimer = setTimeout(() => {
+        clearReaderTimersAndAudio();
+        if (!readerIsPlaying) return;
+
+        if (readerPageIndex < readerPages.length - 1) {
+          loadAndPlayReaderPage(readerPageIndex + 1);
+        } else {
+          handleEndOfBookReached();
+        }
+      }, pauseMs);
+    }
+
+    function handleEndOfBookReached() {
+      readerIsPlaying = false;
+      updateReaderPlayPauseUI();
+      setReaderStatus('🌟', 'Histoire terminée !');
+
+      const action = state.settings.endOfBookAction || 'screen';
+      if (action === 'library') {
+        setTimeout(() => closeReader(), 1800);
+        return;
+      }
+      if (action === 'next_book' && booksList.length > 1) {
+        const curIdx = booksList.findIndex((b) => b.id === readerBook.id);
+        const nextIdx = (curIdx + 1) % booksList.length;
+        setTimeout(() => {
+          openBookInReader(booksList[nextIdx].id);
+        }, 2000);
+        return;
+      }
+
+      // Default: Show joyful End of Story screen
+      document.getElementById('readerEndBookTitle').textContent = `Tu as écouté "${readerBook.title}" jusqu'au bout !`;
+      document.getElementById('readerEndScreen').classList.remove('hidden');
+    }
+
+    function readerTogglePlayPause() {
+      readerIsPlaying = !readerIsPlaying;
+      updateReaderPlayPauseUI();
+      if (readerIsPlaying) {
+        playCurrentReaderPageAudio();
+      } else {
+        clearReaderTimersAndAudio();
+        setReaderStatus('⏸️', 'En pause');
+      }
+    }
+
+    function updateReaderPlayPauseUI() {
+      const ico = document.getElementById('readerPlayPauseIcon');
+      const txt = document.getElementById('readerPlayPauseText');
+      if (readerIsPlaying) {
+        ico.textContent = '⏸️';
+        txt.textContent = 'Pause';
+      } else {
+        ico.textContent = '▶️';
+        txt.textContent = 'Écouter';
+      }
+    }
+
+    function readerPrevPage() {
+      readerIsPlaying = true;
+      const target = Math.max(0, readerPageIndex - 1);
+      loadAndPlayReaderPage(target);
+    }
+
+    function readerNextPage() {
+      readerIsPlaying = true;
+      if (readerPageIndex < readerPages.length - 1) {
+        loadAndPlayReaderPage(readerPageIndex + 1);
+      } else {
+        handleEndOfBookReached();
+      }
+    }
+
+    function restartCurrentBook() {
+      readerIsPlaying = true;
+      loadAndPlayReaderPage(0);
+    }
+
+    function handleReaderExitTap() {
+      closeReader();
+    }
+
+    function closeReader() {
+      readerIsPlaying = false;
+      clearReaderTimersAndAudio();
+      releaseWakeLock();
+      document.getElementById('readerOverlay').classList.add('hidden');
+    }
+
+    function setReaderStatus(icon, text) {
+      document.getElementById('readerStatusIcon').textContent = icon;
+      document.getElementById('readerStatusText').textContent = text;
+    }
+
+    // -------------------------------------------------------------
+    // 12. WEB AUDIO PAGE-TURN CHIME & WAKE LOCK
+    // -------------------------------------------------------------
+    function playPageTurnChime() {
+      try {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        const ctx = new AudioCtx();
+        const now = ctx.currentTime;
+        // Soft two-note harp chime (C5 -> G5)
+        const freqs = [523.25, 783.99];
+        freqs.forEach((f, idx) => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(f, now + idx * 0.14);
+          gain.gain.setValueAtTime(0.001, now + idx * 0.14);
+          gain.gain.exponentialRampToValueAtTime(0.12, now + idx * 0.14 + 0.03);
+          gain.gain.exponentialRampToValueAtTime(0.0001, now + idx * 0.14 + 0.45);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(now + idx * 0.14);
+          osc.stop(now + idx * 0.14 + 0.48);
+        });
+        setTimeout(() => ctx.close().catch(() => {}), 1000);
+      } catch (_) {}
+    }
+
+    function speakTextFallback(text) {
+      if (!('speechSynthesis' in window)) return;
+      try {
+        window.speechSynthesis.cancel();
+        const u = new SpeechSynthesisUtterance(text);
+        u.lang = 'fr-FR';
+        u.rate = 0.92;
+        window.speechSynthesis.speak(u);
+      } catch (_) {}
+    }
+
+    async function requestWakeLock() {
+      if ('wakeLock' in navigator) {
+        try {
+          wakeLockSentinel = await navigator.wakeLock.request('screen');
+        } catch (_) {}
+      }
+    }
+
+    function releaseWakeLock() {
+      if (wakeLockSentinel) {
+        wakeLockSentinel.release().catch(() => {});
+        wakeLockSentinel = null;
+      }
+    }
+
+    // -------------------------------------------------------------
+    // 13. FAMILY CODE, EXPORT / IMPORT JSON & CLIPBOARD SUMMARY
+    // -------------------------------------------------------------
+    async function applyFamilyCode() {
+      const raw = document.getElementById('settingFamilyCode').value.trim();
+      state.familyCode = raw || 'famille_default';
+      applySettingsToUI();
+      saveLocalState();
+      await syncFromCloud(true);
+    }
+
+    async function exportAllBooksJSON() {
+      showToast('Préparation de la sauvegarde JSON...');
+      const exportPayload = {
+        app: 'papa-raconte',
+        exportedAt: new Date().toISOString(),
+        settings: state.settings,
+        books: []
+      };
+
+      for (const b of booksList) {
+        const pages = await fetchOrLoadBookPages(b.id);
+        exportPayload.books.push({ book: b, pages });
+      }
+
+      const blob = new Blob([JSON.stringify(exportPayload)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `papa-raconte-bibliotheque-${new Date().toISOString().slice(0, 10)}.json`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+      showToast('Fichier de sauvegarde téléchargé ✓');
+    }
+
+    async function importBooksJSON(event) {
+      const file = event.target.files && event.target.files[0];
+      if (!file) return;
+      try {
+        const text = await file.text();
+        const data = JSON.parse(text);
+        if (!data || !Array.isArray(data.books)) throw new Error('Format JSON invalide');
+
+        for (const item of data.books) {
+          if (item.book && Array.isArray(item.pages)) {
+            await saveBookToIDB(item.book, item.pages);
+            const idx = booksList.findIndex((x) => x.id === item.book.id);
+            if (idx >= 0) booksList[idx] = item.book;
+            else booksList.unshift(item.book);
+          }
+        }
+        renderAll();
+        showToast(`${data.books.length} livre(s) importés avec succès ✓`);
+      } catch (err) {
+        showToast('Erreur lors de l’import du fichier JSON');
+      } finally {
+        event.target.value = '';
+      }
+    }
+
+    async function copyLibrarySummary() {
+      const lines = [
+        `📖 Bibliothèque Papa Raconte (${booksList.length} livre${booksList.length > 1 ? 's' : ''})`,
+        `Code Famille : ${state.familyCode}`,
+        `Pause tourne-page auto : ${state.settings.pauseAfterAudioSec}s après la voix`,
+        `---`
+      ];
+      booksList.forEach((b, i) => {
+        lines.push(`${i + 1}. ${b.title} — Raconté par ${b.narrator || 'Papa'} (${b.page_count || 1} pages, ${formatDuration(b.total_duration_sec || 0)})`);
+      });
+
+      try {
+        await navigator.clipboard.writeText(lines.join('\n'));
+        const btn = document.getElementById('btnCopyCatalogText');
+        const old = btn.innerHTML;
+        btn.innerHTML = '<span>✓</span> Copié dans le presse-papiers !';
+        setTimeout(() => { btn.innerHTML = old; }, 2000);
+        showToast('Catalogue copié dans le presse-papiers ✓');
+      } catch (_) {
+        showToast('Impossible de copier automatiquement');
+      }
+    }
+
+    // -------------------------------------------------------------
+    // UTILITIES
+    // -------------------------------------------------------------
+    function escapeHtml(str) {
+      return String(str || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    let toastTimer = null;
+    function showToast(msg) {
+      const el = document.getElementById('toastNotice');
+      if (!el) return;
+      el.textContent = msg;
+      el.classList.remove('hidden');
+      if (toastTimer) clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => {
+        el.classList.add('hidden');
+      }, 3000);
+    }
+
+    // Boot on DOMContentLoaded
+    document.addEventListener('DOMContentLoaded', initApp);
+
+    return {
+      switchToChildMode,
+      requestParentMode,
+      checkGateMath,
+      startParentHold,
+      cancelParentHold,
+      closeParentGate,
+      setParentTab,
+      setChildFilter,
+      startNewBookWizard,
+      editExistingBook,
+      updateStudioMetadata,
+      selectStudioPage,
+      studioAddBlankPage,
+      studioNextOrAddPage,
+      studioMovePage,
+      studioDeleteCurrentPage,
+      updateCurrentPageCaption,
+      handlePagePhotoInput,
+      handleDedicatedCoverInput,
+      clearDedicatedCover,
+      rotateCurrentPagePhoto,
+      toggleVoiceRecording,
+      playStudioPreviewAudio,
+      clearCurrentPageAudio,
+      finishAndSaveBook,
+      toggleBookFavorite,
+      deleteBook,
+      restoreDemoBook,
+      openBookInReader,
+      readerTogglePlayPause,
+      readerPrevPage,
+      readerNextPage,
+      restartCurrentBook,
+      handleReaderExitTap,
+      closeReader,
+      playPageTurnChime,
+      saveSettingsFromUI,
+      applyFamilyCode,
+      syncFromCloud,
+      downloadAllForOffline,
+      exportAllBooksJSON,
+      importBooksJSON,
+      copyLibrarySummary
+    };
+  })();
+  </script>
+</body>
+</html>
