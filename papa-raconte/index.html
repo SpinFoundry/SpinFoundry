@@ -588,27 +588,32 @@
           <div id="studioCapture" hidden>
             <div class="capture-head">
               <div style="min-width:0"><small>Page <span id="capN">1</span> sur <span id="capT">1</span></small><h2 id="capTitle">Nouveau livre</h2></div>
-              <button class="btn btn-soft btn-sm" type="button" onclick="app.editInfos()">✏️ Infos</button>
+              <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end">
+                <button class="btn btn-soft btn-sm" type="button" onclick="app.editInfos()">✏️ Infos</button>
+                <button class="btn btn-danger btn-sm" type="button" onclick="app.deletePage()" title="Supprimer cette page">🗑️ Supprimer page</button>
+              </div>
             </div>
 
             <div class="strip" id="strip"></div>
 
-            <div class="preview" id="preview">
+            <div class="preview" id="preview" onclick="app.onPreviewTap()" style="cursor:pointer">
               <img id="prevImg" alt="Page du livre" hidden>
-              <div class="ph" id="prevPh"><div class="big">📖</div><b>Photographiez la page</b>Cadrez bien l'illustration, à plat.</div>
+              <div class="ph" id="prevPh"><div class="big">📖</div><b>Photographiez la page</b>Touchez ici pour ouvrir la caméra.</div>
             </div>
 
             <div class="card" style="margin-top:14px">
               <div class="status-row">
                 <div class="status-ic" id="icPhoto">1</div>
-                <div class="txt"><b>Photo de la page</b><span class="s" id="txtPhoto">À prendre</span></div>
+                <div class="txt"><b>Image de la page</b><span class="s" id="txtPhoto">À prendre</span></div>
               </div>
               <div class="acts-row" id="photoActs" hidden>
-                <button class="btn btn-dark btn-sm" type="button" onclick="app.openEditor('page')">✂️ Recadrer / retoucher</button>
-                <button class="btn btn-soft btn-sm" type="button" onclick="app.openCamera('page')">📷 Reprendre</button>
-                <label class="btn btn-soft btn-sm">🖼️ Galerie<input type="file" accept="image/*" hidden onchange="app.onPageFile(event)"></label>
+                <button class="btn btn-dark btn-sm" type="button" onclick="app.openEditor('page')">✂️ Éditer / Recadrer</button>
+                <button class="btn btn-soft btn-sm" type="button" onclick="app.openCamera('page')">📷 Remplacer (Photo)</button>
+                <label class="btn btn-soft btn-sm">🖼️ Remplacer (Galerie)<input type="file" accept="image/*" hidden onchange="app.onPageFile(event)"></label>
+                <button class="btn btn-danger btn-sm" type="button" onclick="app.erasePhoto()">🗑️ Supprimer l'image</button>
               </div>
               <div class="acts-row" id="photoActsEmpty">
+                <button class="btn btn-dark btn-sm" type="button" onclick="app.openCamera('page')">📷 Prendre une photo</button>
                 <label class="btn btn-soft btn-sm">🖼️ Choisir dans la galerie<input type="file" accept="image/*" hidden onchange="app.onPageFile(event)"></label>
               </div>
             </div>
@@ -616,34 +621,44 @@
             <div class="card">
               <div class="status-row">
                 <div class="status-ic" id="icVoice">2</div>
-                <div class="txt"><b>Ma voix</b><span class="s" id="txtVoice">À enregistrer</span></div>
+                <div class="txt"><b>Voix de la page</b><span class="s" id="txtVoice">À enregistrer</span></div>
                 <span class="rec-time" id="recTime" hidden>00:00</span>
               </div>
               <div class="meter" id="meterWrap" hidden><div id="meterBar"></div></div>
               <div class="acts-row" id="voiceActs" hidden>
-                <button class="btn btn-soft btn-sm" type="button" onclick="app.playPreview()">▶️ Réécouter</button>
-                <button class="btn btn-danger btn-sm" type="button" onclick="app.eraseVoice()">🗑️ Refaire</button>
+                <button class="btn btn-dark btn-sm" type="button" onclick="app.playPreview()">▶️ Écouter</button>
+                <button class="btn btn-rec btn-sm" type="button" onclick="app.reRecordVoice()">🎙️ Remplacer la voix</button>
+                <label class="btn btn-soft btn-sm">📂 Importer audio<input type="file" accept="audio/*" hidden onchange="app.onAudioFile(event)"></label>
+                <button class="btn btn-danger btn-sm" type="button" onclick="app.eraseVoice()">🗑️ Supprimer la voix</button>
+              </div>
+              <div class="acts-row" id="voiceActsEmpty">
+                <button class="btn btn-rec btn-sm" type="button" onclick="app.reRecordVoice()">🎙️ Enregistrer ma voix</button>
+                <label class="btn btn-soft btn-sm">📂 Importer un audio<input type="file" accept="audio/*" hidden onchange="app.onAudioFile(event)"></label>
+              </div>
+              <div class="acts-row" id="voiceActsRec" hidden>
+                <button class="btn btn-rec btn-sm" type="button" onclick="app.stopRecording()">⏹ Arrêter l'enregistrement</button>
               </div>
             </div>
 
-            <details class="more">
-              <summary>⚙️ Options de cette page</summary>
-              <div class="stack" style="margin-top:8px">
-                <div class="acts-row" style="margin:0">
-                  <button class="btn btn-soft btn-sm" type="button" onclick="app.movePage(-1)">← Reculer</button>
-                  <button class="btn btn-soft btn-sm" type="button" onclick="app.movePage(1)">Avancer →</button>
-                  <button class="btn btn-danger btn-sm" type="button" onclick="app.deletePage()">🗑️ Supprimer la page</button>
-                </div>
-                <div>
-                  <label class="label" for="inCaption">Texte affiché sous l'image (optionnel)</label>
-                  <input id="inCaption" class="input" type="text" placeholder="Ex : Il était une fois…" oninput="app.onCaption()">
-                </div>
+            <div class="card">
+              <div class="status-row" style="margin-bottom:8px">
+                <div class="txt"><b>Organisation de la page <span id="orgPageN">1</span></b><span class="s">Déplacer, insérer ou supprimer cette page</span></div>
               </div>
-            </details>
+              <div class="acts-row" style="margin-top:6px">
+                <button class="btn btn-soft btn-sm" id="btnMovePrev" type="button" onclick="app.movePage(-1)">← Reculer</button>
+                <button class="btn btn-soft btn-sm" id="btnMoveNext" type="button" onclick="app.movePage(1)">Avancer →</button>
+                <button class="btn btn-soft btn-sm" type="button" onclick="app.insertPageAfter()">＋ Insérer une page ici</button>
+                <button class="btn btn-danger btn-sm" type="button" onclick="app.deletePage()">🗑️ Supprimer cette page</button>
+              </div>
+              <div style="margin-top:12px">
+                <label class="label" for="inCaption">Texte affiché sous l'image (optionnel)</label>
+                <input id="inCaption" class="input" type="text" placeholder="Ex : Il était une fois…" oninput="app.onCaption()">
+              </div>
+            </div>
 
             <div class="cta-bar"><div class="cta-in">
               <button class="btn btn-primary" id="ctaMain" type="button" onclick="app.ctaMain()">📷 Photographier la page</button>
-              <div class="cta-sub"><button class="btn btn-ghost btn-sm" type="button" onclick="app.finishBook()">✓ J'ai terminé — publier le livre</button></div>
+              <div class="cta-sub"><button class="btn btn-dark btn-sm" type="button" onclick="app.finishBook()">💾 Enregistrer &amp; publier le livre</button></div>
             </div></div>
           </div>
         </div>
@@ -1340,6 +1355,9 @@ const app = (() => {
     if (sIdx < 0) sIdx = 0;
     const p = cur(), total = studio.pages.length;
     $('capN').textContent = sIdx + 1; $('capT').textContent = total;
+    if ($('orgPageN')) $('orgPageN').textContent = sIdx + 1;
+    if ($('btnMovePrev')) $('btnMovePrev').disabled = sIdx <= 0;
+    if ($('btnMoveNext')) $('btnMoveNext').disabled = sIdx >= total - 1;
     $('capTitle').textContent = (studio.title || '').trim() || 'Livre sans titre';
 
     $('strip').innerHTML = studio.pages.map((pg, i) => `
@@ -1354,13 +1372,15 @@ const app = (() => {
     const img = $('prevImg');
     if (p.image_data) { img.src = p.image_data; img.hidden = false; $('prevPh').hidden = true; } else { img.removeAttribute('src'); img.hidden = true; $('prevPh').hidden = false; }
     $('icPhoto').className = 'status-ic' + (p.image_data ? ' done' : ''); $('icPhoto').textContent = p.image_data ? '✓' : '1';
-    $('txtPhoto').textContent = p.image_data ? 'Photo prête' : 'À prendre';
+    $('txtPhoto').textContent = p.image_data ? 'Photo prête · touchez l\'image pour la recadrer' : 'Aucune image sur cette page';
     $('photoActs').hidden = !p.image_data; $('photoActsEmpty').hidden = !!p.image_data;
 
     const recNow = isRec;
     $('icVoice').className = 'status-ic' + (p.audio_data && !recNow ? ' done' : ''); $('icVoice').textContent = recNow ? '●' : (p.audio_data ? '✓' : '2');
-    $('txtVoice').textContent = recNow ? 'Enregistrement en cours…' : (p.audio_data ? 'Voix enregistrée · ' + (p.audio_duration || 0).toFixed(1) + ' s' : (p.image_data ? 'Lisez le texte de la page à voix haute' : 'Prenez d\'abord la photo'));
+    $('txtVoice').textContent = recNow ? 'Enregistrement en cours…' : (p.audio_data ? 'Voix enregistrée · ' + (p.audio_duration || 0).toFixed(1) + ' s' : 'Aucune voix enregistrée sur cette page');
     $('voiceActs').hidden = !p.audio_data || recNow;
+    if ($('voiceActsEmpty')) $('voiceActsEmpty').hidden = !!p.audio_data || recNow;
+    if ($('voiceActsRec')) $('voiceActsRec').hidden = !recNow;
     $('recTime').hidden = !recNow; $('meterWrap').hidden = !recNow;
     $('inCaption').value = p.caption || '';
 
@@ -1368,7 +1388,20 @@ const app = (() => {
     if (recNow) { btn.className = 'btn btn-rec'; btn.textContent = '⏹ Arrêter l\'enregistrement'; }
     else if (!p.image_data) { btn.className = 'btn btn-primary'; btn.textContent = '📷 Photographier la page'; }
     else if (!p.audio_data) { btn.className = 'btn btn-rec'; btn.textContent = '🎙️ Enregistrer ma voix'; }
-    else { btn.className = 'btn btn-primary'; btn.textContent = last ? '＋ Page suivante' : 'Page suivante →'; }
+    else { btn.className = 'btn btn-primary'; btn.textContent = last ? '＋ Ajouter la page suivante' : 'Page suivante →'; }
+  }
+  function onPreviewTap() {
+    const p = cur();
+    if (!p) return;
+    if (p.image_data) openEditor('page');
+    else openCamera('page');
+  }
+  function erasePhoto() {
+    const p = cur();
+    if (!p || !p.image_data) return;
+    if (!confirm('Supprimer l\'image de la page ' + (sIdx + 1) + ' ?')) return;
+    p.image_data = '';
+    saveDraft(); paintCapture(); toast('Image supprimée');
   }
   function ctaMain() {
     const p = cur();
@@ -1396,10 +1429,20 @@ const app = (() => {
     [studio.pages[sIdx], studio.pages[t]] = [studio.pages[t], studio.pages[sIdx]];
     studio.pages.forEach((p, i) => { p.page_number = i + 1; });
     sIdx = t; saveDraft(); paintCapture();
+    toast('Page déplacée en position ' + (sIdx + 1));
+  }
+  function insertPageAfter() {
+    stopRecording();
+    const np = newPage(sIdx + 2, studio.id);
+    studio.pages.splice(sIdx + 1, 0, np);
+    studio.pages.forEach((p, i) => { p.page_number = i + 1; });
+    sIdx = sIdx + 1;
+    saveDraft(); paintCapture();
+    toast('Nouvelle page ' + (sIdx + 1) + ' insérée');
   }
   function deletePage() {
     stopRecording();
-    if (!confirm('Supprimer la page ' + (sIdx + 1) + ' ?')) return;
+    if (!confirm('Supprimer définitivement la page ' + (sIdx + 1) + ' ?')) return;
     if (studio.pages.length <= 1) studio.pages[0] = newPage(1, studio.id);
     else { studio.pages.splice(sIdx, 1); studio.pages.forEach((p, i) => { p.page_number = i + 1; }); if (sIdx >= studio.pages.length) sIdx = studio.pages.length - 1; }
     saveDraft(); paintCapture(); toast('Page supprimée');
@@ -1781,7 +1824,36 @@ const app = (() => {
     prevAudio = createNormalizedAudio(p.audio_data);
     prevAudio.play().catch(() => {});
   }
-  function eraseVoice() { const p = cur(); if (!p) return; p.audio_data = ''; p.audio_duration = 0; saveDraft(); paintCapture(); }
+  function reRecordVoice() {
+    if (prevAudio) { prevAudio.pause(); prevAudio = null; }
+    if (isRec) return stopRecording();
+    startRecording();
+  }
+  function eraseVoice() {
+    const p = cur(); if (!p || !p.audio_data) return;
+    if (!confirm('Supprimer la voix de la page ' + (sIdx + 1) + ' ?')) return;
+    if (prevAudio) { prevAudio.pause(); prevAudio = null; }
+    p.audio_data = ''; p.audio_duration = 0;
+    saveDraft(); paintCapture(); toast('Voix supprimée');
+  }
+  function onAudioFile(e) {
+    const f = e.target.files && e.target.files[0]; if (!f) return;
+    const p = cur(); if (!p) return;
+    const fr = new FileReader();
+    fr.onload = () => {
+      const data = fr.result;
+      const au = new Audio(data);
+      const finalize = (dur) => {
+        p.audio_data = data;
+        p.audio_duration = Math.max(1, Math.round((Number(dur) || 5) * 10) / 10);
+        saveDraft(); paintCapture(); toast('Audio importé ✓');
+      };
+      au.onloadedmetadata = () => finalize(au.duration);
+      au.onerror = () => finalize(5);
+    };
+    fr.readAsDataURL(f);
+    e.target.value = '';
+  }
 
   /* ---------------- Save book ---------------- */
   async function thumb(dataUrl) {
@@ -2008,10 +2080,10 @@ const app = (() => {
   return {
     startKid, requestParent, exitParent, closeGate, setTab, setFilter,
     newBook, newBookOrResume, resumeDraft, onMeta, startPages, editInfos, resetCover,
-    ctaMain, onCaption, movePage, deletePage, rotate, onPageFile, onCoverFile,
+    ctaMain, onPreviewTap, erasePhoto, onCaption, movePage, insertPageAfter, deletePage, rotate, onPageFile, onCoverFile,
     openCamera, closeCamera, flipCamera, shoot,
     openEditor, edCancel, edApply, edRotate, edAuto, edReset, edRatio, edSlider,
-    playPreview, eraseVoice, finishBook,
+    playPreview, reRecordVoice, onAudioFile, stopRecording, eraseVoice, finishBook,
     rPrev, rNext, rToggle, rRestart, closeReader,
     saveSettings, setSeg, chime, applyFamily, syncCloud, downloadAll, exportJSON, importJSON, copyCatalog, restoreDemo
   };
